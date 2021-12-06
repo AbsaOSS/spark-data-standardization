@@ -51,3 +51,9 @@ assemblyMergeStrategy in assembly := {
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
 }
+
+// licenceHeader check:
+
+ThisBuild / organizationName := "ABSA Group Limited"
+ThisBuild / startYear := Some(2021)
+ThisBuild / licenses += "Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")
