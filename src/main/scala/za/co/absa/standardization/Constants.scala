@@ -17,10 +17,10 @@
 package za.co.absa.standardization
 
 object Constants {
-  // ToDo Configurable
-  final val InfoDateColumn = "standardization_info_date"
+  // ToDo Configurable - Issue #5
+  final val InfoDateColumn = "enceladus_info_date" // TODO #5 "standardization_info_date"
   final val InfoDateColumnString = s"${InfoDateColumn}_string"
   final val ReportDateFormat = "yyyy-MM-dd"
-  final val InfoVersionColumn = "standardization_info_version"
-  final val EnceladusRecordId = "standardization_record_id"
+  final val InfoVersionColumn = "enceladus_info_version" // TODO #5 "standardization_info_version"
+  final val EnceladusRecordId = "enceladus_record_id" // TODO #5 "standardization_record_id"
 }
