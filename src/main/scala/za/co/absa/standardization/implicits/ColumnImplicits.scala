@@ -27,11 +27,11 @@ object ColumnImplicits {
     }
 
     /**
-      * Spark strings are base on 1 unlike scala. The function shifts the substring indexation to be in accordance with
+      * Spark string functions are 1-based (position of first char is 1) unlike 0-based in Java/Scala. The function shifts the substring indexation to be in accordance with
       * Scala/ Java.
       * Another enhancement is, that the function allows a negative index, denoting counting of the index from back
       * This version takes the substring from the startPos until the end.
-      * @param startPos the index (zero based) where to start the substring from, if negative it's counted from end
+      * @param startPos the index (zero-based) where to start the substring from, if negative it's counted from end
       * @return         column with requested substring
       */
     def zeroBasedSubstr(startPos: Int): Column = {
