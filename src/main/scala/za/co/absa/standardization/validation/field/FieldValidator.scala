@@ -21,6 +21,7 @@ import za.co.absa.standardization.types.TypedStructField
 
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
+import FieldValidator._
 
 class FieldValidator {
 
@@ -45,12 +46,15 @@ class FieldValidator {
     }
   }
 
+
+
   protected def checkMetadataKey[T: TypeTag](field: TypedStructField,
                                              metadataKey: String,
                                              issueConstructor: String => ValidationIssue = ValidationError.apply): Seq[ValidationIssue] = {
+
     def optionToValidationIssueSeq(option: Option[_], typeName: String): Seq[ValidationIssue] = {
       option.map(_ => Nil).getOrElse(
-        Seq(issueConstructor(s"$metadataKey metadata value of field '${field.name}' is not $typeName in String format"))
+        Seq(issueConstructor(s"$metadataKey metadata value of field '${field.name}' is not ${simpleTypeName(typeName)} in String format"))
       )
     }
 
@@ -67,4 +71,13 @@ class FieldValidator {
   }
 }
 
-object FieldValidator extends FieldValidator
+object FieldValidator extends FieldValidator {
+  /**
+    * Keeps part of the string after last dot. E.g. `scala.Boolean` -> `Boolean`. Does nothing if there is no dot.
+    * @param typeName possibly dot-separated type name
+    * @return simple type name
+    */
+  private[field] def simpleTypeName(typeName: String) = {
+    typeName.split("""\.""").last
+  }
+}
