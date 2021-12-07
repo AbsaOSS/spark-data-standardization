@@ -21,4 +21,4 @@ import za.co.absa.standardization.ValidationIssue
 /**
   * This class contains the list of issues found during schema validation of a particular column
   */
-case class FieldValidationFailure(fieldName: String, pattern: String, issues: Seq[ValidationIssue])
+case class FieldValidationIssue(fieldName: String, pattern: String, issues: Seq[ValidationIssue])

@@ -22,7 +22,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.stages.SchemaChecker
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.validation.field.FieldValidationFailure
+import za.co.absa.standardization.validation.field.FieldValidationIssue
 import za.co.absa.standardization.{ErrorMessage, FileReader, LoggerTestBase, SchemaValidator, SparkTestBase, Standardization, TestSamples, ValidationError, ValidationException, ValidationWarning}
 
 
@@ -45,22 +45,22 @@ class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
     logger.debug(data.schema.prettyJson)
     val validationErrors = SchemaValidator.validateSchema(schemaWrong)
     val exp = List(
-      FieldValidationFailure("dateSampleWrong1", "DD-MM-yyyy", List(
+      FieldValidationIssue("dateSampleWrong1", "DD-MM-yyyy", List(
         ValidationWarning("No day placeholder 'dd' found."),
         ValidationWarning("Rarely used DayOfYear placeholder 'D' found. Possibly DayOfMonth 'd' intended."))),
-      FieldValidationFailure("dateSampleWrong2", "Dy", List(
+      FieldValidationIssue("dateSampleWrong2", "Dy", List(
         ValidationWarning("No day placeholder 'dd' found."),
         ValidationWarning("Rarely used DayOfYear placeholder 'D' found. Possibly DayOfMonth 'd' intended."),
         ValidationWarning("No month placeholder 'MM' found."))),
-      FieldValidationFailure("dateSampleWrong3", "rrr", List(
+      FieldValidationIssue("dateSampleWrong3", "rrr", List(
         ValidationError("Illegal pattern character 'r'"))),
-      FieldValidationFailure("timestampSampleWrong1", "yyyyMMddTHHmmss", List(
+      FieldValidationIssue("timestampSampleWrong1", "yyyyMMddTHHmmss", List(
         ValidationError("Illegal pattern character 'T'"))),
-      FieldValidationFailure("timestampSampleWrong3", "yyyy-MM-dd", List(
+      FieldValidationIssue("timestampSampleWrong3", "yyyy-MM-dd", List(
         ValidationWarning("No hour placeholder 'HH' found."),
         ValidationWarning("No minute placeholder 'mm' found."),
         ValidationWarning("No second placeholder 'ss' found."))),
-      FieldValidationFailure("timestampNullDefaultWrong", "", List(
+      FieldValidationIssue("timestampNullDefaultWrong", "", List(
         ValidationError("null is not a valid value for field 'timestampNullDefaultWrong'")))
     )
     assert(validationErrors == exp)

@@ -19,7 +19,7 @@ package za.co.absa.standardization
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types._
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
-import za.co.absa.standardization.validation.field.FieldValidationFailure
+import za.co.absa.standardization.validation.field.FieldValidationIssue
 
 import scala.collection.mutable.ListBuffer
 
@@ -35,15 +35,15 @@ object SchemaValidator {
     * @param schema A Spark schema
     * @return A list of ValidationErrors objects, each containing a column name and the list of errors and warnings
     */
-  def validateSchema(schema: StructType): List[FieldValidationFailure] = {
-    var errorsAccumulator = new ListBuffer[FieldValidationFailure]
+  def validateSchema(schema: StructType): List[FieldValidationIssue] = {
+    var errorsAccumulator = new ListBuffer[FieldValidationIssue]
     val flatSchema = flattenSchema(schema)
     for {s <- flatSchema} {
       val fieldWithPath = if (s.structPath.isEmpty) s.field else s.field.copy(name = s.structPath + "." + s.field.name)
       val issues = validateColumnName(s.field.name, s.structPath) ++ TypedStructField(fieldWithPath).validate()
       if (issues.nonEmpty) {
         val pattern = if (s.field.metadata contains "pattern") s.field.metadata.getString("pattern") else ""
-        errorsAccumulator += FieldValidationFailure(fieldWithPath.name, pattern, issues)
+        errorsAccumulator += FieldValidationIssue(fieldWithPath.name, pattern, issues)
       }
     }
     errorsAccumulator.toList
@@ -60,7 +60,7 @@ object SchemaValidator {
     */
   def validateErrorColumn(schema: StructType)
                          (implicit spark: SparkSession)
-                         : List[FieldValidationFailure] = {
+                         : List[FieldValidationIssue] = {
     val expectedTypeNonNullable = ArrayType(ErrorMessage.errorColSchema, containsNull = false)
     val expectedTypeNullable = ArrayType(ErrorMessage.errorColSchema, containsNull = true)
     val errCol = schema.find(f => f.name == ErrorMessage.errorColumnName)
@@ -68,7 +68,7 @@ object SchemaValidator {
       case Some(errColField) =>
         if (errColField.dataType != expectedTypeNonNullable && errColField.dataType != expectedTypeNullable) {
           val actualType = errColField.dataType
-          List(FieldValidationFailure(errColField.name, "",
+          List(FieldValidationIssue(errColField.name, "",
             ValidationError("The error column in the input data does not conform to the expected type. " +
               s"Expected: $expectedTypeNonNullable, actual: $actualType") :: Nil))
         } else {

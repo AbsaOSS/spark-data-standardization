@@ -64,19 +64,6 @@ object SchemaChecker {
       }
     })
 
-    // Left out this code as well as it has it's own beauty and it's more efficient
-
-    // val errorMessages: (Seq[String], Seq[String]) = ( (Nil: Seq[String], Nil: Seq[String]) /: flattenedIssues ) {
-    //   case ((fieldNames, patterns), (column, pattern, ValidationError(text))) =>
-    //     val msg = s"Validation error for column '$column', pattern '$pattern': $text"
-    //     log.error(msg)
-    //     (fieldNames :+ msg, patterns)
-    //   case ((fieldNames, patterns), (column, pattern, ValidationWarning(text))) =>
-    //     val msg = s"Validation warning for column '$column', pattern '$pattern': $text"
-    //     log.warn(msg)
-    //     (fieldNames, patterns :+ msg)
-    // }
-
     errorMessages
   }
 

@@ -43,7 +43,6 @@ object JsonUtils {
     * @return A pretty formatted JSON string
     */
   def prettySparkJSON(jsons: Seq[String]): String = {
-    //val properJson = "[" + "}\n".r.replaceAllIn(jsonIn, "},\n") + "]"
     val singleJSON = jsons.mkString("[", ",", "]")
     prettyJSON(singleJSON)
   }
