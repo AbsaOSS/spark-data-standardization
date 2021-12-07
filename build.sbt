@@ -28,10 +28,10 @@ libraryDependencies ++=  List(
   "com.typesafe" % "config" % "1.4.1"
 )
 
-parallelExecution in Test := false
-mainClass in assembly := Some("za.co.absa.SparkApp")
+Test / parallelExecution := false
+assembly / mainClass := Some("za.co.absa.SparkApp")
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy := {
   case PathList("org", "aopalliance", _@_*) => MergeStrategy.last
   case PathList("javax", "inject", _@_*) => MergeStrategy.last
   case PathList("javax", "servlet", _@_*) => MergeStrategy.last
@@ -48,7 +48,7 @@ assemblyMergeStrategy in assembly := {
   case "plugin.properties" => MergeStrategy.last
   case "log4j.properties" => MergeStrategy.last
   case x =>
-    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    val oldStrategy = (assembly / assemblyMergeStrategy).value
     oldStrategy(x)
 }
 
