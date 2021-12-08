@@ -331,7 +331,7 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
 
   }
 
-  /* TODO this should work with #677 fixed
+  /* TODO this should work with #7 fixed (originally Enceladus#677)
   test("pattern with literal and less common placeholders") {
     val seq  = Seq(
       "70001 star [000] 12:00:00(aM) @000000",

@@ -135,7 +135,7 @@ object DateTimePattern {
     private def analyzeSecondFractionsPositions(withinString: String): (Option[Section], Option[Section], Option[Section]) = {
       val clearedPattern = withinString
 
-      // TODO as part of #677 fix
+      // TODO as part of #7 fix (originally Enceladus#677)
       val milliSP = scanForPlaceholder(clearedPattern, patternMilliSecondChar)
       val microSP = scanForPlaceholder(clearedPattern, patternMicroSecondChar)
       val nanoSP = scanForPlaceholder(clearedPattern, patternNanoSecondChat)
