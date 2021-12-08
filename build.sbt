@@ -30,28 +30,6 @@ libraryDependencies ++=  List(
 )
 
 Test / parallelExecution := false
-assembly / mainClass := Some("za.co.absa.SparkApp")
-
-assembly / assemblyMergeStrategy := {
-  case PathList("org", "aopalliance", _@_*) => MergeStrategy.last
-  case PathList("javax", "inject", _@_*) => MergeStrategy.last
-  case PathList("javax", "servlet", _@_*) => MergeStrategy.last
-  case PathList("javax", "activation", _@_*) => MergeStrategy.last
-  case PathList("org", "apache", _@_*) => MergeStrategy.last
-  case PathList("com", "google", _@_*) => MergeStrategy.last
-  case PathList("com", "esotericsoftware", _@_*) => MergeStrategy.last
-  case PathList("com", "codahale", _@_*) => MergeStrategy.last
-  case PathList("com", "yammer", _@_*) => MergeStrategy.last
-  case "about.html" => MergeStrategy.rename
-  case "META-INF/ECLIPSEF.RSA" => MergeStrategy.last
-  case "META-INF/mailcap" => MergeStrategy.last
-  case "META-INF/mimetypes.default" => MergeStrategy.last
-  case "plugin.properties" => MergeStrategy.last
-  case "log4j.properties" => MergeStrategy.last
-  case x =>
-    val oldStrategy = (assembly / assemblyMergeStrategy).value
-    oldStrategy(x)
-}
 
 // licenceHeader check:
 
