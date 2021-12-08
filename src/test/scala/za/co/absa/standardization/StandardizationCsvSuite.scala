@@ -23,7 +23,7 @@ import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 
 
-class StandardizationRerunSuite extends AnyFunSuite with SparkTestBase {
+class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
   import spark.implicits._
   import za.co.absa.standardization.implicits.DataFrameImplicits.DataFrameEnhancements
 
