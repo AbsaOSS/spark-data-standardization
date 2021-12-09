@@ -43,6 +43,27 @@ object StandardizationInterpreterSuite {
   case class subarrayCC(arrayFieldA: Integer, arrayFieldB: String, arrayStruct: subCC)
   case class rootCC(rootField: String, rootStruct: subCC, rootStruct2: sub1CC, rootArray: Array[subarrayCC])
 
+  // used by the last test:
+  // cannot use case class as the field names contain spaces therefore cast will happen into tuple
+  type BodyStats = (Int, Int, (String, Option[Boolean]), Seq[Double])
+  type PatientRow = (String, String, BodyStats, Seq[ErrorMessage])
+
+  object BodyStats {
+    def apply(height: Int,
+              weight: Int,
+              eyeColor: String,
+              glasses: Option[Boolean],
+              temperatureMeasurements: Seq[Double]
+             ): BodyStats = (height, weight, (eyeColor, glasses), temperatureMeasurements)
+  }
+
+  object PatientRow {
+    def apply(first_name: String,
+              lastName: String,
+              bodyStats: BodyStats,
+              errCol: Seq[ErrorMessage] = Seq.empty
+             ): PatientRow = (first_name, lastName, bodyStats, errCol)
+  }
 }
 
 class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
@@ -281,27 +302,6 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
   }
 
   test("Errors in fields and having source columns") {
-    // cannot use case class as the field names contain spaces therefore cast will happen into tuple
-    type BodyStats = (Int, Int, (String, Option[Boolean]), Seq[Double])
-    type PatientRow = (String, String, BodyStats, Seq[ErrorMessage])
-
-    object BodyStats {
-      def apply(height: Int,
-                weight: Int,
-                eyeColor: String,
-                glasses: Option[Boolean],
-                temperatureMeasurements: Seq[Double]
-               ): BodyStats = (height, weight, (eyeColor, glasses), temperatureMeasurements)
-    }
-
-    object PatientRow {
-      def apply(first_name: String,
-                lastName: String,
-                bodyStats: BodyStats,
-                errCol: Seq[ErrorMessage] = Seq.empty
-               ): PatientRow = (first_name, lastName, bodyStats, errCol)
-    }
-
     val desiredSchema = StructType(Seq(
       StructField("first_name", StringType, nullable = true,
         new MetadataBuilder().putString("sourcecolumn", "first name").build),
