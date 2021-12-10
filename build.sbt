@@ -15,7 +15,7 @@
  */
 
 
-ThisBuild / name := "standardization"
+ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
 ThisBuild / version := "0.0.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.11.12"
