@@ -16,7 +16,20 @@
 
 package za.co.absa.standardization
 
+import com.typesafe.config.{Config, ConfigFactory}
+import za.co.absa.standardization.RecordIdGeneration.getRecordIdGenerationType
+
 case class StandardizationConfig(recordIdGenerationStrategy: RecordIdGeneration.IdType,
                                  failOnInputNotPerSchema: Boolean) {
+
+}
+
+object StandardizationConfig {
+  def fromConfig(generalConfig: Config = ConfigFactory.load()): StandardizationConfig = {
+    StandardizationConfig(
+      getRecordIdGenerationType(generalConfig.getString("standardization.recordId.generation.strategy")),
+      generalConfig.getBoolean("standardization.failOnInputNotPerSchema")
+    )
+  }
 
 }
