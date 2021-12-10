@@ -17,7 +17,6 @@
 // to successfully publish to Sonatype OSS (using sbt publishSigned), setup outline at
 // https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html is expected
 
-ThisBuild / organizationName := "ABSA Group Limited"
 ThisBuild / organizationHomepage := Some(url("https://www.absa.africa"))
 ThisBuild / scmInfo := Some(
   ScmInfo(
@@ -44,8 +43,6 @@ ThisBuild / developers := List(
 
 ThisBuild / homepage := Some(url("https://github.com/AbsaOSS/spark-data-standardization"))
 ThisBuild / description := "Data Standardization library (originally part of the Enceladus project)"
-ThisBuild / startYear := Some(2021)
-ThisBuild / licenses += "Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")
 
 ThisBuild / pomIncludeRepository := { _ => false }
 ThisBuild / publishTo := {
