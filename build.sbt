@@ -15,7 +15,7 @@
  */
 
 
-ThisBuild / name := "standardization"
+ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
 ThisBuild / version := "0.0.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.11.12"
@@ -32,7 +32,6 @@ libraryDependencies ++=  List(
 Test / parallelExecution := false
 
 // licenceHeader check:
-
 ThisBuild / organizationName := "ABSA Group Limited"
 ThisBuild / startYear := Some(2021)
 ThisBuild / licenses += "Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")
