@@ -16,14 +16,12 @@
 
 package za.co.absa.standardization
 
-import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import org.apache.spark.sql.types.StructType
 import org.slf4j.{Logger, LoggerFactory}
-import za.co.absa.standardization.RecordIdGeneration.getRecordIdGenerationType
 import za.co.absa.standardization.schema.{SchemaUtils, SparkUtils}
 import za.co.absa.standardization.stages.{SchemaChecker, TypeParser}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, ParseOutput}
@@ -33,7 +31,7 @@ object Standardization {
   private implicit val defaults: Defaults = GlobalDefaults
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def standardize(df: DataFrame, schema: StructType, generalConfig: Config = ConfigFactory.load())
+  def standardize(df: DataFrame, schema: StructType, standardizationConfig: StandardizationConfig = StandardizationConfig.fromConfig())
                  (implicit sparkSession: SparkSession): DataFrame = {
     implicit val udfLib: UDFLibrary = new UDFLibrary
     implicit val hadoopConf: Configuration = sparkSession.sparkContext.hadoopConfiguration
@@ -42,7 +40,7 @@ object Standardization {
     validateSchemaAgainstSelfInconsistencies(schema)
 
     logger.info(s"Step 2: Standardization")
-    val std = standardizeDataset(df, schema, generalConfig.getBoolean("standardization.failOnInputNotPerSchema"))
+    val std = standardizeDataset(df, schema, standardizationConfig.failOnInputNotPerSchema)
 
     logger.info(s"Step 3: Clean the final error column")
     val cleanedStd = cleanTheFinalErrorColumn(std)
@@ -50,8 +48,7 @@ object Standardization {
     val idedStd = if (SchemaUtils.fieldExists(Constants.EnceladusRecordId, cleanedStd.schema)) {
       cleanedStd // no new id regeneration
     } else {
-      val recordIdGenerationStrategy = getRecordIdGenerationType(generalConfig.getString("standardization.recordId.generation.strategy"))
-      RecordIdGeneration.addRecordIdColumnByStrategy(cleanedStd, Constants.EnceladusRecordId, recordIdGenerationStrategy)
+      RecordIdGeneration.addRecordIdColumnByStrategy(cleanedStd, Constants.EnceladusRecordId, standardizationConfig.recordIdGenerationStrategy)
     }
 
     logger.info(s"Standardization process finished, returning to the application...")

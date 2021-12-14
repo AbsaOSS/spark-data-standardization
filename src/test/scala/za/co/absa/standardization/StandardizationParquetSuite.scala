@@ -216,7 +216,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
     val schema = StructType(seq)
 
     val exception = intercept[TypeParserException] {
-      Standardization.standardize(sourceDataDF, schema, configWithSchemaValidation)
+      Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(configWithSchemaValidation))
     }
     assert(exception.getMessage == "Cannot standardize field 'id' from type integer into array")
   }
@@ -233,7 +233,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
     val schema = StructType(seq)
 
     val exception = intercept[TypeParserException] {
-      Standardization.standardize(sourceDataDF, schema, configWithSchemaValidation)
+      Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(configWithSchemaValidation))
     }
     assert(exception.getMessage == "Cannot standardize field 'id' from type integer into struct")
   }
@@ -247,7 +247,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
     val schema = StructType(seq)
 
     val exception = intercept[TypeParserException] {
-      Standardization.standardize(sourceDataDF, schema, configWithSchemaValidation)
+      Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(configWithSchemaValidation))
     }
     assert(exception.getMessage == "Cannot standardize field 'letters' from type array into struct")
   }
@@ -270,7 +270,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
     )
     val schema = StructType(seq)
     // stableHashId will always yield the same ids
-    val destDF = Standardization.standardize(sourceDataDF, schema, stableIdConfig)
+    val destDF = Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(stableIdConfig))
 
     val actual = destDF.dataAsString(truncate = false)
     assert(actual == expected)
@@ -293,7 +293,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
       StructField("struct", StructType(Seq(StructField("bar", BooleanType))), nullable = false)
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDataDF, schema, uuidConfig)
+    val destDF = Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(uuidConfig))
 
     // same except for the record id
     val actual = destDF.drop("enceladus_record_id").dataAsString(truncate = false)
@@ -326,7 +326,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
       StructField("enceladus_record_id", StringType, nullable = false)
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDfWithExistingIds, schema, uuidConfig)
+    val destDF = Standardization.standardize(sourceDfWithExistingIds, schema, StandardizationConfig.fromConfig(uuidConfig))
 
     // The TrueUuids strategy does not override the existing values
     val actual = destDF.dataAsString(truncate = false)
