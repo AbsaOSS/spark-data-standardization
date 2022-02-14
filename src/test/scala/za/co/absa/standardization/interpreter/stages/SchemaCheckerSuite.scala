@@ -18,8 +18,9 @@ package za.co.absa.standardization.interpreter.stages
 
 import org.apache.spark.sql.types.{DataType, StructType}
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.standardization.FileReader
 import za.co.absa.standardization.stages.SchemaChecker
-import za.co.absa.standardization.{FileReader, SparkTestBase}
 
 class SchemaCheckerSuite extends AnyFunSuite with SparkTestBase {
   test("Bug") {

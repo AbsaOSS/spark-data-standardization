@@ -16,10 +16,11 @@
 
 package za.co.absa.standardization.types.parsers
 
+import java.text.{DecimalFormat, ParsePosition}
+
 import za.co.absa.standardization.implicits.OptionImplicits.OptionEnhancements
 import za.co.absa.standardization.types.parsers.NumericParser.NumericParserException
 
-import java.text.{DecimalFormat, ParsePosition}
 import scala.util.{Failure, Success, Try}
 
 /**

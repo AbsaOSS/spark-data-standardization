@@ -20,22 +20,25 @@ import java.security.InvalidParameterException
 import java.sql.Timestamp
 import java.util.Date
 import java.util.regex.Pattern
+
 import org.apache.spark.sql.Column
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.slf4j.{Logger, LoggerFactory}
+import za.co.absa.spark.commons.implicits.ColumnImplicits.ColumnEnhancements
+import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
+import za.co.absa.spark.commons.utils.SchemaUtils
+import za.co.absa.spark.hofs.transform
 import za.co.absa.standardization.ErrorMessage
-import za.co.absa.standardization.schema.MetadataValues
-import za.co.absa.standardization.schema.SchemaUtils.FieldWithSource
-import za.co.absa.standardization.types.Defaults
-import za.co.absa.standardization.types.TypedStructField._
-import za.co.absa.standardization.udf.{UDFBuilder, UDFLibrary, UDFNames}
-import za.co.absa.standardization.schema.SchemaUtils
+import za.co.absa.standardization.implicits.StdColumnImplicits.StdColumnEnhancements
+import za.co.absa.standardization.schema.{MetadataValues, StdSchemaUtils}
+import za.co.absa.standardization.schema.StdSchemaUtils.FieldWithSource
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
-import za.co.absa.standardization.types.{ParseOutput, TypedStructField}
-import za.co.absa.spark.hofs.transform
+import za.co.absa.standardization.types.TypedStructField._
+import za.co.absa.standardization.types.{Defaults, ParseOutput, TypedStructField}
+import za.co.absa.standardization.udf.{UDFBuilder, UDFLibrary, UDFNames}
 
 import scala.reflect.runtime.universe._
 import scala.util.{Random, Try}
@@ -116,7 +119,6 @@ sealed trait TypeParser[T] {
 }
 
 object TypeParser {
-  import za.co.absa.standardization.implicits.ColumnImplicits.ColumnEnhancements
 
   private val decimalType = DecimalType(30,9) // scalastyle:ignore magic.number
   private implicit val logger: Logger = LoggerFactory.getLogger(this.getClass)
@@ -132,7 +134,7 @@ object TypeParser {
                  (implicit udfLib: UDFLibrary, defaults: Defaults): ParseOutput = {
     // udfLib implicit is present for error column UDF implementation
     val sourceName = SchemaUtils.appendPath(path, field.sourceName)
-    val origField = SchemaUtils.getField(sourceName, origSchema)
+    val origField = origSchema.getField(sourceName)
     val origFieldType = origField.map(_.dataType).getOrElse(NullType)
     val column = origField.fold(nullColumn)(_ => col(sourceName))
     TypeParser(field, path, column, origFieldType, failOnInputNotPerSchema).standardize()
@@ -195,7 +197,7 @@ object TypeParser {
       logger.info(s"Creating standardization plan for Array $inputFullPathName")
       val origArrayType = origType.asInstanceOf[ArrayType] // this should never throw an exception because of `checkSetupForFailure`
       val arrayField = StructField(fieldInputName, fieldType.elementType, fieldType.containsNull, field.structField.metadata)
-      val lambdaVariableName = s"${SchemaUtils.unpath(inputFullPathName)}_${Random.nextLong().abs}"
+      val lambdaVariableName = s"${StdSchemaUtils.unpath(inputFullPathName)}_${Random.nextLong().abs}"
       val lambda = (forCol: Column) => TypeParser(arrayField, path, forCol, origArrayType.elementType, failOnInputNotPerSchema, isArrayElement = true)
         .standardize()
 

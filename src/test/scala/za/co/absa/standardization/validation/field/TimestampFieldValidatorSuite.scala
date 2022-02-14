@@ -18,10 +18,10 @@ package za.co.absa.standardization.validation.field
 
 import org.apache.spark.sql.types.{MetadataBuilder, StructField, TimestampType}
 import org.scalatest.funsuite.AnyFunSuite
-import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationWarning}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.time.TimeZoneNormalizer
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationWarning}
 
 class TimestampFieldValidatorSuite extends AnyFunSuite  {
   TimeZoneNormalizer.normalizeJVMTimeZone()

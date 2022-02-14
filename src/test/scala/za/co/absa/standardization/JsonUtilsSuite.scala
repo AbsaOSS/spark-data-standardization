@@ -17,6 +17,8 @@
 package za.co.absa.standardization
 
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.utils.JsonUtils
+import za.co.absa.spark.commons.test.SparkTestBase
 
 class JsonUtilsSuite extends AnyFunSuite with SparkTestBase {
   test("Test JSON pretty formatting from a JSON string") {

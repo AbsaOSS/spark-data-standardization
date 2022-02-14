@@ -16,13 +16,13 @@
 
 package za.co.absa.standardization.validation.field
 
-import org.apache.spark.sql.types.{ByteType, DataType, IntegerType, LongType, MetadataBuilder, ShortType, StructField}
+import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
-import za.co.absa.standardization.{ValidationError, ValidationWarning}
 import za.co.absa.standardization.numeric.Radix
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField.IntegralTypeStructField
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.{ValidationError, ValidationWarning}
 
 class IntegralFieldValidatorSuite extends AnyFunSuite {
   private implicit val defaults: Defaults = GlobalDefaults

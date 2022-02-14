@@ -16,11 +16,12 @@
 
 package za.co.absa.standardization.types.parsers
 
+import java.util.Locale
+
 import za.co.absa.standardization.implicits.StringImplicits.StringEnhancements
 import za.co.absa.standardization.numeric.{DecimalSymbols, NumericPattern}
 import za.co.absa.standardization.types.parsers.NumericParser.NumericParserException
 
-import java.util.Locale
 import scala.util.{Failure, Success, Try}
 
 abstract class NumericParser[N: Ordering](val pattern: NumericPattern,

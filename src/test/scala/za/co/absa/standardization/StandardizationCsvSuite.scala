@@ -18,14 +18,14 @@ package za.co.absa.standardization
 
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
-import org.scalatest.funsuite.{AnyFunSuite, FixtureAnyFunSuite}
+import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 
-
 class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
   import spark.implicits._
-  import za.co.absa.standardization.implicits.DataFrameImplicits.DataFrameEnhancements
 
   private implicit val udfLib: UDFLibrary = new UDFLibrary
   private implicit val defaults: Defaults = GlobalDefaults

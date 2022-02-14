@@ -16,10 +16,10 @@
 
 package za.co.absa.standardization.validation.field
 
-import za.co.absa.standardization.{ValidationError, ValidationIssue}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField
 import za.co.absa.standardization.types.TypedStructField.NumericTypeStructField
+import za.co.absa.standardization.{ValidationError, ValidationIssue}
 
 object NumericFieldValidator extends NumericFieldValidator
 

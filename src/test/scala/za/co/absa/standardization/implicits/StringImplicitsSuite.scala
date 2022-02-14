@@ -16,11 +16,11 @@
 
 package za.co.absa.standardization.implicits
 
-import org.scalatest.funsuite.AnyFunSuite
+import java.security.InvalidParameterException
 
+import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import za.co.absa.standardization.implicits.StringImplicits.StringEnhancements
-import java.security.InvalidParameterException
 
 class StringImplicitsSuite extends AnyFunSuite with Matchers {
   test("StringEnhancements.replaceChars - empty replacements") {

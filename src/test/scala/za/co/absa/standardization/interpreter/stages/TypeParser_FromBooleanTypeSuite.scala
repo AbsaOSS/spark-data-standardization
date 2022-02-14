@@ -17,7 +17,7 @@
 package za.co.absa.standardization.interpreter.stages
 
 import org.apache.spark.sql.types._
-import TypeParserSuiteTemplate.Input
+import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate.Input
 import za.co.absa.standardization.time.DateTimePattern
 
 class TypeParser_FromBooleanTypeSuite extends TypeParserSuiteTemplate  {
