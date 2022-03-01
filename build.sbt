@@ -18,17 +18,28 @@
 ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
 ThisBuild / version := "0.0.1-SNAPSHOT"
-ThisBuild / scalaVersion := "2.11.12"
+
+lazy val scala211 = "2.11.12"
+lazy val scala212 = "2.12.12"
+
+ThisBuild / crossScalaVersions := Seq(scala211, scala212)
+ThisBuild / scalaVersion := scala211
+
+def sparkVersion: String = sys.props.getOrElse("SPARK_VERSION", "2.4.7")
 
 libraryDependencies ++=  List(
-  "org.apache.spark" %% "spark-core" % "2.4.7" % "provided",
-  "org.apache.spark" %% "spark-sql" % "2.4.7" % "provided",
-  "za.co.absa" %% "spark-hats" % "0.2.2",
-  "za.co.absa" %% "spark-hofs" % "0.4.0",
+  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
+  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
   "za.co.absa" %% "spark-commons" % "0.2.0",
   "org.scalatest" %% "scalatest" % "3.2.2" % Test,
   "com.typesafe" % "config" % "1.4.1"
 )
+
+lazy val printSparkScalaVersion = taskKey[Unit]("Print Spark and Scala versions for standardization")
+ThisBuild / printSparkScalaVersion := {
+  val log = streams.value.log
+  log.info(s"Building with Spark ${sparkVersion}, Scala ${scalaVersion.value}")
+}
 
 Test / parallelExecution := false
 
