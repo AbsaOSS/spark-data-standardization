@@ -58,6 +58,7 @@ class TypeParser_FromTimestampTypeSuite extends TypeParserSuiteTemplate  {
   }
 
   test("Within the column - type stays, not nullable") {
+    assume(sys.props.getOrElse("SPARK_VERSION", "2.4.7").startsWith("2."))
     doTestWithinColumnNotNullable(input)
   }
 
