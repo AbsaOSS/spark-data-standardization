@@ -27,10 +27,12 @@ ThisBuild / scalaVersion := scala211
 
 def sparkVersion: String = sys.props.getOrElse("SPARK_VERSION", "2.4.7")
 
+val sparkFastTestsVersion = if (sparkVersion.startsWith("2.")) "0.23.0" else "1.1.0"
 libraryDependencies ++=  List(
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
   "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
   "za.co.absa" %% "spark-commons" % "0.2.0",
+  "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion % Test,
   "org.scalatest" %% "scalatest" % "3.2.2" % Test,
   "com.typesafe" % "config" % "1.4.1"
 )
