@@ -22,7 +22,7 @@ import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.schema.MetadataKeys
-import za.co.absa.standardization.types.TypedStructField.NumericTypeStructField
+import za.co.absa.standardization.types.TypedStructField._
 import za.co.absa.standardization.types.parsers.IntegralParser.{PatternIntegralParser, RadixIntegralParser}
 import za.co.absa.standardization.types.parsers.{DecimalParser, FractionalParser}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
