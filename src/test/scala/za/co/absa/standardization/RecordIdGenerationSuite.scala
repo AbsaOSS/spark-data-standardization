@@ -65,7 +65,7 @@ class RecordIdGenerationSuite extends AnyFlatSpec with Matchers with SparkTestBa
     Seq(updatedDf1, updatedDf2).foreach { updatedDf =>
       val updatedData = updatedDf.as[SomeDataWithId].collect()
       updatedData.length shouldBe 3
-      updatedData.foreach(entry => UUID.fromString(entry.enceladus_record_id))
+      updatedData.foreach(entry => UUID.fromString(entry.standardization_record_id))
     }
   }
 
@@ -86,6 +86,6 @@ object RecordIdGenerationSuite {
 
   case class SomeData(value1: String, value2: Int)
 
-  case class SomeDataWithId(value1: String, value2: Int, enceladus_record_id: String)
+  case class SomeDataWithId(value1: String, value2: Int, standardization_record_id: String)
 
 }

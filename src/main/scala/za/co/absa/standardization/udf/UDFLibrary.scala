@@ -36,22 +36,6 @@ class UDFLibrary()(implicit val spark: SparkSession) {
 
   spark.udf.register(stdSchemaErr, { errRow: String => ErrorMessage.stdSchemaError(errRow) })
 
-  spark.udf.register(confMappingErr, { (errCol: String, rawValues: Seq[String], mappings: Seq[Mapping]) =>
-    ErrorMessage.confMappingErr(errCol, rawValues, mappings)
-  })
-
-  spark.udf.register(confCastErr, { (errCol: String, rawValue: String) =>
-    ErrorMessage.confCastErr(errCol, rawValue)
-  })
-
-  spark.udf.register(confNegErr, { (errCol: String, rawValue: String) =>
-    ErrorMessage.confNegErr(errCol, rawValue)
-  })
-
-  spark.udf.register(confLitErr, { (errCol: String, rawValue: String) =>
-    ErrorMessage.confLitErr(errCol, rawValue)
-  })
-
   spark.udf.register(arrayDistinctErrors, // this UDF is registered for _spark-hats_ library sake
     (arr: mutable.WrappedArray[ErrorMessage]) =>
       if (arr != null) {

@@ -47,7 +47,7 @@ object RecordIdGeneration {
    * values always the same for the same row, mainly for testing purposes (`strategy` = [[IdType.StableHashId]]
    *
    * @param origDf       dataframe to be possibly extended
-   * @param idColumnName name of the id column to be used (usually [[Constants.EnceladusRecordId]])
+   * @param idColumnName name of the id column to be used (usually [[Constants.RecordId]])
    * @param strategy     decides if and what ids will be appended to the origDf
    * @return possibly updated `origDf`
    */
@@ -59,11 +59,11 @@ object RecordIdGeneration {
 
       case IdType.StableHashId =>
         log.info(s"Record id generation is set to 'stableHashId' - all runs will yield the same IDs.")
-        origDf.transform(hashFromAllColumns(Constants.EnceladusRecordId, _)) // adds hashId
+        origDf.transform(hashFromAllColumns(Constants.RecordId, _)) // adds hashId
 
       case IdType.TrueUuids =>
         log.info("Record id generation is on and true UUIDs will be added to output.")
-        origDf.withColumn(Constants.EnceladusRecordId, expr("uuid()"))
+        origDf.withColumn(Constants.RecordId, expr("uuid()"))
     }
   }
 

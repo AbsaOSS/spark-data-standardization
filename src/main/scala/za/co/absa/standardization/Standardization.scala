@@ -45,10 +45,10 @@ object Standardization {
     logger.info(s"Step 3: Clean the final error column")
     val cleanedStd = cleanTheFinalErrorColumn(std)
 
-    val idedStd = if (SchemaUtils.fieldExists(Constants.EnceladusRecordId, cleanedStd.schema)) {
+    val idedStd = if (SchemaUtils.fieldExists(Constants.RecordId, cleanedStd.schema)) {
       cleanedStd // no new id regeneration
     } else {
-      RecordIdGeneration.addRecordIdColumnByStrategy(cleanedStd, Constants.EnceladusRecordId, standardizationConfig.recordIdGenerationStrategy)
+      RecordIdGeneration.addRecordIdColumnByStrategy(cleanedStd, Constants.RecordId, standardizationConfig.recordIdGenerationStrategy)
     }
 
     logger.info(s"Standardization process finished, returning to the application...")

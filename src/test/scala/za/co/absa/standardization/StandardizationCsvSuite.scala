@@ -81,18 +81,18 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
     val schema: StructType = StructType(Seq(
       StructField("A1", IntegerType, nullable = true),
       StructField(ErrorMessage.errorColumnName, IntegerType, nullable = true),
-      StructField("enceladus_info_version", IntegerType, nullable = true),
-      StructField("enceladus_info_date", DateType, nullable = true,
+      StructField("standardization_info_version", IntegerType, nullable = true),
+      StructField("standardization_info_date", DateType, nullable = true,
         Metadata.fromJson("""{"pattern": "yyyy-MM-dd"}""")),
-      StructField("enceladus_info_date_string", StringType, nullable = true)
+      StructField("standardization_info_date_string", StringType, nullable = true)
     ))
 
     val schemaStr: StructType = StructType(Seq(
       StructField("A1", StringType, nullable = true),
       StructField(ErrorMessage.errorColumnName, StringType, nullable = true),
-      StructField("enceladus_info_version", StringType, nullable = true),
-      StructField("enceladus_info_date", StringType, nullable = true),
-      StructField("enceladus_info_date_string", StringType, nullable = true)
+      StructField("standardization_info_version", StringType, nullable = true),
+      StructField("standardization_info_date", StringType, nullable = true),
+      StructField("standardization_info_date_string", StringType, nullable = true)
     ))
 
     val rawDataFrame = spark.read.option("header", false).schema(schemaStr).csv(csvContent)
@@ -106,18 +106,18 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
     val schema: StructType = StructType(Seq(
       StructField("A1", IntegerType, nullable = true),
       StructField("A2", IntegerType, nullable = true),
-      StructField("enceladus_info_version", IntegerType, nullable = false),
-      StructField("enceladus_info_date", DateType, nullable = true,
+      StructField("standardization_info_version", IntegerType, nullable = false),
+      StructField("standardization_info_date", DateType, nullable = true,
         Metadata.fromJson("""{"pattern": "yyyy-MM-dd"}""")),
-      StructField("enceladus_info_date_string", StringType, nullable = true)
+      StructField("standardization_info_date_string", StringType, nullable = true)
     ))
 
     val schemaStr: StructType = StructType(Seq(
       StructField("A1", StringType, nullable = true),
       StructField("A2", StringType, nullable = true),
-      StructField("enceladus_info_version", StringType, nullable = true),
-      StructField("enceladus_info_date", StringType, nullable = true),
-      StructField("enceladus_info_date_string", StringType, nullable = true)
+      StructField("standardization_info_version", StringType, nullable = true),
+      StructField("standardization_info_date", StringType, nullable = true),
+      StructField("standardization_info_date_string", StringType, nullable = true)
     ))
 
     val rawDataFrame = spark.read.option("header", false).schema(schemaStr).csv(csvContent)

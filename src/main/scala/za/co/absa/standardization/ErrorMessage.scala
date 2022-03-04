@@ -30,6 +30,7 @@ import org.apache.spark.sql.types.StructType
  * @param mappings - Sequence of Mappings i.e Mapping Table Column -> Equivalent Mapped Dataset column
  */
 case class ErrorMessage(errType: String, errCode: String, errMsg: String, errCol: String, rawValues: Seq[String], mappings: Seq[Mapping] = Seq())
+//TODO mapping to be discussed
 case class Mapping(mappingTableColumn: String, mappedDatasetColumn: String)
 
 object ErrorMessage {
@@ -59,30 +60,6 @@ object ErrorMessage {
     errMsg = s"The input data does not adhere to requested schema",
     errCol = null, // scalastyle:ignore null
     rawValues = Seq(errRow))
-  def confMappingErr(errCol: String, rawValues: Seq[String], mappings: Seq[Mapping]): ErrorMessage = ErrorMessage(
-    errType = "confMapError",
-    errCode = ErrorCodes.ConfMapError,
-    errMsg = "Conformance Error - Null produced by mapping conformance rule",
-    errCol = errCol,
-    rawValues = rawValues, mappings = mappings)
-  def confCastErr(errCol: String, rawValue: String): ErrorMessage = ErrorMessage(
-    errType = "confCastError",
-    errCode = ErrorCodes.ConfCastErr,
-    errMsg = "Conformance Error - Null returned by casting conformance rule",
-    errCol = errCol,
-    rawValues = Seq(rawValue))
-  def confNegErr(errCol: String, rawValue: String): ErrorMessage = ErrorMessage(
-    errType = "confNegError",
-    errCode = ErrorCodes.ConfNegErr,
-    errMsg = "Conformance Error - Negation of numeric type with minimum value overflows and remains unchanged",
-    errCol = errCol,
-    rawValues = Seq(rawValue))
-  def confLitErr(errCol: String, rawValue: String): ErrorMessage = ErrorMessage(
-    errType = "confLitError",
-    errCode = ErrorCodes.ConfLitErr,
-    errMsg = "Conformance Error - Special column value has changed",
-    errCol = errCol,
-    rawValues = Seq(rawValue))
 
   def errorColSchema(implicit spark: SparkSession): StructType = {
     import spark.implicits._
@@ -96,14 +73,10 @@ object ErrorMessage {
     final val StdCastError    = "E00000"
     final val ConfMapError    = "E00001"
     final val StdNullError    = "E00002"
-    final val ConfCastErr     = "E00003"
-    final val ConfNegErr      = "E00004"
-    final val ConfLitErr      = "E00005"
     final val StdTypeError    = "E00006"
     final val StdSchemaError  = "E00007"
 
     val standardizationErrorCodes = Seq(StdCastError, StdNullError, StdTypeError, StdSchemaError)
-    val conformanceErrorCodes = Seq(ConfMapError, ConfCastErr, ConfNegErr, ConfLitErr)
   }
 }
 

@@ -21,11 +21,6 @@ object UDFNames {
   final val stdNullErr = "stdNullErr"
   final val stdSchemaErr = "stdSchemaErr"
 
-  final val confMappingErr = "confMappingErr"
-  final val confCastErr = "confCastErr"
-  final val confNegErr = "confNegErr"
-  final val confLitErr = "confLitErr"
-
   final val arrayDistinctErrors = "arrayDistinctErrors"
   final val cleanErrCol = "cleanErrCol"
   final val errorColumnAppend = "errorColumnAppend"

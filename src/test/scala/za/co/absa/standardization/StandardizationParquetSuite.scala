@@ -254,12 +254,12 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
 
   test("PseudoUuids are used") {
     val expected =
-      """+---+-------+-------+------+-------------------+
-        ||id |letters|struct |errCol|enceladus_record_id|
-        |+---+-------+-------+------+-------------------+
-        ||1  |[A, B] |[false]|[]    |1950798873         |
-        ||2  |[C]    |[true] |[]    |-988631025         |
-        |+---+-------+-------+------+-------------------+
+      """+---+-------+-------+------+-------------------------+
+        ||id |letters|struct |errCol|standardization_record_id|
+        |+---+-------+-------+------+-------------------------+
+        ||1  |[A, B] |[false]|[]    |1950798873               |
+        ||2  |[C]    |[true] |[]    |-988631025               |
+        |+---+-------+-------+------+-------------------------+
         |
         |""".stripMargin.replace("\r\n", "\n")
 
@@ -296,34 +296,34 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
     val destDF = Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(uuidConfig))
 
     // same except for the record id
-    val actual = destDF.drop("enceladus_record_id").dataAsString(truncate = false)
+    val actual = destDF.drop("standardization_record_id").dataAsString(truncate = false)
     assert(actual == expected)
 
-    val destIds = destDF.select('enceladus_record_id ).collect().map(_.getAs[String](0)).toSet
+    val destIds = destDF.select('standardization_record_id ).collect().map(_.getAs[String](0)).toSet
     assert(destIds.size == 2)
     destIds.foreach(UUID.fromString) // check uuid validity
 
   }
 
-  test("Existing enceladus_record_id is kept") {
+  test("Existing standardization_record_id is kept") {
    val expected =
-      """+---+-------+-------+-------------------+------+
-        ||id |letters|struct |enceladus_record_id|errCol|
-        |+---+-------+-------+-------------------+------+
-        ||1  |[A, B] |[false]|id1                |[]    |
-        ||2  |[C]    |[true] |id2                |[]    |
-        |+---+-------+-------+-------------------+------+
+      """+---+-------+-------+-------------------------+------+
+        ||id |letters|struct |standardization_record_id|errCol|
+        |+---+-------+-------+-------------------------+------+
+        ||1  |[A, B] |[false]|id1                      |[]    |
+        ||2  |[C]    |[true] |id2                      |[]    |
+        |+---+-------+-------+-------------------------+------+
         |
         |""".stripMargin.replace("\r\n", "\n")
 
     import org.apache.spark.sql.functions.{concat, lit}
-    val sourceDfWithExistingIds = sourceDataDF.withColumn("enceladus_record_id", concat(lit("id"), 'id))
+    val sourceDfWithExistingIds = sourceDataDF.withColumn("standardization_record_id", concat(lit("id"), 'id))
 
     val seq = Seq(
       StructField("id", LongType, nullable = false),
       StructField("letters", ArrayType(StringType), nullable = false),
       StructField("struct", StructType(Seq(StructField("bar", BooleanType))), nullable = false),
-      StructField("enceladus_record_id", StringType, nullable = false)
+      StructField("standardization_record_id", StringType, nullable = false)
     )
     val schema = StructType(seq)
     val destDF = Standardization.standardize(sourceDfWithExistingIds, schema, StandardizationConfig.fromConfig(uuidConfig))
