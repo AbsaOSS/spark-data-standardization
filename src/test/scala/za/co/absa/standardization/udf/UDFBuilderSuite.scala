@@ -16,7 +16,7 @@
 
 package za.co.absa.standardization.udf
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream, ObjectStreamClass}
 
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.types._
@@ -29,6 +29,7 @@ import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructFi
 
 class UDFBuilderSuite extends AnyFunSuite {
   private implicit val defaults: Defaults = GlobalDefaults
+  val loader = Thread.currentThread().getContextClassLoader
 
   test("Serialization and deserialization of stringUdfViaNumericParser (FractionalParser)") {
     val fieldName = "test"
@@ -48,7 +49,10 @@ class UDFBuilderSuite extends AnyFunSuite {
     val serialized = baos.toByteArray
     assert(serialized.nonEmpty)
     //read
-    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized))
+    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized)) {
+      override def resolveClass(desc: ObjectStreamClass): Class[_] =
+        Class.forName(desc.getName, false, loader)
+    }
     (ois readObject ()).asInstanceOf[UserDefinedFunction]
   }
 
@@ -70,7 +74,10 @@ class UDFBuilderSuite extends AnyFunSuite {
     val serialized = baos.toByteArray
     assert(serialized.nonEmpty)
     //read
-    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized))
+    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized)) {
+      override def resolveClass(desc: ObjectStreamClass): Class[_] =
+        Class.forName(desc.getName, false, loader)
+    }
     (ois readObject ()).asInstanceOf[UserDefinedFunction]
   }
 
@@ -95,7 +102,10 @@ class UDFBuilderSuite extends AnyFunSuite {
     val serialized = baos.toByteArray
     assert(serialized.nonEmpty)
     //read
-    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized))
+    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized)) {
+      override def resolveClass(desc: ObjectStreamClass): Class[_] =
+        Class.forName(desc.getName, false, loader)
+    }
     (ois readObject ()).asInstanceOf[UserDefinedFunction]
   }
 
@@ -119,7 +129,10 @@ class UDFBuilderSuite extends AnyFunSuite {
     val serialized = baos.toByteArray
     assert(serialized.nonEmpty)
     //read
-    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized))
+    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized)) {
+      override def resolveClass(desc: ObjectStreamClass): Class[_] =
+        Class.forName(desc.getName, false, loader)
+    }
     (ois readObject ()).asInstanceOf[UserDefinedFunction]
   }
 
