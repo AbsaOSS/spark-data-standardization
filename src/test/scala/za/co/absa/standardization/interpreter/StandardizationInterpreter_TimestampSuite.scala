@@ -18,7 +18,9 @@ package za.co.absa.standardization.interpreter
 
 import java.sql.Timestamp
 
+import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types.{MetadataBuilder, StructField, StructType, TimestampType}
+import org.json4s.BuildInfo.scalaVersion
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
@@ -272,7 +274,7 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
   }
 
   test("pattern up to nanoseconds precision, no time zone") {
-    assume(sys.props.getOrElse("SPARK_VERSION", "2.4.7").startsWith("2."))
+    assume(SPARK_VERSION.startsWith("2.")) //to be solved in #18
     val seq  = Seq(
       "(000000) 01/01/1970 AM+00:00:00~000",
       "(002003) 02/01/1970 am+00:00:00~001",
@@ -304,7 +306,7 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
   }
 
   test("pattern up to nanoseconds precision and named time zone") {
-    assume(sys.props.getOrElse("SPARK_VERSION", "2.4.7").startsWith("2."))
+    assume(SPARK_VERSION.startsWith("2.")) //to be solved in #18
     val seq  = Seq(
       "(000000) 01/01/1970 01:00:00.000 CET",
       "(001002) 02/01/1970 08:45:00.003 ACWST",
