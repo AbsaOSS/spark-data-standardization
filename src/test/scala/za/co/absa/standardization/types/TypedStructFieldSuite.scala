@@ -16,13 +16,14 @@
 
 package za.co.absa.standardization.types
 
+import java.text.ParseException
+
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
-import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationWarning}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField._
+import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationWarning}
 
-import java.text.ParseException
 import scala.util.{Failure, Success, Try}
 
 class TypedStructFieldSuite extends AnyFunSuite {

@@ -16,9 +16,10 @@
 
 package za.co.absa.standardization.types.parsers
 
+import java.text.DecimalFormat
+
 import za.co.absa.standardization.numeric.NumericPattern
 
-import java.text.DecimalFormat
 import scala.util.{Failure, Success, Try}
 
 class DecimalParser(override val pattern: NumericPattern,

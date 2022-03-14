@@ -17,7 +17,7 @@
 package za.co.absa.standardization.stages
 
 import org.apache.spark.sql.types._
-import za.co.absa.standardization.implicits.StructFieldImplicits.StructFieldEnhancements
+import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.standardization.schema.MetadataKeys
 
 /**
@@ -28,10 +28,9 @@ import za.co.absa.standardization.schema.MetadataKeys
 object PlainSchemaGenerator {
 
   private def structTypeFieldsConversion(fields: Array[StructField]):  Array[StructField] = {
-    import za.co.absa.standardization.implicits.StructFieldImplicits.StructFieldEnhancements
     fields.map { field =>
       // If the meta data value sourcecolumn is set override the field name
-      val fieldName = field.getMetadataString(MetadataKeys.SourceColumn).getOrElse(field.name)
+      val fieldName = field.metadata.getOptString(MetadataKeys.SourceColumn).getOrElse(field.name)
       val dataType = inputSchemaAsStringTypes(field.dataType)
       StructField(fieldName, dataType, nullable = true, field.metadata)
     }

@@ -16,7 +16,7 @@
 
 package za.co.absa.standardization.validation.field
 
-import org.apache.spark.sql.types.{DataType, DoubleType, FloatType, MetadataBuilder, StructField}
+import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.ValidationError
 import za.co.absa.standardization.schema.MetadataKeys

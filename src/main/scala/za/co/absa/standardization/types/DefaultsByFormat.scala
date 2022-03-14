@@ -16,12 +16,13 @@
 
 package za.co.absa.standardization.types
 
+import java.util.TimeZone
+
 import org.apache.spark.sql.types.DataType
 import za.co.absa.standardization.ConfigReader
 import za.co.absa.standardization.numeric.DecimalSymbols
 import za.co.absa.standardization.types.DefaultsByFormat._
 
-import java.util.TimeZone
 import scala.util.Try
 
 class DefaultsByFormat(formatName: String,

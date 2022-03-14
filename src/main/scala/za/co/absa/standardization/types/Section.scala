@@ -17,6 +17,7 @@
 package za.co.absa.standardization.types
 
 import java.security.InvalidParameterException
+
 import scala.util.{Failure, Try}
 
 /**

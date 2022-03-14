@@ -16,13 +16,13 @@
 
 package za.co.absa.standardization.types.parsers
 
-import za.co.absa.standardization.time.DateTimePattern
-import za.co.absa.standardization.types.Section
-import za.co.absa.standardization.types.parsers.DateTimeParser.{MillisecondsInSecond, NanosecondsInMicrosecond, NanosecondsInMillisecond, SecondsPerDay}
-
 import java.sql.{Date, Timestamp}
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+import za.co.absa.standardization.time.DateTimePattern
+import za.co.absa.standardization.types.Section
+import za.co.absa.standardization.types.parsers.DateTimeParser.{MillisecondsInSecond, NanosecondsInMicrosecond, NanosecondsInMillisecond, SecondsPerDay}
 
 /**
   * Enables to parse string to date and timestamp based on the provided format

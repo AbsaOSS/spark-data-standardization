@@ -16,17 +16,17 @@
 
 package za.co.absa.standardization
 
-import org.apache.spark.sql.{Column, Dataset, Row, SparkSession}
 import org.apache.spark.sql.api.java.UDF1
 import org.apache.spark.sql.functions.{callUDF, col, struct}
 import org.apache.spark.sql.types.{ArrayType, DataType, StructType}
+import org.apache.spark.sql.{Column, Dataset, Row, SparkSession}
 import org.slf4j.LoggerFactory
-import za.co.absa.standardization.schema.SchemaUtils
+import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 
 object ArrayTransformations {
   private val logger = LoggerFactory.getLogger(this.getClass)
   def flattenArrays(df: Dataset[Row], colName: String)(implicit spark: SparkSession): Dataset[Row] = {
-    val typ = SchemaUtils.getFieldType(colName, df.schema).getOrElse(throw new Error(s"Field $colName does not exist in ${df.schema.printTreeString()}"))
+    val typ = df.schema.getFieldType(colName).getOrElse(throw new Error(s"Field $colName does not exist in ${df.schema.printTreeString()}"))
     if (!typ.isInstanceOf[ArrayType]) {
       logger.info(s"Field $colName is not an ArrayType, returning the original dataset!")
       df
@@ -53,7 +53,7 @@ object ArrayTransformations {
 
     def helper(tokens: List[String], pathAcc: Seq[String]): Column = {
       val currPath = (pathAcc :+ tokens.head).mkString(".")
-      val topType = SchemaUtils.getFieldType(currPath, ds.schema)
+      val topType = ds.schema.getFieldType(currPath)
 
       // got a match
       if (currPath == columnName) {

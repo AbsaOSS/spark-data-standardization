@@ -16,6 +16,8 @@
 
 package za.co.absa.standardization.udf
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
@@ -24,8 +26,6 @@ import za.co.absa.standardization.types.TypedStructField.NumericTypeStructField
 import za.co.absa.standardization.types.parsers.IntegralParser.{PatternIntegralParser, RadixIntegralParser}
 import za.co.absa.standardization.types.parsers.{DecimalParser, FractionalParser}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
-
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 
 class UDFBuilderSuite extends AnyFunSuite {
   private implicit val defaults: Defaults = GlobalDefaults

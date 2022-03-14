@@ -16,11 +16,11 @@
 
 package za.co.absa.standardization.types.parsers
 
-import org.scalatest.funsuite.AnyFunSuite
-import za.co.absa.standardization.time.TimeZoneNormalizer
-
 import java.sql.{Date, Timestamp}
 import java.text.{ParseException, SimpleDateFormat}
+
+import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.standardization.time.TimeZoneNormalizer
 
 case class TestInputRow(id: Int, stringField: String)
 

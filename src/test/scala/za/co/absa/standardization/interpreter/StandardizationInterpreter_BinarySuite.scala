@@ -16,12 +16,13 @@
 
 package za.co.absa.standardization.interpreter
 
-import org.apache.spark.sql.types.{BinaryType, Metadata, MetadataBuilder, StructField, StructType}
+import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, SparkTestBase, Standardization, ValidationException}
+import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization, ValidationException}
 
 class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestBase with LoggerTestBase with Matchers {
 

@@ -21,9 +21,11 @@ import java.sql.{Date, Timestamp}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.utils.JsonUtils
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.{ErrorMessage, FileReader, JsonUtils, LoggerTestBase, SparkTestBase, Standardization}
+import za.co.absa.standardization.{ErrorMessage, FileReader, LoggerTestBase, Standardization}
 
 object StandardizationInterpreterSuite {
 

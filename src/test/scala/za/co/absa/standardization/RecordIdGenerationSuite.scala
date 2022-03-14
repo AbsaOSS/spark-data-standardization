@@ -16,13 +16,14 @@
 
 package za.co.absa.standardization
 
-import za.co.absa.standardization.RecordIdGenerationSuite.{SomeData, SomeDataWithId}
+import java.util.UUID
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.{NoId, StableHashId, TrueUuids}
 import za.co.absa.standardization.RecordIdGeneration._
-
-import java.util.UUID
+import za.co.absa.standardization.RecordIdGenerationSuite.{SomeData, SomeDataWithId}
 
 class RecordIdGenerationSuite extends AnyFlatSpec with Matchers with SparkTestBase {
   import spark.implicits._

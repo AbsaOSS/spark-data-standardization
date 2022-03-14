@@ -16,11 +16,12 @@
 
 package za.co.absa.standardization.types
 
+import java.sql.{Date, Timestamp}
+import java.util.TimeZone
+
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 
-import java.sql.{Date, Timestamp}
-import java.util.TimeZone
 import scala.util.Success
 
 class DefaultsSuite extends AnyFunSuite {

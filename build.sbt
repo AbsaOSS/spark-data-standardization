@@ -25,6 +25,7 @@ libraryDependencies ++=  List(
   "org.apache.spark" %% "spark-sql" % "2.4.7" % "provided",
   "za.co.absa" %% "spark-hats" % "0.2.2",
   "za.co.absa" %% "spark-hofs" % "0.4.0",
+  "za.co.absa" %% "spark-commons" % "0.2.0",
   "org.scalatest" %% "scalatest" % "3.2.2" % Test,
   "com.typesafe" % "config" % "1.4.1"
 )

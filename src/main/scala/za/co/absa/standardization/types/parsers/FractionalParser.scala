@@ -16,10 +16,10 @@
 
 package za.co.absa.standardization.types.parsers
 
+import java.text.DecimalFormat
+
 import za.co.absa.standardization.numeric.NumericPattern
 import za.co.absa.standardization.typeClasses.DoubleLike
-
-import java.text.DecimalFormat
 
 class FractionalParser[D: DoubleLike] private(override val pattern: NumericPattern,
                                               override val min: Option[D],

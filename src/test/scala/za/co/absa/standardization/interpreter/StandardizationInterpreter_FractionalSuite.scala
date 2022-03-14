@@ -18,10 +18,11 @@ package za.co.absa.standardization.interpreter
 
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, SparkTestBase, Standardization}
+import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
 
 class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._

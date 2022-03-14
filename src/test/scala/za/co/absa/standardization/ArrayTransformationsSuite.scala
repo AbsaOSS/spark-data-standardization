@@ -17,6 +17,7 @@
 package za.co.absa.standardization
 
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.test.SparkTestBase
 
 import scala.util.Random
 
