@@ -24,11 +24,13 @@ on:
     types: [ assigned, opened, synchronize, reopened, labeled ]
 
 jobs:
-  test-sbt:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-    name: SBT Test
+      matrix:
+        scala: [2.11.12, 2.12.12]
+    name: Scala ${{matrix.scala}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -38,4 +40,4 @@ jobs:
         with:
           java-version: "adopt@1.8"
       - name: Build and run tests
-        run: sbt test
+        run: sbt ++${{matrix.scala}} test
