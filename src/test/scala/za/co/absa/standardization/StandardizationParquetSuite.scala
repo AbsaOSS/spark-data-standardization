@@ -16,12 +16,14 @@
 
 package za.co.absa.standardization
 
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
-
 import java.util.UUID
+
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import org.apache.spark.sql.functions.{col, to_timestamp}
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
-import org.apache.spark.sql.functions.{col, to_timestamp}
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.stages.TypeParserException
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
@@ -32,7 +34,6 @@ private case class FooClass(bar: Boolean)
 
 class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
   import spark.implicits._
-  import za.co.absa.standardization.implicits.DataFrameImplicits.DataFrameEnhancements
 
   private implicit val udfLibrary:UDFLibrary = new UDFLibrary()
   private implicit val defaults: Defaults = GlobalDefaults

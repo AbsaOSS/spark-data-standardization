@@ -16,13 +16,14 @@
 
 package za.co.absa.standardization.validation.field
 
-import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationWarning}
-import za.co.absa.standardization.implicits.StructFieldImplicits._
+import java.util.Base64
+
+import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.standardization.schema.{MetadataKeys, MetadataValues}
 import za.co.absa.standardization.types.TypedStructField
 import za.co.absa.standardization.types.TypedStructField.BinaryTypeStructField
+import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationWarning}
 
-import java.util.Base64
 import scala.util.{Failure, Success, Try}
 
 object BinaryFieldValidator extends FieldValidator {
@@ -32,7 +33,7 @@ object BinaryFieldValidator extends FieldValidator {
   }
 
   private def validateExplicitBase64DefaultValue(field: BinaryTypeStructField): Seq[ValidationIssue] = {
-    val defaultValue: Option[String] = field.structField.getMetadataString(MetadataKeys.DefaultValue)
+    val defaultValue: Option[String] = field.structField.metadata.getOptString(MetadataKeys.DefaultValue)
 
     (field.normalizedEncoding, defaultValue) match {
       case (None, Some(encodedDefault)) =>

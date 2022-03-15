@@ -16,12 +16,9 @@
 
 package za.co.absa.standardization
 
-import java.sql.Timestamp
-import java.sql.Date
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.sql.{Date, Timestamp}
 import java.util.TimeZone
-import java.util.Calendar
 
 case class EmployeeNumber(numberType : String, numbers: Seq[String])
 case class EmployeeNumberStd(numberType : String, numbers: Seq[Int])

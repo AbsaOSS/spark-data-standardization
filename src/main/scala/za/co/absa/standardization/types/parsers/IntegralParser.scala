@@ -16,11 +16,12 @@
 
 package za.co.absa.standardization.types.parsers
 
+import java.math.BigInteger
+import java.text.DecimalFormat
+
 import za.co.absa.standardization.numeric.{DecimalSymbols, NumericPattern, Radix}
 import za.co.absa.standardization.typeClasses.LongLike
 
-import java.math.BigInteger
-import java.text.DecimalFormat
 import scala.util.{Failure, Success, Try}
 
 abstract class IntegralParser[N: LongLike] private(override val pattern: NumericPattern,

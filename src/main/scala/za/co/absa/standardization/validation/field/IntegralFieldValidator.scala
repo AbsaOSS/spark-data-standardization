@@ -16,17 +16,18 @@
 
 package za.co.absa.standardization.validation.field
 
+import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.standardization.numeric.Radix
-import za.co.absa.standardization.{ValidationIssue, ValidationWarning}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField
+import za.co.absa.standardization.{ValidationIssue, ValidationWarning}
 
 import scala.util.Try
 
 object IntegralFieldValidator extends NumericFieldValidator {
 
   private def radixIssues(field: TypedStructField): Seq[ValidationIssue] = {
-    field.getMetadataString(MetadataKeys.Radix).map { radixString =>
+    field.structField.metadata.getOptString(MetadataKeys.Radix).map { radixString =>
       val result = for {
         radix <- Try(Radix(radixString))
         pattern <- field.pattern

@@ -16,8 +16,9 @@
 
 package za.co.absa.standardization
 
-import com.typesafe.config.{Config, ConfigException, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
+import com.typesafe.config._
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.collection.JavaConverters._
 
 object ConfigReader {

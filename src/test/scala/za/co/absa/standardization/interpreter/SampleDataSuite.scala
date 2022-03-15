@@ -18,9 +18,10 @@ package za.co.absa.standardization.interpreter
 
 import org.apache.spark.sql.types.{DataType, StructType}
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.{FileReader, LoggerTestBase, SparkTestBase, Standardization, StdEmployee, TestSamples}
+import za.co.absa.standardization._
 
 class SampleDataSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   private implicit val defaults: Defaults = GlobalDefaults

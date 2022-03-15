@@ -16,12 +16,13 @@
 
 package za.co.absa.standardization.validation.field
 
-import za.co.absa.standardization.{ValidationError, ValidationIssue}
+import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.standardization.types.TypedStructField
+import za.co.absa.standardization.validation.field.FieldValidator._
+import za.co.absa.standardization.{ValidationError, ValidationIssue}
 
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
-import FieldValidator._
 
 class FieldValidator {
 
@@ -46,8 +47,6 @@ class FieldValidator {
     }
   }
 
-
-
   protected def checkMetadataKey[T: TypeTag](field: TypedStructField,
                                              metadataKey: String,
                                              issueConstructor: String => ValidationIssue = ValidationError.apply): Seq[ValidationIssue] = {
@@ -58,11 +57,11 @@ class FieldValidator {
       )
     }
 
-    if (field.hasMetadataKey(metadataKey)) {
+    if (field.structField.metadata.hasKey(metadataKey)) {
       typeOf[T] match {
-        case t if t =:= typeOf[String] => optionToValidationIssueSeq(field.getMetadataString(metadataKey), t.toString)
-        case t if t =:= typeOf[Boolean] => optionToValidationIssueSeq(field.getMetadataStringAsBoolean(metadataKey), t.toString)
-        case t if t =:= typeOf[Char] => optionToValidationIssueSeq(field.getMetadataChar(metadataKey), t.toString)
+        case t if t =:= typeOf[String] => optionToValidationIssueSeq(field.structField.metadata.getOptString(metadataKey), t.toString)
+        case t if t =:= typeOf[Boolean] => optionToValidationIssueSeq(field.structField.metadata.getOptStringAsBoolean(metadataKey), t.toString)
+        case t if t =:= typeOf[Char] => optionToValidationIssueSeq(field.structField.metadata.getOptChar(metadataKey), t.toString)
         case _ => Seq(ValidationError(s"Unsupported metadata validation type for key '$metadataKey' of field '${field.name}'"))
       }
     } else {

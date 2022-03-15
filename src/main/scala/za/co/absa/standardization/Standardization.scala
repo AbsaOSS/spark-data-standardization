@@ -18,11 +18,10 @@ package za.co.absa.standardization
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types._
+import org.apache.spark.sql.types.{StructType, _}
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
-import org.apache.spark.sql.types.StructType
 import org.slf4j.{Logger, LoggerFactory}
-import za.co.absa.standardization.schema.{SchemaUtils, SparkUtils}
+import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.standardization.stages.{SchemaChecker, TypeParser}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, ParseOutput}
 import za.co.absa.standardization.udf.{UDFLibrary, UDFNames}
@@ -30,6 +29,9 @@ import za.co.absa.standardization.udf.{UDFLibrary, UDFNames}
 object Standardization {
   private implicit val defaults: Defaults = GlobalDefaults
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  final val DefaultColumnNameOfCorruptRecord = "_corrupt_record"
+
+  final val ColumnNameOfCorruptRecordConf = "spark.sql.columnNameOfCorruptRecord"
 
   def standardize(df: DataFrame, schema: StructType, standardizationConfig: StandardizationConfig = StandardizationConfig.fromConfig())
                  (implicit sparkSession: SparkSession): DataFrame = {
@@ -45,6 +47,7 @@ object Standardization {
     logger.info(s"Step 3: Clean the final error column")
     val cleanedStd = cleanTheFinalErrorColumn(std)
 
+    val idedStd = if (cleanedStd.schema.fieldExists(Constants.EnceladusRecordId)) {
     val idedStd = if (SchemaUtils.fieldExists(Constants.RecordId, cleanedStd.schema)) {
       cleanedStd // no new id regeneration
     } else {
@@ -93,8 +96,8 @@ object Standardization {
   }
 
   private def gatherRowErrors(origSchema: StructType)(implicit spark: SparkSession): List[Column] = {
-    val corruptRecordColumn = spark.conf.get(SparkUtils.ColumnNameOfCorruptRecordConf)
-    SchemaUtils.getField(corruptRecordColumn, origSchema).map {_ =>
+    val corruptRecordColumn = spark.conf.get(ColumnNameOfCorruptRecordConf)
+    origSchema.getField(corruptRecordColumn).map { _ =>
       val column = col(corruptRecordColumn)
       when(column.isNotNull, // input row was not per expected schema
         array(callUDF(UDFNames.stdSchemaErr, column.cast(StringType)) //column should be StringType but better to be sure

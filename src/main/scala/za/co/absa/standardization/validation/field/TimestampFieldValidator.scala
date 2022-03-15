@@ -16,11 +16,11 @@
 
 package za.co.absa.standardization.validation.field
 
+import java.util.Date
+
 import za.co.absa.standardization._
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.types.parsers.DateTimeParser
-
-import java.util.Date
 
 object TimestampFieldValidator extends DateTimeFieldValidator {
   import za.co.absa.standardization.implicits.StringImplicits.StringEnhancements

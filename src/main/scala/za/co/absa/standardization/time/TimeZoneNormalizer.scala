@@ -16,11 +16,11 @@
 
 package za.co.absa.standardization.time
 
+import java.util.TimeZone
+
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.sql.SparkSession
-
-import java.util.TimeZone
 
 /**
   * Sets the system time zone per application configuration, recommended value being UTC

@@ -18,11 +18,12 @@ package za.co.absa.standardization.interpreter.stages
 
 import java.security.InvalidParameterException
 import java.sql.{Date, Timestamp}
+
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate._
-import za.co.absa.standardization.SparkTestBase
 import za.co.absa.standardization.stages.TypeParser
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, ParseOutput, TypedStructField}

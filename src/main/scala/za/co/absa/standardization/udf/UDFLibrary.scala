@@ -16,13 +16,14 @@
 
 package za.co.absa.standardization.udf
 
+import java.util.Base64
+
 import org.apache.spark.sql.api.java._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SparkSession}
-import za.co.absa.standardization.{ErrorMessage, Mapping}
 import za.co.absa.standardization.udf.UDFNames._
+import za.co.absa.standardization.{ErrorMessage, Mapping}
 
-import java.util.Base64
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 

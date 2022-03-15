@@ -17,6 +17,7 @@
 package za.co.absa.standardization.implicits
 
 import java.security.InvalidParameterException
+
 import scala.annotation.tailrec
 
 object StringImplicits {
