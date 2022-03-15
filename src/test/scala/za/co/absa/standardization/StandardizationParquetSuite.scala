@@ -18,6 +18,8 @@ package za.co.absa.standardization
 
 import java.sql.Timestamp
 import java.time.Instant
+import java.util.UUID
+
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.apache.spark.sql.Row
@@ -281,20 +283,18 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
       Row(2L, Array("C"), Row(true), Array())
     )
     // checking just the data without enceladus_record_id, not the schema here
-    val expectedDF = expectedData.toDfWithSchema(actualDf.drop("enceladus_record_id").schema)
+    val expectedDF = expectedData.toDfWithSchema(actualDf.drop("standardization_record_id").schema)
 
     // same except for the record id
-    assertSmallDatasetEquality(actualDf.drop("enceladus_record_id"), expectedDF, ignoreNullable = true)
-    val actual = destDF.drop("standardization_record_id").dataAsString(truncate = false)
-    assert(actual == expected)
+    assertSmallDatasetEquality(actualDf.drop("standardization_record_id"), expectedDF, ignoreNullable = true)
 
-    val destIds = destDF.select('standardization_record_id ).collect().map(_.getAs[String](0)).toSet
+    val destIds = actualDf.select('standardization_record_id ).collect().map(_.getAs[String](0)).toSet
     assert(destIds.size == 2)
     destIds.foreach(UUID.fromString) // check uuid validity
 
   }
 
-  test("Existing enceladus_record_id is kept") {
+  test("Existing standardization_record_id is kept") {
     import org.apache.spark.sql.functions.{concat, lit}
     val sourceDfWithExistingIds = sourceDataDF.withColumn("standardization_record_id", concat(lit("id"), 'id))
 
