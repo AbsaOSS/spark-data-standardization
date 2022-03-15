@@ -16,14 +16,17 @@
 
 package za.co.absa.standardization
 
-import java.util.UUID
-
+import java.sql.Timestamp
+import java.time.Instant
+import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import org.apache.spark.sql.Row
 import org.apache.spark.sql.functions.{col, to_timestamp}
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.standardization.DataFrameTestUtils.RowSeqToDf
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.stages.TypeParserException
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
@@ -32,7 +35,7 @@ import za.co.absa.standardization.udf.UDFLibrary
 // For creation of Structs in DF
 private case class FooClass(bar: Boolean)
 
-class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
+class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with DatasetComparer {
   import spark.implicits._
 
   private implicit val udfLibrary:UDFLibrary = new UDFLibrary()
@@ -56,40 +59,25 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
     .withColumn("ts", to_timestamp(col("str_ts"), tsPattern))
 
   test("All columns standardized") {
-    val expected =
-      """+---+-------+-------+------+
-         ||id |letters|struct |errCol|
-         |+---+-------+-------+------+
-         ||1  |[A, B] |[false]|[]    |
-         ||2  |[C]    |[true] |[]    |
-         |+---+-------+-------+------+
-         |
-         |""".stripMargin.replace("\r\n", "\n")
-
     val seq = Seq(
       StructField("id", LongType, nullable = false),
       StructField("letters", ArrayType(StringType), nullable = false),
       StructField("struct", StructType(Seq(StructField("bar", BooleanType))), nullable = false)
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema)
 
-    val actual = destDF.dataAsString(truncate = false)
-    assert(actual == expected)
+    val expectedData = Seq(
+      Row(1L, Array("A", "B"), Row(false), Array()),
+      Row(2L, Array("C"), Row(true), Array())
+    )
+    val expectedDF = expectedData.toDfWithSchema(actualDf.schema) // checking just the data, not the schema here
+
+    assertSmallDatasetEquality(actualDf, expectedDF, ignoreNullable = true)
   }
 
 
   test("Missing non-nullable fields are filled with default values and error appears in error column") {
-    val expected =
-      """+---+------------+-------------------+----------+------------+-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         ||id |string_field|timestamp_field    |long_field|double_field|decimal_field|errCol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-         |+---+------------+-------------------+----------+------------+-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         ||1  |            |1970-01-01 00:00:00|0         |0           |3.14         |[[stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, string_field, [null], []], [stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, timestamp_field, [null], []], [stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, long_field, [null], []], [stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, double_field, [null], []], [stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, decimal_field, [null], []]]|
-         ||2  |            |1970-01-01 00:00:00|0         |0           |3.14         |[[stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, string_field, [null], []], [stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, timestamp_field, [null], []], [stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, long_field, [null], []], [stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, double_field, [null], []], [stdNullError, E00002, Standardization Error - Null detected in non-nullable attribute, decimal_field, [null], []]]|
-         |+---+------------+-------------------+----------+------------+-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         |
-         |""".stripMargin.replace("\r\n", "\n")
-
     val seq = Seq(
       StructField("id", IntegerType, nullable = false),
       StructField("string_field", StringType, nullable = false),
@@ -102,23 +90,26 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
         new MetadataBuilder().putString(MetadataKeys.DefaultValue, "3.14").build())
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema)
 
-    val actual = destDF.dataAsString(truncate = false)
-    assert(actual == expected)
+    val EpochTimestamp = Timestamp.from(Instant.EPOCH)
+    val expectedErrors = Seq(
+      Row("stdNullError", "E00002", "Standardization Error - Null detected in non-nullable attribute", "string_field", Seq("null"), Seq()),
+      Row("stdNullError", "E00002", "Standardization Error - Null detected in non-nullable attribute", "timestamp_field", Seq("null"), Seq()),
+      Row("stdNullError", "E00002", "Standardization Error - Null detected in non-nullable attribute", "long_field", Seq("null"), Seq()),
+      Row("stdNullError", "E00002", "Standardization Error - Null detected in non-nullable attribute", "double_field", Seq("null"), Seq()),
+      Row("stdNullError", "E00002", "Standardization Error - Null detected in non-nullable attribute", "decimal_field", Seq("null"), Seq())
+    )
+    val expectedData = Seq(
+      Row(1, "", EpochTimestamp, 0L, 0, Decimal(3.14), expectedErrors),
+      Row(2, "", EpochTimestamp, 0L, 0, Decimal(3.14), expectedErrors)
+    )
+    val expectedDF = expectedData.toDfWithSchema(actualDf.schema) // checking just the data, not the schema here
+
+    assertSmallDatasetEquality(actualDf, expectedDF, ignoreNullable = true)
   }
 
   test("Cannot convert int to array, and array to long") {
-    val expected =
-      """+----+-------+--------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         ||id  |letters|lettersB|errCol                                                                                                                                                                                                                                                                                                                |
-         |+----+-------+--------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         ||null|null   |0       |[[stdTypeError, E00006, Standardization Error - Type 'integer' cannot be cast to 'array', id, [], []], [stdTypeError, E00006, Standardization Error - Type 'array' cannot be cast to 'long', letters, [], []], [stdTypeError, E00006, Standardization Error - Type 'array' cannot be cast to 'long', letters, [], []]]|
-         ||null|null   |0       |[[stdTypeError, E00006, Standardization Error - Type 'integer' cannot be cast to 'array', id, [], []], [stdTypeError, E00006, Standardization Error - Type 'array' cannot be cast to 'long', letters, [], []], [stdTypeError, E00006, Standardization Error - Type 'array' cannot be cast to 'long', letters, [], []]]|
-         |+----+-------+--------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         |
-         |""".stripMargin.replace("\r\n", "\n")
-
     val seq = Seq(
       StructField("id", ArrayType(StringType), nullable = true),
       StructField("letters", LongType, nullable = true),
@@ -126,23 +117,23 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
         new MetadataBuilder().putString(MetadataKeys.SourceColumn, "letters").build())
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema)
 
-    val actual = destDF.dataAsString(truncate = false)
-    assert(actual == expected)
+    val expectedErrors = Seq(
+      Row("stdTypeError", "E00006", "Standardization Error - Type 'integer' cannot be cast to 'array'", "id", Seq(), Seq()),
+      Row("stdTypeError", "E00006", "Standardization Error - Type 'array' cannot be cast to 'long'", "letters", Seq(), Seq()),
+      Row("stdTypeError", "E00006", "Standardization Error - Type 'array' cannot be cast to 'long'", "letters", Seq(), Seq())
+    )
+    val expectedData = Seq(
+      Row(null, null, 0L, expectedErrors),
+      Row(null, null, 0L, expectedErrors)
+    )
+    val expectedDF = expectedData.toDfWithSchema(actualDf.schema) // checking just the data, not the schema here
+
+    assertSmallDatasetEquality(actualDf, expectedDF, ignoreNullable = true)
   }
 
   test("Missing nullable fields are considered null") {
-    val expected =
-      """+---+------------+---------------+----------+------------+-------------+------+
-        ||id |string_field|timestamp_field|long_field|double_field|decimal_field|errCol|
-        |+---+------------+---------------+----------+------------+-------------+------+
-        ||1  |null        |null           |null      |null        |null         |[]    |
-        ||2  |null        |null           |null      |null        |null         |[]    |
-        |+---+------------+---------------+----------+------------+-------------+------+
-        |
-        |""".stripMargin.replace("\r\n", "\n")
-
     val seq = Seq(
       StructField("id", IntegerType, nullable = true),
       StructField("string_field", StringType, nullable = true),
@@ -152,23 +143,18 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
       StructField("decimal_field", DecimalType(20,4), nullable = true)
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema)
 
-    val actual = destDF.dataAsString(truncate = false)
-    assert(actual == expected)
+    val expectedData = Seq(
+      Row(1, null, null, null, null, null, Array()),
+      Row(2, null, null, null, null, null, Array())
+    )
+    val expectedDF = expectedData.toDfWithSchema(actualDf.schema) // checking just the data, not the schema here
+
+    assertSmallDatasetEquality(actualDf, expectedDF, ignoreNullable = true)
   }
 
   test("Cannot convert int to struct, and struct to long") {
-    val expected =
-      """|+----+------+-------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         ||id  |struct|structB|errCol                                                                                                                                                                                                                                                                                                                 |
-         |+----+------+-------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         ||null|null  |-1     |[[stdTypeError, E00006, Standardization Error - Type 'integer' cannot be cast to 'struct', id, [], []], [stdTypeError, E00006, Standardization Error - Type 'struct' cannot be cast to 'long', struct, [], []], [stdTypeError, E00006, Standardization Error - Type 'struct' cannot be cast to 'long', struct, [], []]]|
-         ||null|null  |-1     |[[stdTypeError, E00006, Standardization Error - Type 'integer' cannot be cast to 'struct', id, [], []], [stdTypeError, E00006, Standardization Error - Type 'struct' cannot be cast to 'long', struct, [], []], [stdTypeError, E00006, Standardization Error - Type 'struct' cannot be cast to 'long', struct, [], []]]|
-         |+----+------+-------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         |
-         |""".stripMargin.replace("\r\n", "\n")
-
     val seq = Seq(
       StructField("id", StructType(Seq(StructField("bar", BooleanType))), nullable = true),
       StructField("struct", LongType, nullable = true),
@@ -178,33 +164,42 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
         .build())
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema)
 
-    val actual = destDF.dataAsString(truncate = false)
-    assert(actual == expected)
+    val expectedErrors = Seq(
+      Row("stdTypeError", "E00006", "Standardization Error - Type 'integer' cannot be cast to 'struct'", "id", Seq(), Seq()),
+      Row("stdTypeError", "E00006", "Standardization Error - Type 'struct' cannot be cast to 'long'", "struct", Seq(), Seq()),
+      Row("stdTypeError", "E00006", "Standardization Error - Type 'struct' cannot be cast to 'long'", "struct", Seq(), Seq())
+    )
+    val expectedData = Seq(
+      Row(null, null, -1L, expectedErrors),
+      Row(null, null, -1L, expectedErrors)
+    )
+    val expectedDF = expectedData.toDfWithSchema(actualDf.schema) // checking just the data, not the schema here
+
+    assertSmallDatasetEquality(actualDf, expectedDF, ignoreNullable = true)
   }
 
   test("Cannot convert array to struct, and struct to array") {
-    val expected =
-      """|+---+-------+------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         ||id |letters|struct|errCol                                                                                                                                                                                                             |
-         |+---+-------+------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         ||1  |null   |null  |[[stdTypeError, E00006, Standardization Error - Type 'array' cannot be cast to 'struct', letters, [], []], [stdTypeError, E00006, Standardization Error - Type 'struct' cannot be cast to 'array', struct, [], []]]|
-         ||2  |null   |null  |[[stdTypeError, E00006, Standardization Error - Type 'array' cannot be cast to 'struct', letters, [], []], [stdTypeError, E00006, Standardization Error - Type 'struct' cannot be cast to 'array', struct, [], []]]|
-         |+---+-------+------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-         |
-         |""".stripMargin.replace("\r\n", "\n")
-
     val seq = Seq(
       StructField("id", LongType, nullable = true),
       StructField("letters", StructType(Seq(StructField("bar", BooleanType))), nullable = true),
       StructField("struct", ArrayType(StringType), nullable = true)
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema)
 
-    val actual = destDF.dataAsString(truncate = false)
-    assert(actual == expected)
+    val expectedErrors = Seq(
+      Row("stdTypeError", "E00006", "Standardization Error - Type 'array' cannot be cast to 'struct'", "letters", Seq(), Seq()),
+      Row("stdTypeError", "E00006", "Standardization Error - Type 'struct' cannot be cast to 'array'", "struct", Seq(), Seq())
+    )
+    val expectedData = Seq(
+      Row(1L, null, null, expectedErrors),
+      Row(2L, null, null, expectedErrors)
+    )
+    val expectedDF = expectedData.toDfWithSchema(actualDf.schema) // checking just the data, not the schema here
+
+    assertSmallDatasetEquality(actualDf, expectedDF, ignoreNullable = true)
   }
 
   test("Cannot convert int to array, and array to long, fail fast") {
@@ -254,16 +249,6 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
   }
 
   test("PseudoUuids are used") {
-    val expected =
-      """+---+-------+-------+------+-------------------------+
-        ||id |letters|struct |errCol|standardization_record_id|
-        |+---+-------+-------+------+-------------------------+
-        ||1  |[A, B] |[false]|[]    |1950798873               |
-        ||2  |[C]    |[true] |[]    |-988631025               |
-        |+---+-------+-------+------+-------------------------+
-        |
-        |""".stripMargin.replace("\r\n", "\n")
-
     val seq = Seq(
       StructField("id", LongType, nullable = false),
       StructField("letters", ArrayType(StringType), nullable = false),
@@ -271,32 +256,35 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
     )
     val schema = StructType(seq)
     // stableHashId will always yield the same ids
-    val destDF = Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(stableIdConfig))
+    val actualDf = Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(stableIdConfig))
 
-    val actual = destDF.dataAsString(truncate = false)
-    assert(actual == expected)
+    val expectedData = Seq(
+      Row(1L, Array("A", "B"), Row(false), Array(), 1950798873),
+      Row(2L, Array("C"), Row(true), Array(), -988631025)
+    )
+    val expectedDF = expectedData.toDfWithSchema(actualDf.schema) // checking just the data, not the schema here
+
+    assertSmallDatasetEquality(actualDf, expectedDF, ignoreNullable = true)
   }
 
   test("True uuids are used") {
-    val expected =
-      """+---+-------+-------+------+
-        ||id |letters|struct |errCol|
-        |+---+-------+-------+------+
-        ||1  |[A, B] |[false]|[]    |
-        ||2  |[C]    |[true] |[]    |
-        |+---+-------+-------+------+
-        |
-        |""".stripMargin.replace("\r\n", "\n")
-
     val seq = Seq(
       StructField("id", LongType, nullable = false),
       StructField("letters", ArrayType(StringType), nullable = false),
       StructField("struct", StructType(Seq(StructField("bar", BooleanType))), nullable = false)
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(uuidConfig))
+    val actualDf = Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(uuidConfig))
+
+    val expectedData = Seq(
+      Row(1L, Array("A", "B"), Row(false), Array()),
+      Row(2L, Array("C"), Row(true), Array())
+    )
+    // checking just the data without enceladus_record_id, not the schema here
+    val expectedDF = expectedData.toDfWithSchema(actualDf.drop("enceladus_record_id").schema)
 
     // same except for the record id
+    assertSmallDatasetEquality(actualDf.drop("enceladus_record_id"), expectedDF, ignoreNullable = true)
     val actual = destDF.drop("standardization_record_id").dataAsString(truncate = false)
     assert(actual == expected)
 
@@ -306,17 +294,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
 
   }
 
-  test("Existing standardization_record_id is kept") {
-   val expected =
-      """+---+-------+-------+-------------------------+------+
-        ||id |letters|struct |standardization_record_id|errCol|
-        |+---+-------+-------+-------------------------+------+
-        ||1  |[A, B] |[false]|id1                      |[]    |
-        ||2  |[C]    |[true] |id2                      |[]    |
-        |+---+-------+-------+-------------------------+------+
-        |
-        |""".stripMargin.replace("\r\n", "\n")
-
+  test("Existing enceladus_record_id is kept") {
     import org.apache.spark.sql.functions.{concat, lit}
     val sourceDfWithExistingIds = sourceDataDF.withColumn("standardization_record_id", concat(lit("id"), 'id))
 
@@ -327,11 +305,17 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase {
       StructField("standardization_record_id", StringType, nullable = false)
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDfWithExistingIds, schema, StandardizationConfig.fromConfig(uuidConfig))
+    val actualDf = Standardization.standardize(sourceDfWithExistingIds, schema, StandardizationConfig.fromConfig(uuidConfig))
 
     // The TrueUuids strategy does not override the existing values
-    val actual = destDF.dataAsString(truncate = false)
-    assert(actual == expected)
+    val expectedData = Seq(
+      Row(1L, Array("A", "B"), Row(false), "id1", Array()),
+      Row(2L, Array("C"), Row(true), "id2", Array())
+    )
+
+    val expectedDF = expectedData.toDfWithSchema(actualDf.schema) // checking just the data, not the schema here
+
+    assertSmallDatasetEquality(actualDf, expectedDF, ignoreNullable = true)
   }
 
   test("Timestamp with timezone in metadata are shifted") {
