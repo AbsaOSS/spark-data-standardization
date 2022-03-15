@@ -22,7 +22,6 @@ import java.sql.{Date, Timestamp}
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types._
-import org.json4s.BuildInfo.scalaVersion
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate._

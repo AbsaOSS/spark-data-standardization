@@ -20,7 +20,6 @@ import java.sql.Timestamp
 
 import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types.{MetadataBuilder, StructField, StructType, TimestampType}
-import org.json4s.BuildInfo.scalaVersion
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}

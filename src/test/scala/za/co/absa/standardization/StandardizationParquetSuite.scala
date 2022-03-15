@@ -18,8 +18,6 @@ package za.co.absa.standardization
 
 import java.sql.Timestamp
 import java.time.Instant
-import java.util.UUID
-
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.apache.spark.sql.Row
