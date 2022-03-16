@@ -19,7 +19,6 @@ package za.co.absa.standardization
 import java.sql.Timestamp
 import java.time.Instant
 import java.util.UUID
-
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.apache.spark.sql.Row
@@ -291,7 +290,6 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
     val destIds = actualDf.select('standardization_record_id ).collect().map(_.getAs[String](0)).toSet
     assert(destIds.size == 2)
     destIds.foreach(UUID.fromString) // check uuid validity
-
   }
 
   test("Existing standardization_record_id is kept") {
