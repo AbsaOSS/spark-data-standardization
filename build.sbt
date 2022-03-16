@@ -18,17 +18,32 @@
 ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
 ThisBuild / version := "0.0.1-SNAPSHOT"
-ThisBuild / scalaVersion := "2.11.12"
+
+lazy val scala211 = "2.11.12"
+lazy val scala212 = "2.12.12"
+
+ThisBuild / crossScalaVersions := Seq(scala211, scala212)
+ThisBuild / scalaVersion := scala211
+
+def sparkVersion(scalaVersion: String): String = if (scalaVersion==scala212) "3.1.2" else "2.4.7"
+
+def sparkFastTestsVersion(scalaVersion: String): String = if (scalaVersion==scala212) "1.1.0" else "0.23.0"
 
 libraryDependencies ++=  List(
-  "org.apache.spark" %% "spark-core" % "2.4.7" % "provided",
-  "org.apache.spark" %% "spark-sql" % "2.4.7" % "provided",
-  "za.co.absa" %% "spark-hats" % "0.2.2",
-  "za.co.absa" %% "spark-hofs" % "0.4.0",
+  "org.apache.spark" %% "spark-core" % sparkVersion(scalaVersion.value) % "provided",
+  "org.apache.spark" %% "spark-sql" % sparkVersion(scalaVersion.value)  % "provided",
   "za.co.absa" %% "spark-commons" % "0.2.0",
+  "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion(scalaVersion.value) % Test,
   "org.scalatest" %% "scalatest" % "3.2.2" % Test,
   "com.typesafe" % "config" % "1.4.1"
 )
+
+lazy val printSparkScalaVersion = taskKey[Unit]("Print Spark and Scala versions for standardization")
+ThisBuild / printSparkScalaVersion := {
+  val log = streams.value.log
+  val scalaVers = scalaVersion.value
+  log.info(s"Building with Spark ${sparkVersion(scalaVers)}, Scala ${scalaVers}")
+}
 
 Test / parallelExecution := false
 

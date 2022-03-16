@@ -192,6 +192,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     )
 
     val src = seq.toDF(fieldName)
+    spark.sql("set spark.sql.legacy.timeParserPolicy=LEGACY")
 
     val std = Standardization.standardize(src, desiredSchema).cache()
     logDataFrameContent(std)
