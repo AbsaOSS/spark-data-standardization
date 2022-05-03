@@ -90,3 +90,4 @@ _site
 .jekyll-metadata
 
 utils/resources/*.conf
+.bsp

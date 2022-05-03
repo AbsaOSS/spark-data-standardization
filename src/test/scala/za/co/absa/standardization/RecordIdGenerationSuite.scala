@@ -44,8 +44,8 @@ class RecordIdGenerationSuite extends AnyFlatSpec with Matchers with SparkTestBa
   it should s"always yield the same IDs with ${StableHashId}" in {
 
     val df1 = spark.createDataFrame(data1)
-    val updatedDf1 = addRecordIdColumnByStrategy(df1, "stableId", StableHashId)
-    val updatedDf2 = addRecordIdColumnByStrategy(df1, "stableId", StableHashId)
+    val updatedDf1 = addRecordIdColumnByStrategy(df1, "standardization_record_id", StableHashId)
+    val updatedDf2 = addRecordIdColumnByStrategy(df1, "standardization_record_id", StableHashId)
 
     updatedDf1.as[SomeDataWithId].collect() should contain theSameElementsInOrderAs updatedDf2.as[SomeDataWithId].collect()
 
@@ -58,8 +58,8 @@ class RecordIdGenerationSuite extends AnyFlatSpec with Matchers with SparkTestBa
   it should s"yield the different IDs with $TrueUuids" in {
 
     val df1 = spark.createDataFrame(data1)
-    val updatedDf1 = addRecordIdColumnByStrategy(df1, "trueId", TrueUuids)
-    val updatedDf2 = addRecordIdColumnByStrategy(df1, "trueId", TrueUuids)
+    val updatedDf1 = addRecordIdColumnByStrategy(df1, "standardization_record_id", TrueUuids)
+    val updatedDf2 = addRecordIdColumnByStrategy(df1, "standardization_record_id", TrueUuids)
 
     updatedDf1.as[SomeDataWithId].collect() shouldNot contain theSameElementsAs updatedDf2.as[SomeDataWithId].collect()
 

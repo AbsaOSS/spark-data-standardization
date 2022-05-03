@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package za.co.absa.standardization
+package za.co.absa.standardization.config
 
-import com.typesafe.config.ConfigFactory
-
-object Constants {
-  private val columnPrefix = ConfigFactory.load().getString("column.prefix")
-
-  final val InfoDateColumn = columnPrefix + "_info_date"
-  final val InfoDateColumnString = s"${InfoDateColumn}_string"
-  final val ReportDateFormat = "yyyy-MM-dd"
-  final val InfoVersionColumn = columnPrefix + "_info_version"
-  final val RecordId = columnPrefix + "_record_id"
+object DefaultStandardizationConfig extends StandardizationConfig {
+  val errorCodes: ErrorCodesConfig = DefaultErrorCodesConfig
+  val metadataColumns: MetadataColumnsConfig =  DefaultMetadataColumnsConfig
+  val failOnInputNotPerSchema: Boolean = false
+  val errorColumn: String = "errCol"
+  val timezone: String = "UTC"
 }

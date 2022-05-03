@@ -59,11 +59,11 @@ object RecordIdGeneration {
 
       case IdType.StableHashId =>
         log.info(s"Record id generation is set to 'stableHashId' - all runs will yield the same IDs.")
-        origDf.transform(hashFromAllColumns(Constants.RecordId, _)) // adds hashId
+        origDf.transform(hashFromAllColumns(idColumnName, _)) // adds hashId
 
       case IdType.TrueUuids =>
         log.info("Record id generation is on and true UUIDs will be added to output.")
-        origDf.withColumn(Constants.RecordId, expr("uuid()"))
+        origDf.withColumn(idColumnName, expr("uuid()"))
     }
   }
 

@@ -16,6 +16,9 @@
 
 package za.co.absa.standardization
 
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
+
 import java.math.BigDecimal
 import java.sql.{Date, Timestamp}
 import java.util.TimeZone
@@ -68,6 +71,15 @@ object TestSamples {
   val data1 = List(john0, john1, john2, john3)
 
   val startDate = 1438387200000l //01/08/2015
+
+  val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+  implicit val errCodes: ErrorCodesConfig = stdConfig.errorCodes
 
   val resData = List(
      StdEmployee(name = "John0", surname = "Unknown Surname", hoursWorked = Some(List(8, 7, 8, 9, 12, 0)),

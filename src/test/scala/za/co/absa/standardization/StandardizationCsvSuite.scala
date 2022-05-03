@@ -21,13 +21,23 @@ import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 
 class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
   import spark.implicits._
 
-  private implicit val udfLib: UDFLibrary = new UDFLibrary
+  private val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+//  private val stdConfig = defaultStdConfig.copy(metadataColumns = defaultStdConfig.metadataColumns.copy(recordIdStrategy = NoId))
+  private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: Defaults = GlobalDefaults
 
 
@@ -71,7 +81,7 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
         |""".stripMargin.replace("\r\n", "\n")
 
     val rawDataFrame = spark.read.option("header", false).schema(schemaWithStringType).csv(csvContent)
-    val stdDf = Standardization.standardize(rawDataFrame, schema).cache()
+    val stdDf = Standardization.standardize(rawDataFrame, schema, stdConfig).cache()
     val actualOutput = stdDf.dataAsString(truncate = false)
 
     assert(actualOutput == expectedOutput)

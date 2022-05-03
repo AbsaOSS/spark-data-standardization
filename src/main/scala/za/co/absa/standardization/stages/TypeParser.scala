@@ -20,7 +20,6 @@ import java.security.InvalidParameterException
 import java.sql.Timestamp
 import java.util.Date
 import java.util.regex.Pattern
-
 import org.apache.spark.sql.Column
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
@@ -31,6 +30,7 @@ import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancem
 import za.co.absa.spark.commons.utils.SchemaUtils
 import za.co.absa.spark.hofs.transform
 import za.co.absa.standardization.ErrorMessage
+import za.co.absa.standardization.config.StandardizationConfig
 import za.co.absa.standardization.implicits.StdColumnImplicits.StdColumnEnhancements
 import za.co.absa.standardization.schema.{MetadataValues, StdSchemaUtils}
 import za.co.absa.standardization.schema.StdSchemaUtils.FieldWithSource
@@ -62,9 +62,9 @@ import scala.util.{Random, Try}
   */
 sealed trait TypeParser[T] {
 
-  def standardize()(implicit logger: Logger): ParseOutput = {
-    checkSetupForFailure().getOrElse(
-      standardizeAfterCheck()
+  def standardize(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
+    checkSetupForFailure(stdConfig).getOrElse(
+      standardizeAfterCheck(stdConfig)
     )
   }
 
@@ -90,7 +90,7 @@ sealed trait TypeParser[T] {
   // Error should never appear here due to validation
   protected def defaultValue: Option[field.BaseType] = field.defaultValueWithGlobal.get
 
-  protected def checkSetupForFailure()(implicit logger: Logger): Option[ParseOutput] = {
+  protected def checkSetupForFailure(stdConfig: StandardizationConfig)(implicit logger: Logger): Option[ParseOutput] = {
     def noCastingPossible: Option[ParseOutput] = {
       val message = s"Cannot standardize field '$inputFullPathName' from type ${origType.typeName} into ${fieldType.typeName}"
       if (failOnInputNotPerSchema) {
@@ -99,7 +99,7 @@ sealed trait TypeParser[T] {
         logger.info(message)
         Option(ParseOutput(
           lit(defaultValue.orNull).cast(fieldType) as(fieldOutputName, metadata),
-          typedLit(Seq(ErrorMessage.stdTypeError(inputFullPathName, origType.typeName, fieldType.typeName)))
+          typedLit(Seq(ErrorMessage.stdTypeError(inputFullPathName, origType.typeName, fieldType.typeName)(stdConfig.errorCodes)))
         ))
       }
     }
@@ -115,7 +115,7 @@ sealed trait TypeParser[T] {
     }
   }
 
-  protected def standardizeAfterCheck()(implicit logger: Logger): ParseOutput
+  protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput
 }
 
 object TypeParser {
@@ -130,14 +130,18 @@ object TypeParser {
   private val nullColumn = lit(null) //scalastyle:ignore null
 
 
-  def standardize(field: StructField, path: String, origSchema: StructType, failOnInputNotPerSchema: Boolean = true)
+  def standardize(field: StructField,
+                  path: String,
+                  origSchema: StructType,
+                  stdConfig: StandardizationConfig,
+                  failOnInputNotPerSchema: Boolean = true)
                  (implicit udfLib: UDFLibrary, defaults: Defaults): ParseOutput = {
     // udfLib implicit is present for error column UDF implementation
     val sourceName = SchemaUtils.appendPath(path, field.sourceName)
     val origField = origSchema.getField(sourceName)
     val origFieldType = origField.map(_.dataType).getOrElse(NullType)
     val column = origField.fold(nullColumn)(_ => col(sourceName))
-    TypeParser(field, path, column, origFieldType, failOnInputNotPerSchema).standardize()
+    TypeParser(field, path, column, origFieldType, failOnInputNotPerSchema).standardize(stdConfig)
   }
 
   sealed trait Parent {
@@ -193,20 +197,20 @@ object TypeParser {
       field.dataType
     }
 
-    override protected def standardizeAfterCheck()(implicit logger: Logger): ParseOutput = {
+    override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       logger.info(s"Creating standardization plan for Array $inputFullPathName")
       val origArrayType = origType.asInstanceOf[ArrayType] // this should never throw an exception because of `checkSetupForFailure`
       val arrayField = StructField(fieldInputName, fieldType.elementType, fieldType.containsNull, field.structField.metadata)
       val lambdaVariableName = s"${StdSchemaUtils.unpath(inputFullPathName)}_${Random.nextLong().abs}"
       val lambda = (forCol: Column) => TypeParser(arrayField, path, forCol, origArrayType.elementType, failOnInputNotPerSchema, isArrayElement = true)
-        .standardize()
+        .standardize(stdConfig)
 
       val lambdaErrCols = lambda.andThen(_.errors)
       val lambdaStdCols = lambda.andThen(_.stdCol)
       val nullErrCond = column.isNull and lit(!field.nullable)
 
       val finalErrs = when(nullErrCond,
-        array(typedLit(ErrorMessage.stdNullErr(inputFullPathName))))
+        array(typedLit(ErrorMessage.stdNullErr(inputFullPathName)(stdConfig.errorCodes))))
         .otherwise(
           typedLit(flatten(transform(column, lambdaErrCols, lambdaVariableName)))
         )
@@ -227,13 +231,13 @@ object TypeParser {
       field.dataType
     }
 
-    override protected def standardizeAfterCheck()(implicit logger: Logger): ParseOutput = {
+    override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       val origStructType = origType.asInstanceOf[StructType] // this should never throw an exception because of `checkSetupForFailure`
       val out =  fieldType.fields.map{f =>
         val origSubField = Try{origStructType(f.sourceName)}.toOption
         val origSubFieldType = origSubField.map(_.dataType).getOrElse(NullType)
         val subColumn = origSubField.map(x => column(x.name)).getOrElse(nullColumn)
-        TypeParser(f, inputFullPathName, subColumn, origSubFieldType, failOnInputNotPerSchema).standardize()}
+        TypeParser(f, inputFullPathName, subColumn, origSubFieldType, failOnInputNotPerSchema).standardize(stdConfig)}
       val cols = out.map(_.stdCol)
       val errs = out.map(_.errors)
       // condition for nullable error of the struct itself
@@ -257,7 +261,7 @@ object TypeParser {
   }
 
   private abstract class PrimitiveParser[T](implicit defaults: Defaults) extends TypeParser[T] {
-    override protected def standardizeAfterCheck()(implicit logger: Logger): ParseOutput = {
+    override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       val castedCol: Column = assemblePrimitiveCastLogic
       val castHasError: Column = assemblePrimitiveCastErrorLogic(castedCol)
 
@@ -300,11 +304,11 @@ object TypeParser {
 
   private abstract class NumericParser[N: TypeTag](override val field: NumericTypeStructField[N])
                                                   (implicit defaults: Defaults) extends ScalarParser[N] {
-    override protected def standardizeAfterCheck()(implicit logger: Logger): ParseOutput = {
+    override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       if (field.needsUdfParsing) {
-        standardizeUsingUdf()
+        standardizeUsingUdf(stdConfig)
       } else {
-        super.standardizeAfterCheck()
+        super.standardizeAfterCheck(stdConfig)
       }
     }
 
@@ -338,8 +342,8 @@ object TypeParser {
       }
     }
 
-    private def standardizeUsingUdf(): ParseOutput = {
-      val udfFnc: UserDefinedFunction = UDFBuilder.stringUdfViaNumericParser(field.parser.get, field.nullable, columnIdForUdf, defaultValue)
+    private def standardizeUsingUdf(stdConfig: StandardizationConfig): ParseOutput = {
+      val udfFnc: UserDefinedFunction = UDFBuilder.stringUdfViaNumericParser(field.parser.get, field.nullable, columnIdForUdf, stdConfig, defaultValue)
       ParseOutput(udfFnc(column)("result").cast(field.dataType).as(fieldOutputName), udfFnc(column)("error"))
     }
   }
