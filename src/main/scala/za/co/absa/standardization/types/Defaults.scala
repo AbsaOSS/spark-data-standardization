@@ -25,7 +25,6 @@ import za.co.absa.standardization.numeric.DecimalSymbols
 
 import scala.util.{Success, Try}
 
-// Vstup jako config
 abstract class Defaults {
   /** A function which defines default values for primitive types */
   def getDataTypeDefaultValue(dt: DataType): Any

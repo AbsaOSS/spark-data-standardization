@@ -16,7 +16,6 @@
 
 package za.co.absa.standardization.config
 
-import com.typesafe.config.Config
 import za.co.absa.standardization.RecordIdGeneration
 
 trait MetadataColumnsConfig {
@@ -31,13 +30,3 @@ trait MetadataColumnsConfig {
   val infoVersionColumn = prefix + "_info_version"
   val recordId = prefix + "_record_id"
 }
-
-//object MetadataColumnsConfig {
-//  def fromConfig(config: Config): MetadataColumnsConfig = {
-//    val recordIdStrategy = RecordIdGeneration.getRecordIdGenerationType(
-//      config.getString("recordId.generationStrategy")
-//    )
-//
-//    MetadataColumnsConfig(config.getString("prefix"), recordIdStrategy)
-//  }
-//}

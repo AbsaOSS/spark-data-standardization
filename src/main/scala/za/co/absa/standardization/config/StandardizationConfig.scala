@@ -16,9 +16,6 @@
 
 package za.co.absa.standardization.config
 
-import com.typesafe.config.{Config, ConfigFactory}
-import za.co.absa.standardization.RecordIdGeneration
-
 trait StandardizationConfig {
   val failOnInputNotPerSchema: Boolean
   val errorCodes: ErrorCodesConfig
@@ -26,21 +23,3 @@ trait StandardizationConfig {
   val errorColumn: String
   val timezone: String
 }
-
-//object StandardizationConfig {
-//  def fromConfig(generalConfig: Config = ConfigFactory.load().getConfig("standardization")): StandardizationConfig = {
-//    // TODO
-//    val errorCodesConfig = ErrorCodesConfig.fromConfig(generalConfig.getConfig("errorCodes"))
-//    val metadataColumnsConfig = MetadataColumnsConfig.fromConfig(generalConfig.getConfig("metadataColumns"))
-//    val errorColumn = generalConfig.getString("errorColumn")
-//
-//
-//    StandardizationConfig(
-//      generalConfig.getBoolean("failOnInputNotPerSchema"),
-//      errorCodesConfig,
-//      metadataColumnsConfig,
-//      errorColumn
-//    )
-//  }
-//
-//}
