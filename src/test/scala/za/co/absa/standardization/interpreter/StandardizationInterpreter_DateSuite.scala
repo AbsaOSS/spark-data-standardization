@@ -338,8 +338,8 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     assertResult(exp)(std.as[DateRow].collect().toList)
   }
 
-  /* TODO this should work with #7 fixed (originally Enceladus#677)
-  test("date with quoted and second frations") {
+  // TODO this should work with #7 fixed (originally Enceladus#677)
+  ignore("date with quoted and second frations") {
   val seq  = Seq(
     "1970/01/01 insignificant 000000",
     "1970/02/01 insignificant 001002",
@@ -368,6 +368,5 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
   assertResult(exp)(std.as[DateRow].collect().toList)
   }
-  */
 
 }

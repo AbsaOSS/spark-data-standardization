@@ -345,8 +345,8 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
 
   }
 
-  /* TODO this should work with #7 fixed (originally Enceladus#677)
-  test("pattern with literal and less common placeholders") {
+  // TODO this should work with #7 fixed (originally Enceladus#677)
+  ignore("pattern with literal and less common placeholders") {
     val seq  = Seq(
       "70001 star [000] 12:00:00(aM) @000000",
       "70002 star [001] 01:00:00(pM) @002003",
@@ -377,6 +377,5 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
     std.printSchema()
     assertResult(exp)(std.as[TimestampRow].collect().toList)
   }
-  */
 
 }
