@@ -180,7 +180,7 @@ object TypeParser {
       case _: BooleanType   => BooleanParser(TypedStructField(field), _, _, _, _, _)
       case _: DateType      => DateParser(TypedStructField.asDateTimeTypeStructField(field), _, _, _, _, _)
       case _: TimestampType => TimestampParser(TypedStructField.asDateTimeTypeStructField(field), _, _, _, _, _)
-      case t                => throw new IllegalStateException(s"${t.typeName} is not a supported type in this version of Enceladus")
+      case t                => throw new IllegalStateException(s"${t.typeName} is not a supported type in this version of Standardization library")
     }
     parserClass(path, column, origType, failOnInputNotPerSchema, isArrayElement)
   }

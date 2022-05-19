@@ -25,7 +25,7 @@ case class TestInputRow(id: Int, stringField: String)
 
 class DateTimeParserSuite extends AnyFunSuite{
 
-  test("EnceladusDateParser class epoch") {
+  test("DateParser class epoch") {
     val parser = DateTimeParser("epoch")
 
     val value: String = "1547553153"
@@ -38,7 +38,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class epochmilli") {
+  test("DateParser class epochmilli") {
     val parser = DateTimeParser("epochmilli")
 
     val value: String = "1547553153198"
@@ -51,7 +51,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class epochmicro") {
+  test("DateParser class epochmicro") {
     val parser = DateTimeParser("epochmicro")
 
     val value: String = "1547553153198765"
@@ -64,7 +64,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class epochnano") {
+  test("DateParser class epochnano") {
     val parser = DateTimeParser("epochnano")
 
     val value: String = "1547553153198765432"
@@ -77,7 +77,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class actual pattern without time zone") {
+  test("DateParser class actual pattern without time zone") {
     val parser = DateTimeParser("yyyy_MM_dd:HH.mm.ss")
 
     val value: String = "2019_01_15:11.52.33"
@@ -90,7 +90,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class actual pattern with standard time zone") {
+  test("DateParser class actual pattern with standard time zone") {
     val parser = DateTimeParser("yyyy-MM-dd-HH-mm-ss-zz")
 
     val value: String = "2011-01-31-22-52-33-EST"
@@ -103,7 +103,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class actual pattern with offset time zone") {
+  test("DateParser class actual pattern with offset time zone") {
     val parser = DateTimeParser("yyyy/MM/dd HH:mm:ssXXX")
 
     val value: String = "1990/01/31 22:52:33+01:00"
@@ -116,7 +116,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class actual pattern without time zone with milliseconds") {
+  test("DateParser class actual pattern without time zone with milliseconds") {
     val parser = DateTimeParser("SSS|yyyy_MM_dd:HH.mm.ss")
 
     val value: String = "123|2019_01_15:11.52.33"
@@ -129,7 +129,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class actual pattern without time zone and microseconds") {
+  test("DateParser class actual pattern without time zone and microseconds") {
     val parser = DateTimeParser("yyyy_MM_dd:HH.mm.ss.iiiiii")
 
     val value: String = "2019_01_15:11.52.33.123456"
@@ -142,7 +142,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class actual pattern with standard time zone and nanoseconds") {
+  test("DateParser class actual pattern with standard time zone and nanoseconds") {
     val parser = DateTimeParser("yyyy-MM-dd-HH-mm-ss.nnnnnnnnn-zz")
 
     val value: String = "2011-01-31-22-52-33.123456789-EST"
@@ -155,7 +155,7 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(resultTimestamp == expectedTimestamp)
   }
 
-  test("EnceladusDateParser class actual pattern with offset time zone and all second fractions") {
+  test("DateParser class actual pattern with offset time zone and all second fractions") {
     val parser = DateTimeParser("nnnSSSyyyy/MM/dd iii HH:mm:ssXXX")
 
     val value: String = "1234561990/01/31 789 22:52:33+01:00"

@@ -289,7 +289,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
       Row(1L, Array("A", "B"), Row(false), Array()),
       Row(2L, Array("C"), Row(true), Array())
     )
-    // checking just the data without enceladus_record_id, not the schema here
+    // checking just the data without standardization_record_id, not the schema here
     val expectedDF = expectedData.toDfWithSchema(actualDf.drop("standardization_record_id").schema)
 
     // same except for the record id
