@@ -18,9 +18,10 @@ package za.co.absa.standardization.interpreter.stages
 
 import java.security.InvalidParameterException
 import java.sql.{Date, Timestamp}
+import java.text.SimpleDateFormat
 
 import org.apache.log4j.{LogManager, Logger}
-import org.apache.spark.SPARK_VERSION
+import org.apache.spark.{SPARK_VERSION}
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
@@ -91,8 +92,6 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   }
 
   protected def doTestIntoDateFieldNoPattern(input: Input): Unit = {
-    assume(SPARK_VERSION.startsWith("2.4")) //to be solved in #18
-
     import input._
     val dateField = StructField("dateField", DateType, nullable = false,
       new MetadataBuilder().putString("sourcecolumn", sourceFieldName).build)
@@ -110,8 +109,6 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   }
 
   protected def doTestIntoTimestampFieldNoPattern(input: Input): Unit = {
-    assume(SPARK_VERSION.startsWith("2.")) //to be solved in #18
-
     import input._
     val timestampField = StructField("timestampField", TimestampType, nullable = false,
       new MetadataBuilder().putString("sourcecolumn", sourceFieldName).build)
@@ -153,7 +150,6 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   }
 
   protected def doTestIntoTimestampFieldWithPatternAndDefault(input: Input): Unit = {
-    assume(SPARK_VERSION.startsWith("2.")) //to be solved in #18
     import input._
     val timestampField = StructField("timestampField", TimestampType, nullable = false,
       new MetadataBuilder().putString("sourcecolumn", sourceFieldName).putString("pattern", timestampPattern).putString("default", defaultValueTimestamp).build)
@@ -170,8 +166,6 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   }
 
   protected def doTestIntoTimestampFieldWithPatternAndTimeZone(input: Input): Unit = {
-    assume(SPARK_VERSION.startsWith("2.")) //to be solved in #18
-
     import input._
     val timestampField = StructField("timestampField", TimestampType, nullable = false,
       new MetadataBuilder().putString("sourcecolumn", sourceFieldName).putString("pattern", timestampPattern).putString("timezone", fixedTimezone).build)
@@ -188,8 +182,6 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   }
 
   protected def doTestIntoTimestampFieldWithEpochPattern(input: Input): Unit = {
-    assume(SPARK_VERSION.startsWith("2.")) //to be solved in #18
-
     import input._
     val timestampField = StructField("timestampField", TimestampType, nullable = false,
       new MetadataBuilder().putString("sourcecolumn", sourceFieldName).putString("pattern", DateTimePattern.EpochMilliKeyword).build)
@@ -233,20 +225,41 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     if (path.nonEmpty) s"$path.$fieldName" else fieldName
   }
 
+  def dateComponentShow(date: Date): String = {
+    val dateString = if(SPARK_VERSION.startsWith("2.4")) {
+      date.toString
+    } else {
+      val dateFormatter = new SimpleDateFormat("yyyy-MM-dd")
+      dateFormatter.format(date)
+    }
+    s"DATE '${dateString}'"
+  }
+
+  def timeStampComponentShow(date: Timestamp): String = {
+    if(SPARK_VERSION.startsWith("2.4")) {
+      s"TIMESTAMP('${date.toString}')"
+    } else {
+      val dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+      s"TIMESTAMP '${dateFormatter.format(date)}'"
+    }
+
+  }
+
   private def assembleCastExpression(srcField: String,
                                      target: StructField,
                                      castExpression: String,
                                      errorExpression: String): String = {
     val defaultValue = TypedStructField(target).defaultValueWithGlobal.get
     val default = defaultValue match {
-      case Some(d: Date) => s"DATE '${d.toString}'"
-      case Some(t: Timestamp) => s"TIMESTAMP('${t.toString}')"
+      case Some(d: Date) => dateComponentShow(d)
+      case Some(t: Timestamp) => timeStampComponentShow(t)
       case Some(s: String) => s
       case Some(x) => x.toString
       case None => "NULL"
     }
 
-    s"CASE WHEN (size($errorExpression) > 0) THEN $default ELSE CASE WHEN ($srcField IS NOT NULL) THEN $castExpression END END AS `${target.name}`"
+    val expresionWithQuotes = s"CASE WHEN (size($errorExpression) > 0) THEN $default ELSE CASE WHEN ($srcField IS NOT NULL) THEN $castExpression END END AS `${target.name}`"
+    if (SPARK_VERSION.startsWith("2.4")) expresionWithQuotes else expresionWithQuotes.replaceAll("`", "")
   }
 
   private def assembleErrorExpression(srcField: String, target: StructField, castS: String): String = {
