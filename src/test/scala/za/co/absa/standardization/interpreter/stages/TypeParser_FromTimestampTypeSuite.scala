@@ -16,7 +16,6 @@
 
 package za.co.absa.standardization.interpreter.stages
 
-import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types._
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate.Input
 import za.co.absa.standardization.time.DateTimePattern

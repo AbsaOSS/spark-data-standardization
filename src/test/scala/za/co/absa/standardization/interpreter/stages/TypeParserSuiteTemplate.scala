@@ -258,7 +258,8 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
       case None => "NULL"
     }
 
-    val expresionWithQuotes = s"CASE WHEN (size($errorExpression) > 0) THEN $default ELSE CASE WHEN ($srcField IS NOT NULL) THEN $castExpression END END AS `${target.name}`"
+    val expresionWithQuotes = s"CASE WHEN (size($errorExpression) > 0) THEN $default ELSE " +
+      s"CASE WHEN ($srcField IS NOT NULL) THEN $castExpression END END AS `${target.name}`"
     if (SPARK_VERSION.startsWith("2.4")) expresionWithQuotes else expresionWithQuotes.replaceAll("`", "")
   }
 
@@ -268,7 +269,8 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     if (target.nullable) {
       s"CASE WHEN (($srcField IS NOT NULL) AND ($errCond)) THEN array(stdCastErr($srcField, CAST($srcField AS STRING))) ELSE [] END"
     } else {
-      s"CASE WHEN ($srcField IS NULL) THEN array(stdNullErr($srcField)) ELSE CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING))) ELSE [] END END"
+      s"CASE WHEN ($srcField IS NULL) THEN array(stdNullErr($srcField)) ELSE " +
+        s"CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING))) ELSE [] END END"
     }
   }
 

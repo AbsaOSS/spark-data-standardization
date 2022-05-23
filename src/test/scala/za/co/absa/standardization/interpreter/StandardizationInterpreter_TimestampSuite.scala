@@ -18,7 +18,6 @@ package za.co.absa.standardization.interpreter
 
 import java.sql.Timestamp
 
-import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types.{MetadataBuilder, StructField, StructType, TimestampType}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
