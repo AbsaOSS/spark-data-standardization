@@ -17,8 +17,6 @@
 name: FormatCheck
 
 on:
-  push:
-    branches: [ main, develop, master ]
   pull_request:
     branches: [ master, develop ]
     types: [ assigned, opened, synchronize, reopened, labeled ]
@@ -26,7 +24,6 @@ on:
 jobs:
   scalafmt:
     runs-on: ubuntu-latest
-    continue-on-error: true
     name: Scalafmt Check
     steps:
       - name: Checkout code
@@ -36,4 +33,5 @@ jobs:
         with:
           java-version: "adopt@1.8"
       - name: Run scalafmt And Print Diff
+        continue-on-error: true
         run: sbt scalafmt scalafmtSbt && git diff --exit-code
