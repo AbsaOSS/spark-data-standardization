@@ -23,7 +23,6 @@ trait MetadataColumnsConfig {
   val prefix: String
   val recordIdStrategy: RecordIdGeneration.IdType
 
-  // TODO Final?
   val infoDateColumn = prefix + "_info_date"
   val infoDateColumnString = s"${infoDateColumn}_string"
   val reportDateFormat = "yyyy-MM-dd"
