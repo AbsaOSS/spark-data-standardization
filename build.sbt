@@ -49,7 +49,7 @@ Test / parallelExecution := false
 
 // Only apply scalafmt to files that differ from master (i.e. files changed in the feature branch or so),
 // not on the whole repository.
-scalafmtFilter.withRank(KeyRanks.Invisible) := "diff-ref=origin/master"
+scalafmtFilter.withRank(KeyRanks.Invisible) := "diff-ref=master"
 
 // licenceHeader check:
 ThisBuild / organizationName := "ABSA Group Limited"
