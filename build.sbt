@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import sys.process._
 
 ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
@@ -25,13 +25,13 @@ lazy val scala212 = "2.12.12"
 ThisBuild / crossScalaVersions := Seq(scala211, scala212)
 ThisBuild / scalaVersion := scala211
 
-def sparkVersion(scalaVersion: String): String = if (scalaVersion==scala212) "3.1.2" else "2.4.7"
+def sparkVersion(scalaVersion: String): String = if (scalaVersion == scala212) "3.1.2" else "2.4.7"
 
-def sparkFastTestsVersion(scalaVersion: String): String = if (scalaVersion==scala212) "1.1.0" else "0.23.0"
+def sparkFastTestsVersion(scalaVersion: String): String = if (scalaVersion == scala212) "1.1.0" else "0.23.0"
 
-libraryDependencies ++=  List(
+libraryDependencies ++= List(
   "org.apache.spark" %% "spark-core" % sparkVersion(scalaVersion.value) % "provided",
-  "org.apache.spark" %% "spark-sql" % sparkVersion(scalaVersion.value)  % "provided",
+  "org.apache.spark" %% "spark-sql" % sparkVersion(scalaVersion.value) % "provided",
   "za.co.absa" %% "spark-commons" % "0.2.0",
   "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion(scalaVersion.value) % Test,
   "org.scalatest" %% "scalatest" % "3.2.2" % Test,
@@ -49,7 +49,13 @@ Test / parallelExecution := false
 
 // Only apply scalafmt to files that differ from master (i.e. files changed in the feature branch or so),
 // not on the whole repository.
-scalafmtFilter.withRank(KeyRanks.Invisible) := "diff-ref=origin/master"
+val baseBranchName = Seq(
+  "/bin/sh",
+  "-c",
+  raw"git show-branch -a | grep '\*' | grep -v `git branch --show-current` | head -n1 | sed 's/.*\[\(.*\)\].*/\1/'"
+).!!.trim
+
+scalafmtFilter.withRank(KeyRanks.Invisible) := s"diff-ref=origin/${baseBranchName}"
 
 // licenceHeader check:
 ThisBuild / organizationName := "ABSA Group Limited"
