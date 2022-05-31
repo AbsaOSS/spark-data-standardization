@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.standardization
+package za.co.absa.standardization.config
 
-object Constants {
-  // ToDo Configurable - Issue #5
-  final val InfoDateColumn = "enceladus_info_date" // TODO #5 "standardization_info_date"
-  final val InfoDateColumnString = s"${InfoDateColumn}_string"
-  final val ReportDateFormat = "yyyy-MM-dd"
-  final val InfoVersionColumn = "enceladus_info_version" // TODO #5 "standardization_info_version"
-  final val EnceladusRecordId = "enceladus_record_id" // TODO #5 "standardization_record_id"
+trait ErrorCodesConfig extends Serializable {
+  val castError: String
+  val nullError: String
+  val typeError: String
+  val schemaError: String
 }

@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package za.co.absa.standardization.udf
+package za.co.absa.standardization.config
 
-object UDFNames {
-  final val stdCastErr = "stdCastErr"
-  final val stdNullErr = "stdNullErr"
-  final val stdSchemaErr = "stdSchemaErr"
+import za.co.absa.standardization.RecordIdGeneration
 
-  final val arrayDistinctErrors = "arrayDistinctErrors"
-  final val cleanErrCol = "cleanErrCol"
-  final val errorColumnAppend = "errorColumnAppend"
+trait MetadataColumnsConfig {
+  val addColumns: Boolean
+  val prefix: String
+  val recordIdStrategy: RecordIdGeneration.IdType
 
-  final val binaryUnbase64 = "binaryUnbase64"
+  val infoDateColumn = prefix + "_info_date"
+  val infoDateColumnString = s"${infoDateColumn}_string"
+  val reportDateFormat = "yyyy-MM-dd"
+  val infoVersionColumn = prefix + "_info_version"
+  val recordId = prefix + "_record_id"
 }

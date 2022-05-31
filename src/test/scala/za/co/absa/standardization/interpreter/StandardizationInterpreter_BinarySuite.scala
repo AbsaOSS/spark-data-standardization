@@ -20,6 +20,8 @@ import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization, ValidationException}
@@ -28,7 +30,14 @@ class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestB
 
   import spark.implicits._
 
-  private implicit val udfLib: UDFLibrary = new UDFLibrary
+  private val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+  private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: Defaults = GlobalDefaults
 
   private val fieldName = "binaryField"
