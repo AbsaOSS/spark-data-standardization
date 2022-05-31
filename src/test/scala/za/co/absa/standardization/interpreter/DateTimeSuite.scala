@@ -17,16 +17,17 @@
 package za.co.absa.standardization.interpreter
 
 import java.sql.{Date, Timestamp}
-
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset, Row}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.stages.SchemaChecker
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.validation.field.FieldValidationIssue
 import za.co.absa.standardization._
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
 
 
 class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
@@ -42,7 +43,14 @@ class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
     .fromJson(FileReader.readFileAsString("src/test/resources/data/dateTimestampSchemaOk.json"))
     .asInstanceOf[StructType]
 
-  private implicit val udfLib: UDFLibrary = new UDFLibrary()
+  private val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+  private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
 
   test("Validation should return critical errors") {
     logger.debug(data.schema.prettyJson)
@@ -76,11 +84,13 @@ class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
 
   test("Date Time Standardization Example Test should throw an exception") {
     intercept[ValidationException] {
-      Standardization.standardize(data, schemaWrong)
+      Standardization.standardize(data, schemaWrong, stdConfig)
     }
   }
 
   test("Date Time Standardization Example with fixed schema should work") {
+    implicit val errCodes: ErrorCodesConfig = stdConfig.errorCodes
+
     val date0 = new Date(0)
     val ts = Timestamp.valueOf("2017-10-20 08:11:31")
     val ts0 = new Timestamp(0)
@@ -102,7 +112,7 @@ class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
         ErrorMessage.stdCastErr("timestampSampleWrong3", "2017-10-20")
       )
     ))
-    val std: Dataset[Row] = Standardization.standardize(data, schemaOk)
+    val std: Dataset[Row] = Standardization.standardize(data, schemaOk, stdConfig)
     logDataFrameContent(std)
     assertResult(exp)(std.as[Tuple14[Long, Date, Date, Date, Date, Date, Date, Timestamp, Timestamp, Timestamp, Timestamp, Timestamp,Timestamp, Seq[ErrorMessage]]].collect().toList)
   }

@@ -17,15 +17,18 @@
 package za.co.absa.standardization.interpreter
 
 import java.sql.{Date, Timestamp}
-
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.utils.JsonUtils
-import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.spark.commons.test.{DefaultSparkConfiguration, SparkTestBase}
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, FileReader, LoggerTestBase, Standardization}
+
+import java.util.TimeZone
 
 object StandardizationInterpreterSuite {
 
@@ -71,8 +74,20 @@ object StandardizationInterpreterSuite {
 class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import StandardizationInterpreterSuite._
   import spark.implicits._
+
+  spark.conf.set("spark.sql.session.timeZone", "UTC")
+  TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+
+  private val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+  private implicit val errorCodes: ErrorCodesConfig = stdConfig.errorCodes
+  private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: Defaults = GlobalDefaults
-  private implicit val udfLib: UDFLibrary = new UDFLibrary
 
   private val stdExpectedSchema = StructType(
     Seq(
@@ -117,7 +132,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         Seq(
           StructField("yourRef", StringType, nullable = false))), nullable = false)))
 
-    val standardizedDF = Standardization.standardize(orig, schema)
+    val standardizedDF = Standardization.standardize(orig, schema, stdConfig)
 
     assertResult(exp)(standardizedDF.as[MyWrapperStd].collect().toList)
   }
@@ -137,7 +152,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         new ErrorMessage("myErrorType2", "E-2", "Testing This stuff blabla", "whatEvColumn2", Seq("some other value")))))
 
     val expSchema = spark.emptyDataset[ErrorPreserveStd].schema
-    val res = Standardization.standardize(df, expSchema)
+    val res = Standardization.standardize(df, expSchema, stdConfig)
 
     assertResult(exp.sortBy(_.a).toList)(res.as[ErrorPreserveStd].collect().sortBy(_.a).toList)
   }
@@ -155,7 +170,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         ArrayType(
           ErrorMessage.errorColSchema, containsNull = false)))
 
-    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema)
+    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema, stdConfig)
 
     logger.debug(standardizedDF.schema.treeString)
     logger.debug(expectedSchema.treeString)
@@ -171,7 +186,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         ArrayType(
           ErrorMessage.errorColSchema, containsNull = false)))
 
-    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema)
+    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema, stdConfig)
 
     logger.debug(standardizedDF.schema.treeString)
     logger.debug(expectedSchema.treeString)
@@ -198,7 +213,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         RootRecordCC(3, Some("Test Name 3"), None),
         RootRecordCC(4, None, None)))
 
-    val standardizedDF = Standardization.standardize(sourceDF, schema)
+    val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
     // 'orders' array is nullable, so it can be omitted
     // But orders[].ordername is not nullable, so it must be specified
     // But absence of orders should not cause validation errors
@@ -226,7 +241,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
       StdTime(2, new Date(1735689600000L), new Timestamp(1735741586000L), List(ErrorMessage.stdCastErr("date", ""), ErrorMessage.stdCastErr("timestamp", "")))
     )
 
-    val standardizedDF = Standardization.standardize(sourceDF, schema)
+    val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
     val result = standardizedDF.as[StdTime].collect().toList
     assertResult(expected)(result)
   }
@@ -250,7 +265,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
       StdTime(2, new Date(1735689600000L), new Timestamp(1735741586000L), List(ErrorMessage.stdCastErr("date", ""), ErrorMessage.stdCastErr("timestamp", "")))
     )
 
-    val standardizedDF = Standardization.standardize(sourceDF, schema)
+    val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
     val result = standardizedDF.as[StdTime].collect().toList
     assertResult(expected)(result)
   }
@@ -274,7 +289,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
       StdTime(2, null, new Timestamp(0L), List(ErrorMessage.stdCastErr("date", ""), ErrorMessage.stdCastErr("timestamp", "")))
     )
 
-    val standardizedDF = Standardization.standardize(sourceDF, schema)
+    val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
     val result = standardizedDF.as[StdTime].collect().toList
     assertResult(expected)(result)
   }
@@ -298,7 +313,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
       StdTime(2, new Date(0L), null, List(ErrorMessage.stdCastErr("date", ""), ErrorMessage.stdCastErr("timestamp", "")))
     )
 
-    val standardizedDF = Standardization.standardize(sourceDF, schema)
+    val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
     val result = standardizedDF.as[StdTime].collect().toList
     assertResult(expected)(result)
   }
@@ -332,7 +347,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
 
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
     logDataFrameContent(std)
 
     val actualSchema = std.schema.treeString

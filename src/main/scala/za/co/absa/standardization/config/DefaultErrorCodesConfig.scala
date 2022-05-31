@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.standardization.udf
+package za.co.absa.standardization.config
 
-object UDFNames {
-  final val stdCastErr = "stdCastErr"
-  final val stdNullErr = "stdNullErr"
-  final val stdSchemaErr = "stdSchemaErr"
-
-  final val arrayDistinctErrors = "arrayDistinctErrors"
-  final val cleanErrCol = "cleanErrCol"
-  final val errorColumnAppend = "errorColumnAppend"
-
-  final val binaryUnbase64 = "binaryUnbase64"
+object DefaultErrorCodesConfig extends ErrorCodesConfig {
+  val castError: String = "E00000"
+  val nullError: String = "E00002"
+  val typeError: String = "E00006"
+  val schemaError: String = "E00007"
 }

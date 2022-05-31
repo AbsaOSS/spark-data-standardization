@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package za.co.absa.standardization.udf
+package za.co.absa.standardization.config
 
-object UDFNames {
-  final val stdCastErr = "stdCastErr"
-  final val stdNullErr = "stdNullErr"
-  final val stdSchemaErr = "stdSchemaErr"
+import za.co.absa.standardization.RecordIdGeneration
 
-  final val arrayDistinctErrors = "arrayDistinctErrors"
-  final val cleanErrCol = "cleanErrCol"
-  final val errorColumnAppend = "errorColumnAppend"
+case class BasicMetadataColumnsConfig(addColumns: Boolean,
+                                     prefix: String,
+                                     recordIdStrategy: RecordIdGeneration.IdType) extends MetadataColumnsConfig
 
-  final val binaryUnbase64 = "binaryUnbase64"
+object BasicMetadataColumnsConfig {
+  def fromDefault(): BasicMetadataColumnsConfig = {
+    BasicMetadataColumnsConfig(
+      DefaultMetadataColumnsConfig.addColumns,
+      DefaultMetadataColumnsConfig.prefix,
+      DefaultMetadataColumnsConfig.recordIdStrategy
+    )
+  }
 }

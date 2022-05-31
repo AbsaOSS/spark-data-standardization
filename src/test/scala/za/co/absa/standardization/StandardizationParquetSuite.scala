@@ -18,8 +18,8 @@ package za.co.absa.standardization
 
 import java.sql.Timestamp
 import java.time.Instant
+import java.util.{TimeZone, UUID}
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.functions.{col, to_timestamp}
 import org.apache.spark.sql.types._
@@ -27,6 +27,8 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.DataFrameTestUtils.RowSeqToDf
+import za.co.absa.standardization.RecordIdGeneration.IdType._
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.stages.TypeParserException
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
@@ -38,18 +40,25 @@ private case class FooClass(bar: Boolean)
 class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with DatasetComparer {
   import spark.implicits._
 
-  private implicit val udfLibrary:UDFLibrary = new UDFLibrary()
+  private val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+
+  spark.conf.set("spark.sql.session.timeZone", "UTC")
+  TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+
+  private implicit val udfLibrary:UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: Defaults = GlobalDefaults
 
   private val tsPattern = "yyyy-MM-dd HH:mm:ss zz"
 
-  private val configPlain = ConfigFactory.load()
-  private val configWithSchemaValidation = configPlain
-    .withValue("standardization.failOnInputNotPerSchema", ConfigValueFactory.fromAnyRef(true))
-  private val uuidConfig = configPlain
-    .withValue("standardization.recordId.generation.strategy", ConfigValueFactory.fromAnyRef("uuid"))
-  private val stableIdConfig = configPlain
-    .withValue("standardization.recordId.generation.strategy", ConfigValueFactory.fromAnyRef("stablehashid"))
+  private val configWithSchemaValidation = stdConfig.copy(failOnInputNotPerSchema = true)
+  private val uuidConfig = stdConfig.copy(metadataColumns = BasicMetadataColumnsConfig.fromDefault().copy(recordIdStrategy = TrueUuids))
+  private val stableIdConfig = stdConfig.copy(metadataColumns = BasicMetadataColumnsConfig.fromDefault().copy(recordIdStrategy = StableHashId))
 
   private val data = Seq (
     (1, Array("A", "B"), FooClass(false), "1970-01-01 00:00:00 UTC"),
@@ -65,7 +74,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
       StructField("struct", StructType(Seq(StructField("bar", BooleanType))), nullable = false)
     )
     val schema = StructType(seq)
-    val actualDf = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema, stdConfig)
 
     val expectedData = Seq(
       Row(1L, Array("A", "B"), Row(false), Array()),
@@ -90,7 +99,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
         new MetadataBuilder().putString(MetadataKeys.DefaultValue, "3.14").build())
     )
     val schema = StructType(seq)
-    val actualDf = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema, stdConfig)
 
     val EpochTimestamp = Timestamp.from(Instant.EPOCH)
     val expectedErrors = Seq(
@@ -117,7 +126,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
         new MetadataBuilder().putString(MetadataKeys.SourceColumn, "letters").build())
     )
     val schema = StructType(seq)
-    val actualDf = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema, stdConfig)
 
     val expectedErrors = Seq(
       Row("stdTypeError", "E00006", "Standardization Error - Type 'integer' cannot be cast to 'array'", "id", Seq(), Seq()),
@@ -143,7 +152,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
       StructField("decimal_field", DecimalType(20,4), nullable = true)
     )
     val schema = StructType(seq)
-    val actualDf = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema, stdConfig)
 
     val expectedData = Seq(
       Row(1, null, null, null, null, null, Array()),
@@ -164,7 +173,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
         .build())
     )
     val schema = StructType(seq)
-    val actualDf = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema, stdConfig)
 
     val expectedErrors = Seq(
       Row("stdTypeError", "E00006", "Standardization Error - Type 'integer' cannot be cast to 'struct'", "id", Seq(), Seq()),
@@ -187,7 +196,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
       StructField("struct", ArrayType(StringType), nullable = true)
     )
     val schema = StructType(seq)
-    val actualDf = Standardization.standardize(sourceDataDF, schema)
+    val actualDf = Standardization.standardize(sourceDataDF, schema, stdConfig)
 
     val expectedErrors = Seq(
       Row("stdTypeError", "E00006", "Standardization Error - Type 'array' cannot be cast to 'struct'", "letters", Seq(), Seq()),
@@ -212,7 +221,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
     val schema = StructType(seq)
 
     val exception = intercept[TypeParserException] {
-      Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(configWithSchemaValidation))
+      Standardization.standardize(sourceDataDF, schema, configWithSchemaValidation)
     }
     assert(exception.getMessage == "Cannot standardize field 'id' from type integer into array")
   }
@@ -229,7 +238,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
     val schema = StructType(seq)
 
     val exception = intercept[TypeParserException] {
-      Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(configWithSchemaValidation))
+      Standardization.standardize(sourceDataDF, schema, configWithSchemaValidation)
     }
     assert(exception.getMessage == "Cannot standardize field 'id' from type integer into struct")
   }
@@ -243,7 +252,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
     val schema = StructType(seq)
 
     val exception = intercept[TypeParserException] {
-      Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(configWithSchemaValidation))
+      Standardization.standardize(sourceDataDF, schema, configWithSchemaValidation)
     }
     assert(exception.getMessage == "Cannot standardize field 'letters' from type array into struct")
   }
@@ -256,7 +265,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
     )
     val schema = StructType(seq)
     // stableHashId will always yield the same ids
-    val actualDf = Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(stableIdConfig))
+    val actualDf = Standardization.standardize(sourceDataDF, schema, stableIdConfig)
 
     val expectedData = Seq(
       Row(1L, Array("A", "B"), Row(false), Array(), 1950798873),
@@ -274,31 +283,35 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
       StructField("struct", StructType(Seq(StructField("bar", BooleanType))), nullable = false)
     )
     val schema = StructType(seq)
-    val actualDf = Standardization.standardize(sourceDataDF, schema, StandardizationConfig.fromConfig(uuidConfig))
+    val actualDf = Standardization.standardize(sourceDataDF, schema, uuidConfig)
 
     val expectedData = Seq(
       Row(1L, Array("A", "B"), Row(false), Array()),
       Row(2L, Array("C"), Row(true), Array())
     )
-    // checking just the data without enceladus_record_id, not the schema here
-    val expectedDF = expectedData.toDfWithSchema(actualDf.drop("enceladus_record_id").schema)
+    // checking just the data without standardization_record_id, not the schema here
+    val expectedDF = expectedData.toDfWithSchema(actualDf.drop("standardization_record_id").schema)
 
     // same except for the record id
-    assertSmallDatasetEquality(actualDf.drop("enceladus_record_id"), expectedDF, ignoreNullable = true)
+    assertSmallDatasetEquality(actualDf.drop("standardization_record_id"), expectedDF, ignoreNullable = true)
+
+    val destIds = actualDf.select('standardization_record_id ).collect().map(_.getAs[String](0)).toSet
+    assert(destIds.size == 2)
+    destIds.foreach(UUID.fromString) // check uuid validity
   }
 
-  test("Existing enceladus_record_id is kept") {
+  test("Existing standardization_record_id is kept") {
     import org.apache.spark.sql.functions.{concat, lit}
-    val sourceDfWithExistingIds = sourceDataDF.withColumn("enceladus_record_id", concat(lit("id"), 'id))
+    val sourceDfWithExistingIds = sourceDataDF.withColumn("standardization_record_id", concat(lit("id"), 'id))
 
     val seq = Seq(
       StructField("id", LongType, nullable = false),
       StructField("letters", ArrayType(StringType), nullable = false),
       StructField("struct", StructType(Seq(StructField("bar", BooleanType))), nullable = false),
-      StructField("enceladus_record_id", StringType, nullable = false)
+      StructField("standardization_record_id", StringType, nullable = false)
     )
     val schema = StructType(seq)
-    val actualDf = Standardization.standardize(sourceDfWithExistingIds, schema, StandardizationConfig.fromConfig(uuidConfig))
+    val actualDf = Standardization.standardize(sourceDfWithExistingIds, schema, uuidConfig)
 
     // The TrueUuids strategy does not override the existing values
     val expectedData = Seq(
@@ -331,7 +344,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
       StructField("ts", TimestampType, nullable = false, new MetadataBuilder().putString(MetadataKeys.DefaultTimeZone, "CET").build())
     )
     val schema = StructType(seq)
-    val destDF = Standardization.standardize(sourceDataDF, schema)
+    val destDF = Standardization.standardize(sourceDataDF, schema, stdConfig)
 
     val actual = destDF.dataAsString(truncate = false)
     assert(actual == expected)

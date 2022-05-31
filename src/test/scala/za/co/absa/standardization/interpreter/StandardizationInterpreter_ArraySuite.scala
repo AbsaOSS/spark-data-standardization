@@ -17,7 +17,6 @@
 package za.co.absa.standardization.interpreter
 
 import java.sql.Timestamp
-
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
@@ -26,6 +25,8 @@ import org.scalatest.matchers.should.Matchers
 import za.co.absa.spark.commons.utils.JsonUtils
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.DataFrameTestUtils.RowSeqToDf
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
@@ -34,7 +35,14 @@ import za.co.absa.standardization.{ErrorMessageFactory, LoggerTestBase, Standard
 class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBase with LoggerTestBase with Matchers with DatasetComparer {
   import spark.implicits._
 
-  private implicit val udfLib: UDFLibrary = new UDFLibrary
+  private val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+  private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: Defaults = GlobalDefaults
 
   private val fieldName = "arrayField"
@@ -64,7 +72,8 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
       " |    |-- element: timestamp (containsNull = true)"
     )
 
-    val stdDF = Standardization.standardize(src, desiredSchema).cache()
+    val stdDF = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    println(stdDF.schema.treeString)
     assert(stdDF.schema.treeString == expectedSchema) // checking schema first
 
     val expectedData = Seq(
@@ -99,7 +108,7 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
       " |    |-- element: timestamp (containsNull = true)"
     )
 
-    val stdDF = Standardization.standardize(src, desiredSchema).cache()
+    val stdDF = Standardization.standardize(src, desiredSchema, stdConfig).cache()
     assert(stdDF.schema.treeString == expectedSchema) // checking schema first
 
     val expectedData = Seq(
@@ -124,7 +133,7 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
     val src = seq.toDF(fieldName)
     val desiredSchema = generateDesiredSchema(TimestampType, s""""${MetadataKeys.Pattern}": "fubar"""")
     val caught = intercept[ValidationException] {
-      Standardization.standardize(src, desiredSchema).cache()
+      Standardization.standardize(src, desiredSchema, stdConfig).cache()
     }
 
     caught.getMessage should startWith ("A fatal schema validation error occurred.")
@@ -146,7 +155,7 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
         " |    |-- element: integer (containsNull = true)"
     )
 
-    val stdDF = Standardization.standardize(src, desiredSchema).cache()
+    val stdDF = Standardization.standardize(src, desiredSchema, stdConfig).cache()
     assert(stdDF.schema.treeString == expectedSchema) // checking schema first
 
     val expectedData = Seq(
@@ -178,7 +187,7 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
         " |    |-- element: float (containsNull = true)"
     )
 
-    val stdDF = Standardization.standardize(src, desiredSchema).cache()
+    val stdDF = Standardization.standardize(src, desiredSchema, stdConfig).cache()
     assert(stdDF.schema.treeString == expectedSchema) // checking schema first
 
     val expectedData = Seq(
@@ -211,9 +220,7 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
         " |    |    |-- element: string (containsNull = true)"
     )
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
-
-    val stdDF = Standardization.standardize(src, desiredSchema).cache()
+    val stdDF = Standardization.standardize(src, desiredSchema, stdConfig).cache()
     assert(stdDF.schema.treeString == expectedSchema) // checking schema first
 
     val expectedData = Seq(

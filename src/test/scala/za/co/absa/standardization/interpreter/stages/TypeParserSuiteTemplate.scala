@@ -25,6 +25,8 @@ import org.apache.spark.{SPARK_VERSION}
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate._
 import za.co.absa.standardization.stages.TypeParser
 import za.co.absa.standardization.time.DateTimePattern
@@ -33,7 +35,14 @@ import za.co.absa.standardization.udf.UDFLibrary
 
 trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
 
-  private implicit val udfLib: UDFLibrary = new UDFLibrary
+  private val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+  private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: Defaults = GlobalDefaults
 
   protected def createCastTemplate(toType: DataType, pattern: String, timezone: Option[String]): String
@@ -100,7 +109,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     if (datetimeNeedsPattern) {
       val errMessage = s"Dates & times represented as ${baseType.typeName} values need specified 'pattern' metadata"
       val caughtErr = intercept[InvalidParameterException] {
-        TypeParser.standardize(dateField, path, schema)
+        TypeParser.standardize(dateField, path, schema, stdConfig)
       }
       assert(caughtErr.getMessage == errMessage)
     } else {
@@ -117,7 +126,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     if (datetimeNeedsPattern) {
       val errMessage = s"Dates & times represented as ${baseType.typeName} values need specified 'pattern' metadata"
       val caughtErr = intercept[InvalidParameterException] {
-        TypeParser.standardize(timestampField, path, schema)
+        TypeParser.standardize(timestampField, path, schema, stdConfig)
       }
       assert(caughtErr.getMessage == errMessage)
     } else {
@@ -206,7 +215,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     val castString = createCastTemplate(target.dataType, pattern, timezone).format(srcField, srcField)
     val errColumnExpression = assembleErrorExpression(srcField, target, applyRecasting(castString))
     val stdCastExpression = assembleCastExpression(srcField, target, applyRecasting(castString), errColumnExpression)
-    val output: ParseOutput = TypeParser.standardize(target, path, schema)
+    val output: ParseOutput = TypeParser.standardize(target, path, schema, stdConfig)
 
     doAssert(errColumnExpression, output.errors.toString())
     doAssert(stdCastExpression, output.stdCol.toString())

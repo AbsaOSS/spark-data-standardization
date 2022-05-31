@@ -22,6 +22,7 @@ import org.apache.spark.sql.types.{StructType, _}
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
+import za.co.absa.standardization.config.{DefaultStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.stages.{SchemaChecker, TypeParser}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, ParseOutput}
 import za.co.absa.standardization.udf.{UDFLibrary, UDFNames}
@@ -33,24 +34,30 @@ object Standardization {
 
   final val ColumnNameOfCorruptRecordConf = "spark.sql.columnNameOfCorruptRecord"
 
-  def standardize(df: DataFrame, schema: StructType, standardizationConfig: StandardizationConfig = StandardizationConfig.fromConfig())
+  def standardize(df: DataFrame,
+                  schema: StructType,
+                  standardizationConfig: StandardizationConfig = DefaultStandardizationConfig)
                  (implicit sparkSession: SparkSession): DataFrame = {
-    implicit val udfLib: UDFLibrary = new UDFLibrary
+    implicit val udfLib: UDFLibrary = new UDFLibrary(standardizationConfig)
     implicit val hadoopConf: Configuration = sparkSession.sparkContext.hadoopConfiguration
 
     logger.info(s"Step 1: Schema validation")
     validateSchemaAgainstSelfInconsistencies(schema)
 
     logger.info(s"Step 2: Standardization")
-    val std = standardizeDataset(df, schema, standardizationConfig.failOnInputNotPerSchema)
+    val std = standardizeDataset(df, schema, standardizationConfig)
 
     logger.info(s"Step 3: Clean the final error column")
     val cleanedStd = cleanTheFinalErrorColumn(std)
 
-    val idedStd = if (cleanedStd.schema.fieldExists(Constants.EnceladusRecordId)) {
+    val idedStd = if (cleanedStd.schema.fieldExists(standardizationConfig.metadataColumns.recordId)) {
       cleanedStd // no new id regeneration
     } else {
-      RecordIdGeneration.addRecordIdColumnByStrategy(cleanedStd, Constants.EnceladusRecordId, standardizationConfig.recordIdGenerationStrategy)
+      RecordIdGeneration.addRecordIdColumnByStrategy(
+        cleanedStd,
+        standardizationConfig.metadataColumns.recordId,
+        standardizationConfig.metadataColumns.recordIdStrategy
+      )
     }
 
     logger.info(s"Standardization process finished, returning to the application...")
@@ -66,7 +73,7 @@ object Standardization {
     }
   }
 
-  private def standardizeDataset(df: DataFrame, expSchema: StructType, failOnInputNotPerSchema: Boolean)
+  private def standardizeDataset(df: DataFrame, expSchema: StructType, stdConfig: StandardizationConfig)
                                 (implicit spark: SparkSession, udfLib: UDFLibrary): DataFrame  = {
 
     val rowErrors: List[Column] = gatherRowErrors(df.schema)
@@ -77,7 +84,7 @@ object Standardization {
         if (field.name == ErrorMessage.errorColumnName) {
           (accCols, accErrorCols, Option(df.col(field.name)))
         } else {
-          val ParseOutput(stdColumn, errColumn) = TypeParser.standardize(field, "", df.schema, failOnInputNotPerSchema)
+          val ParseOutput(stdColumn, errColumn) = TypeParser.standardize(field, "", df.schema, stdConfig, stdConfig.failOnInputNotPerSchema)
           logger.info(s"Applying standardization plan for ${field.name}")
           (stdColumn :: accCols, errColumn :: accErrorCols, accOldErrorColumn)
         }

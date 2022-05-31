@@ -17,10 +17,11 @@
 package za.co.absa.standardization.udf
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream, ObjectStreamClass}
-
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField._
 import za.co.absa.standardization.types.parsers.IntegralParser.{PatternIntegralParser, RadixIntegralParser}
@@ -29,7 +30,14 @@ import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructFi
 
 class UDFBuilderSuite extends AnyFunSuite {
   private implicit val defaults: Defaults = GlobalDefaults
-  val loader = Thread.currentThread().getContextClassLoader
+  private val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+  val loader: ClassLoader = Thread.currentThread().getContextClassLoader
 
   test("Serialization and deserialization of stringUdfViaNumericParser (FractionalParser)") {
     val fieldName = "test"
@@ -40,7 +48,7 @@ class UDFBuilderSuite extends AnyFunSuite {
     val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[Double]]
     val defaultValue: Option[Double] = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[Double])
     val parser = numericTypeField.parser.get.asInstanceOf[FractionalParser[Double]]
-    val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, defaultValue)
+    val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, stdConfig, defaultValue)
     //write
     val baos = new ByteArrayOutputStream
     val oos = new ObjectOutputStream(baos)
@@ -65,7 +73,7 @@ class UDFBuilderSuite extends AnyFunSuite {
     val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[BigDecimal]]
     val defaultValue = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[BigDecimal])
     val parser = numericTypeField.parser.get.asInstanceOf[DecimalParser]
-    val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, defaultValue)
+    val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, stdConfig, defaultValue)
     //write
     val baos = new ByteArrayOutputStream
     val oos = new ObjectOutputStream(baos)
@@ -93,7 +101,7 @@ class UDFBuilderSuite extends AnyFunSuite {
     val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[Long]]
     val defaultValue: Option[Long] = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[Long])
     val parser = numericTypeField.parser.get.asInstanceOf[RadixIntegralParser[Long]]
-    val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, defaultValue)
+    val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, stdConfig, defaultValue)
     //write
     val baos = new ByteArrayOutputStream
     val oos = new ObjectOutputStream(baos)
@@ -120,7 +128,7 @@ class UDFBuilderSuite extends AnyFunSuite {
     val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[Short]]
     val defaultValue: Option[Short] = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[Short])
     val parser = numericTypeField.parser.get.asInstanceOf[PatternIntegralParser[Short]]
-    val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, defaultValue)
+    val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, stdConfig, defaultValue)
     //write
     val baos = new ByteArrayOutputStream
     val oos = new ObjectOutputStream(baos)
