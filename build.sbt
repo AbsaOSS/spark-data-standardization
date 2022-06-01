@@ -55,7 +55,7 @@ val baseBranchName = Seq(
   raw"git show-branch -a | grep '\*' | grep -v `git branch --show-current` | head -n1 | sed 's/.*\[\(.*\)\].*/\1/'"
 ).!!.trim
 
-scalafmtFilter.withRank(KeyRanks.Invisible) := s"diff-ref=origin/${baseBranchName}"
+scalafmtFilter.withRank(KeyRanks.Invisible) := s"diff-ref=${baseBranchName}"
 
 // licenceHeader check:
 ThisBuild / organizationName := "ABSA Group Limited"

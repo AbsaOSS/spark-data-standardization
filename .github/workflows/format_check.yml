@@ -28,10 +28,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
       - name: Setup Scala
         uses: olafurpg/setup-scala@v10
         with:
           java-version: "adopt@1.8"
+
       - name: Run scalafmt And Print Diff
         continue-on-error: true
         run: sbt scalafmt scalafmtSbt && git diff --exit-code
