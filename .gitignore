@@ -77,7 +77,6 @@ myTestCheckpoints
 **/main/resources/spline.properties
 **/main/resources/kafka.properties
 **/menas/*/main/resources/*.properties
-**/enceladus_env.sh
 *.config
 *.keytab
 .DS_Store
@@ -91,3 +90,4 @@ _site
 .jekyll-metadata
 
 utils/resources/*.conf
+.bsp

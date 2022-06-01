@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package za.co.absa.standardization.udf
+package za.co.absa.standardization.config
 
-object UDFNames {
-  final val stdCastErr = "stdCastErr"
-  final val stdNullErr = "stdNullErr"
-  final val stdSchemaErr = "stdSchemaErr"
-
-  final val arrayDistinctErrors = "arrayDistinctErrors"
-  final val cleanErrCol = "cleanErrCol"
-  final val errorColumnAppend = "errorColumnAppend"
-
-  final val binaryUnbase64 = "binaryUnbase64"
+object DefaultStandardizationConfig extends StandardizationConfig {
+  val errorCodes: ErrorCodesConfig = DefaultErrorCodesConfig
+  val metadataColumns: MetadataColumnsConfig =  DefaultMetadataColumnsConfig
+  val failOnInputNotPerSchema: Boolean = false
+  val errorColumn: String = "errCol"
+  val timezone: String = "UTC"
 }

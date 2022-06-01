@@ -17,10 +17,11 @@
 package za.co.absa.standardization.interpreter
 
 import java.sql.Date
-
 import org.apache.spark.sql.types.{DateType, MetadataBuilder, StructField, StructType}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
@@ -28,7 +29,15 @@ import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization
 class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
 
-  private implicit val udfLib: UDFLibrary = new UDFLibrary
+  private val stdConfig = BasicStandardizationConfig
+    .fromDefault()
+    .copy(metadataColumns = BasicMetadataColumnsConfig
+      .fromDefault()
+      .copy(recordIdStrategy = NoId
+      )
+    )
+  private implicit val errorCodes: ErrorCodesConfig = stdConfig.errorCodes
+  private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: Defaults = GlobalDefaults
 
   private val fieldName = "dateField"
@@ -329,8 +338,8 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     assertResult(exp)(std.as[DateRow].collect().toList)
   }
 
-  /* TODO this should work with #7 fixed (originally Enceladus#677)
-  test("date with quoted and second frations") {
+  // TODO this should work with #7 fixed (originally Enceladus#677)
+  ignore("date with quoted and second frations") {
   val seq  = Seq(
     "1970/01/01 insignificant 000000",
     "1970/02/01 insignificant 001002",
@@ -359,6 +368,5 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
   assertResult(exp)(std.as[DateRow].collect().toList)
   }
-  */
 
 }

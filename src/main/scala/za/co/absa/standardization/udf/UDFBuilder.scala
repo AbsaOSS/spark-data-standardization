@@ -18,6 +18,7 @@ package za.co.absa.standardization.udf
 
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions.udf
+import za.co.absa.standardization.config.StandardizationConfig
 import za.co.absa.standardization.types.parsers.NumericParser
 import za.co.absa.standardization.types.parsers.NumericParser.NumericParserException
 
@@ -28,28 +29,30 @@ object UDFBuilder {
   def stringUdfViaNumericParser[T: TypeTag](parser: NumericParser[T],
                                             columnNullable: Boolean,
                                             columnNameForError: String,
-                                            defaultValue: Option[T]
-                                           ): UserDefinedFunction = {
+                                            stdConfig: StandardizationConfig,
+                                            defaultValue: Option[T]): UserDefinedFunction = {
     // ensuring all values sent to the UDFBuilder are instantiated
     val vParser = parser
     val vColumnNameForError = columnNameForError
     val vDefaultValue = defaultValue
     val vColumnNullable = columnNullable
+    val vStdConfig = stdConfig
 
-    udf[UDFResult[T], String](numericParserToTyped(_, vParser, vColumnNullable,  vColumnNameForError, vDefaultValue))
+    udf[UDFResult[T], String](numericParserToTyped(_, vParser, vColumnNullable,  vColumnNameForError, vStdConfig, vDefaultValue))
   }
 
   private def numericParserToTyped[T](input: String,
                                       parser: NumericParser[T],
                                       columnNullable: Boolean,
                                       columnNameForError: String,
+                                      stdConfig: StandardizationConfig,
                                       defaultValue: Option[T]): UDFResult[T] = {
     val result = Option(input) match {
       case Some(string) => parser.parse(string).map(Some(_))
       case None if columnNullable => Success(None)
       case None => Failure(nullException)
     }
-    UDFResult.fromTry(result, columnNameForError, input, defaultValue)
+    UDFResult.fromTry(result, columnNameForError, input, stdConfig, defaultValue)
   }
 
   private val nullException = new NumericParserException("Null value on input for non-nullable field")

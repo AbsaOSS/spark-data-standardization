@@ -21,113 +21,89 @@ import java.sql.{Date, Timestamp}
 import za.co.absa.standardization.ErrorMessage
 
 //Decimal Suite
-case class DecimalRow(
-                       description: String,
-                       small: Option[BigDecimal],
-                       big: Option[BigDecimal],
-                       errCol: Seq[ErrorMessage] = Seq.empty
-                     )
+case class DecimalRow(description: String,
+                      small: Option[BigDecimal],
+                      big: Option[BigDecimal],
+                      errCol: Seq[ErrorMessage] = Seq.empty)
 
-case class InputRowDoublesForDecimal(
-                                      description: String,
-                                      small: Option[Double],
-                                      big: Option[Double]
-                                    ) {
+case class InputRowDoublesForDecimal(description: String,
+                                     small: Option[Double],
+                                     big: Option[Double]) {
   def this(description: String, value: Double) = {
     this(description, Option(value), Option(value))
   }
 }
 
 //Fractional Suite
-case class FractionalRow(
-                          description: String,
-                          floatField: Option[Float],
-                          doubleField: Option[Double],
-                          errCol: Seq[ErrorMessage] = Seq.empty
-                        )
+case class FractionalRow(description: String,
+                         floatField: Option[Float],
+                         doubleField: Option[Double],
+                         errCol: Seq[ErrorMessage] = Seq.empty)
 
-case class InputRowLongsForFractional(
-                                       description: String,
-                                       floatField: Option[Double],
-                                       doubleField: Option[Double]
-                                     ) {
+case class InputRowLongsForFractional(description: String,
+                                      floatField: Option[Double],
+                                      doubleField: Option[Double]) {
   def this(description: String, value: Double) = {
     this(description, Option(value), Option(value))
   }
 }
 
-case class InputRowDoublesForFractional(
-                                         description: String,
-                                         floatField: Option[Double],
-                                         doubleField: Option[Double]
-                                       ) {
+case class InputRowDoublesForFractional(description: String,
+                                        floatField: Option[Double],
+                                        doubleField: Option[Double]) {
   def this(description: String, value: Double) = {
     this(description, Option(value), Option(value))
   }
 }
 
 //Integral Suite
-case class IntegralRow(
-                        description: String,
-                        byteSize: Option[Byte],
-                        shortSize: Option[Short],
-                        integerSize: Option[Int],
-                        longSize: Option[Long],
-                        errCol: Seq[ErrorMessage] = Seq.empty
-                      )
+case class IntegralRow(description: String,
+                       byteSize: Option[Byte],
+                       shortSize: Option[Short],
+                       integerSize: Option[Int],
+                       longSize: Option[Long],
+                       errCol: Seq[ErrorMessage] = Seq.empty)
 
-case class InputRowLongsForIntegral(
-                                     description: String,
-                                     bytesize: Long,
-                                     shortsize: Long,
-                                     integersize: Long,
-                                     longsize: Long
-                                   ) {
+case class InputRowLongsForIntegral(description: String,
+                                    bytesize: Long,
+                                    shortsize: Long,
+                                    integersize: Long,
+                                    longsize: Long) {
   def this(description: String, value: Long) = {
     this(description, value, value, value, value)
   }
 }
 
-case class InputRowDoublesForIntegral(
-                                       description: String,
-                                       bytesize: Option[Double],
-                                       shortsize: Option[Double],
-                                       integersize: Option[Double],
-                                       longsize: Option[Double]
-                                     ) {
+case class InputRowDoublesForIntegral(description: String,
+                                      bytesize: Option[Double],
+                                      shortsize: Option[Double],
+                                      integersize: Option[Double],
+                                      longsize: Option[Double]) {
   def this(description: String, value: Double) = {
     this(description, Option(value), Option(value), Option(value), Option(value))
   }
 }
 
-case class InputRowBigDecimalsForIntegral(
-                                           description: String,
-                                           bytesize: Option[BigDecimal],
-                                           shortsize: Option[BigDecimal],
-                                           integersize: Option[BigDecimal],
-                                           longsize: Option[BigDecimal]
-                                         ) {
+case class InputRowBigDecimalsForIntegral(description: String,
+                                          bytesize: Option[BigDecimal],
+                                          shortsize: Option[BigDecimal],
+                                          integersize: Option[BigDecimal],
+                                          longsize: Option[BigDecimal]) {
   def this(description: String, value: BigDecimal) = {
     this(description, Option(value), Option(value), Option(value), Option(value))
   }
 }
 
 //Timestamp Suite
-case class TimestampRow(
-                         tms: Timestamp,
-                         errCol: Seq[ErrorMessage] = Seq.empty
-                       )
+case class TimestampRow(tms: Timestamp,
+                        errCol: Seq[ErrorMessage] = Seq.empty)
 
 //Date Suite
-case class DateRow(
-                    dateField: Date,
-                    errCol: Seq[ErrorMessage] = Seq.empty
-                  )
+case class DateRow(dateField: Date,
+                   errCol: Seq[ErrorMessage] = Seq.empty)
 
-case class BinaryRow(
-                    binaryField: Array[Byte],
-                    errCol: Seq[ErrorMessage] = Seq.empty
-                  ) {
+case class BinaryRow(binaryField: Array[Byte],
+                     errCol: Seq[ErrorMessage] = Seq.empty) {
 
-  def simpleFields = (binaryField.toSeq, errCol)
+  def simpleFields: (Seq[Byte], Seq[ErrorMessage]) = (binaryField.toSeq, errCol)
 }

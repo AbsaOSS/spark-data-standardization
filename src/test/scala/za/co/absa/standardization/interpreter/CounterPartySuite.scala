@@ -19,6 +19,8 @@ package za.co.absa.standardization.interpreter
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
@@ -42,7 +44,14 @@ class CounterPartySuite extends AnyFunSuite with SparkTestBase with LoggerTestBa
 
       )), nullable = true)))
 
-    implicit val udfLib: UDFLibrary = new UDFLibrary
+    val stdConfig = BasicStandardizationConfig
+      .fromDefault()
+      .copy(metadataColumns = BasicMetadataColumnsConfig
+        .fromDefault()
+        .copy(recordIdStrategy = NoId
+        )
+      )
+    implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
 
     val input = spark.createDataFrame(Seq(
       Root(Party(key = 0, clientKeys1 = Seq("a", "b", "c"), clientKeys2 = Seq("d", "e", "f"))),

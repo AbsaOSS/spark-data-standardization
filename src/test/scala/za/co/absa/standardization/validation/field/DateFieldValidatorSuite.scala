@@ -19,12 +19,10 @@ package za.co.absa.standardization.validation.field
 import org.apache.spark.sql.types.{DateType, MetadataBuilder, StructField}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.schema.MetadataKeys
-import za.co.absa.standardization.time.TimeZoneNormalizer
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
 import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationWarning}
 
 class DateFieldValidatorSuite extends AnyFunSuite  {
-  TimeZoneNormalizer.normalizeJVMTimeZone()
   private implicit val defaults: Defaults = GlobalDefaults
 
   private def field(pattern: String, defaultValue: Option[String] = None, defaultTimeZone: Option[String] = None): TypedStructField = {

@@ -19,9 +19,11 @@ package za.co.absa.standardization.interpreter
 import org.apache.spark.sql.types.{DataType, StructType}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization._
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, StandardizationConfig}
 
 class SampleDataSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   private implicit val defaults: Defaults = GlobalDefaults
@@ -32,7 +34,14 @@ class SampleDataSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase
 
     logDataFrameContent(data)
 
-    implicit val udfLib: UDFLibrary = new UDFLibrary()
+    val stdConfig = BasicStandardizationConfig
+      .fromDefault()
+      .copy(metadataColumns = BasicMetadataColumnsConfig
+        .fromDefault()
+        .copy(recordIdStrategy = NoId
+        )
+      )
+    implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
 
     val sourceFile = FileReader.readFileAsString("src/test/resources/data/data1Schema.json")
     val schema = DataType.fromJson(sourceFile).asInstanceOf[StructType]

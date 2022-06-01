@@ -17,17 +17,19 @@
 package za.co.absa.standardization.udf
 
 import java.util.Base64
-
 import org.apache.spark.sql.api.java._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SparkSession}
+import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfig}
 import za.co.absa.standardization.udf.UDFNames._
 import za.co.absa.standardization.{ErrorMessage, Mapping}
 
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
-class UDFLibrary()(implicit val spark: SparkSession) {
+class UDFLibrary(stdConfig: StandardizationConfig)(implicit val spark: SparkSession) extends Serializable {
+
+  private implicit val errorCodes: ErrorCodesConfig = stdConfig.errorCodes
 
   spark.udf.register(stdCastErr, { (errCol: String, rawValue: String) =>
     ErrorMessage.stdCastErr(errCol, rawValue)
@@ -36,22 +38,6 @@ class UDFLibrary()(implicit val spark: SparkSession) {
   spark.udf.register(stdNullErr, { errCol: String => ErrorMessage.stdNullErr(errCol) })
 
   spark.udf.register(stdSchemaErr, { errRow: String => ErrorMessage.stdSchemaError(errRow) })
-
-  spark.udf.register(confMappingErr, { (errCol: String, rawValues: Seq[String], mappings: Seq[Mapping]) =>
-    ErrorMessage.confMappingErr(errCol, rawValues, mappings)
-  })
-
-  spark.udf.register(confCastErr, { (errCol: String, rawValue: String) =>
-    ErrorMessage.confCastErr(errCol, rawValue)
-  })
-
-  spark.udf.register(confNegErr, { (errCol: String, rawValue: String) =>
-    ErrorMessage.confNegErr(errCol, rawValue)
-  })
-
-  spark.udf.register(confLitErr, { (errCol: String, rawValue: String) =>
-    ErrorMessage.confLitErr(errCol, rawValue)
-  })
 
   spark.udf.register(arrayDistinctErrors, // this UDF is registered for _spark-hats_ library sake
     (arr: mutable.WrappedArray[ErrorMessage]) =>
