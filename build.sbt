@@ -49,10 +49,13 @@ Test / parallelExecution := false
 
 // Only apply scalafmt to files that differ from master (i.e. files changed in the feature branch or so),
 // not on the whole repository.
-lazy val baseBranchName = Seq(
-  "/bin/sh",
-  "-c",
-  raw"git show-branch -a | grep '\*' | grep -v `git branch --show-current` | head -n1 | sed 's/.*\[\(.*\)\].*/\1/'"
+lazy val currBranchName = "git branch --show-current".!!.trim
+lazy val baseBranchName = (
+  "git show-branch -a"
+    #| raw"grep \*"
+    #| s"grep -v $currBranchName"
+    #| "head -n1"
+    #| raw"sed s/.*\[\(.*\)\].*/\1/"
 ).!!.trim
 
 scalafmtFilter.withRank(KeyRanks.Invisible) := s"diff-ref=${baseBranchName}"
