@@ -235,7 +235,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   }
 
   def dateComponentShow(date: Date): String = {
-    val dateString = if(SPARK_VERSION.startsWith("2.4")) {
+    val dateString = if(SPARK_VERSION.startsWith("2.")) {
       date.toString
     } else {
       val dateFormatter = new SimpleDateFormat("yyyy-MM-dd")
@@ -245,7 +245,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   }
 
   def timeStampComponentShow(date: Timestamp): String = {
-    if(SPARK_VERSION.startsWith("2.4")) {
+    if(SPARK_VERSION.startsWith("2.")) {
       s"TIMESTAMP('${date.toString}')"
     } else {
       val dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -269,7 +269,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
 
     val expresionWithQuotes = s"CASE WHEN (size($errorExpression) > 0) THEN $default ELSE " +
       s"CASE WHEN ($srcField IS NOT NULL) THEN $castExpression END END AS `${target.name}`"
-    if (SPARK_VERSION.startsWith("2.4")) expresionWithQuotes else expresionWithQuotes.replaceAll("`", "")
+    if (SPARK_VERSION.startsWith("2.")) expresionWithQuotes else expresionWithQuotes.replaceAll("`", "")
   }
 
   private def assembleErrorExpression(srcField: String, target: StructField, castS: String): String = {
