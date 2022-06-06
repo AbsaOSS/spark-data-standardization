@@ -16,7 +16,6 @@
 
 package za.co.absa.standardization.interpreter.stages
 
-import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types._
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate.Input
 import za.co.absa.standardization.time.DateTimePattern
@@ -59,7 +58,6 @@ class TypeParser_FromTimestampTypeSuite extends TypeParserSuiteTemplate  {
   }
 
   test("Within the column - type stays, not nullable") {
-    assume(SPARK_VERSION.startsWith("2.")) //to be solved in #18
     doTestWithinColumnNotNullable(input)
   }
 

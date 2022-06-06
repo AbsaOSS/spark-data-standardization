@@ -25,7 +25,7 @@ lazy val scala212 = "2.12.12"
 ThisBuild / crossScalaVersions := Seq(scala211, scala212)
 ThisBuild / scalaVersion := scala211
 
-def sparkVersion(scalaVersion: String): String = if (scalaVersion==scala212) "3.1.2" else "2.4.7"
+def sparkVersion(scalaVersion: String): String = if (scalaVersion==scala212) "3.2.1" else "2.4.7"
 
 def sparkFastTestsVersion(scalaVersion: String): String = if (scalaVersion==scala212) "1.1.0" else "0.23.0"
 
