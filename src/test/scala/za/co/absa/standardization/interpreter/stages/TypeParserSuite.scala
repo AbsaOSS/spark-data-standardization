@@ -22,7 +22,7 @@ import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.stages.TypeParser
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 
 class TypeParserSuite extends AnyFunSuite with SparkTestBase {
@@ -35,7 +35,7 @@ class TypeParserSuite extends AnyFunSuite with SparkTestBase {
       )
     )
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   test("Test standardize with sourcecolumn metadata") {
     val structFieldNoMetadata = StructField("a", StringType)

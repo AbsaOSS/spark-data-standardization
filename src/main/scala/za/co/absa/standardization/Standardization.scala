@@ -18,17 +18,16 @@ package za.co.absa.standardization
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{StructType, _}
+import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.standardization.config.{DefaultStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.stages.{SchemaChecker, TypeParser}
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, ParseOutput}
+import za.co.absa.standardization.types.{CommonTypeDefaults, ParseOutput, TypeDefaults}
 import za.co.absa.standardization.udf.{UDFLibrary, UDFNames}
 
 object Standardization {
-  private implicit val defaults: Defaults = GlobalDefaults
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
   final val DefaultColumnNameOfCorruptRecord = "_corrupt_record"
 
@@ -40,6 +39,7 @@ object Standardization {
                  (implicit sparkSession: SparkSession): DataFrame = {
     implicit val udfLib: UDFLibrary = new UDFLibrary(standardizationConfig)
     implicit val hadoopConf: Configuration = sparkSession.sparkContext.hadoopConfiguration
+    implicit val defaults: TypeDefaults = standardizationConfig.typeDefaults
 
     logger.info(s"Step 1: Schema validation")
     validateSchemaAgainstSelfInconsistencies(schema)
@@ -66,7 +66,7 @@ object Standardization {
 
 
   private def validateSchemaAgainstSelfInconsistencies(expSchema: StructType)
-                                                      (implicit spark: SparkSession): Unit = {
+                                                      (implicit spark: SparkSession, defaults: TypeDefaults): Unit = {
     val validationErrors = SchemaChecker.validateSchemaAndLog(expSchema)
     if (validationErrors._1.nonEmpty) {
       throw new ValidationException("A fatal schema validation error occurred.", validationErrors._1)
@@ -74,7 +74,7 @@ object Standardization {
   }
 
   private def standardizeDataset(df: DataFrame, expSchema: StructType, stdConfig: StandardizationConfig)
-                                (implicit spark: SparkSession, udfLib: UDFLibrary): DataFrame  = {
+                                (implicit spark: SparkSession, udfLib: UDFLibrary, defaults: TypeDefaults): DataFrame  = {
 
     val rowErrors: List[Column] = gatherRowErrors(df.schema)
     val (stdCols, errorCols, oldErrorColumn) = expSchema.fields.foldLeft(List.empty[Column], rowErrors, None: Option[Column]) {

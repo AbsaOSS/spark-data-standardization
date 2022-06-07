@@ -19,11 +19,11 @@ package za.co.absa.standardization.validation.field
 import org.apache.spark.sql.types.{MetadataBuilder, StructField, TimestampType}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.schema.MetadataKeys
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
 import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationWarning}
 
 class TimestampFieldValidatorSuite extends AnyFunSuite  {
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private def field(pattern: String, defaultValue: Option[String] = None, defaultTimeZone: Option[String] = None): TypedStructField = {
     val builder = new MetadataBuilder().putString(MetadataKeys.Pattern, pattern)

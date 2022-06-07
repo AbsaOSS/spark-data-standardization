@@ -18,7 +18,7 @@ package za.co.absa.standardization
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types._
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.types.{TypeDefaults, TypedStructField}
 import za.co.absa.standardization.validation.field.FieldValidationIssue
 
 import scala.collection.mutable.ListBuffer
@@ -27,15 +27,13 @@ import scala.collection.mutable.ListBuffer
   * Object responsible for Spark schema validation against self inconsistencies (not against the actual data)
   */
 object SchemaValidator {
-  private implicit val defaults: Defaults = GlobalDefaults
-
   /**
     * Validate a schema
     *
     * @param schema A Spark schema
     * @return A list of ValidationErrors objects, each containing a column name and the list of errors and warnings
     */
-  def validateSchema(schema: StructType): List[FieldValidationIssue] = {
+  def validateSchema(schema: StructType)(implicit defaults: TypeDefaults): List[FieldValidationIssue] = {
     var errorsAccumulator = new ListBuffer[FieldValidationIssue]
     val flatSchema = flattenSchema(schema)
     for {s <- flatSchema} {

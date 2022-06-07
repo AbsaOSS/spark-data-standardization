@@ -21,7 +21,7 @@ import java.sql.{Date, Timestamp}
 import java.text.SimpleDateFormat
 
 import org.apache.log4j.{LogManager, Logger}
-import org.apache.spark.{SPARK_VERSION}
+import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
@@ -30,7 +30,7 @@ import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStand
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate._
 import za.co.absa.standardization.stages.TypeParser
 import za.co.absa.standardization.time.DateTimePattern
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, ParseOutput, TypedStructField}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, ParseOutput, TypedStructField}
 import za.co.absa.standardization.udf.UDFLibrary
 
 trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
@@ -43,7 +43,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
       )
     )
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   protected def createCastTemplate(toType: DataType, pattern: String, timezone: Option[String]): String
   protected def createErrorCondition(srcField: String, target: StructField, castS: String):String

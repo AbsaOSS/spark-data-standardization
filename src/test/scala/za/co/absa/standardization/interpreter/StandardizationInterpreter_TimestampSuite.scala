@@ -23,7 +23,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
 
@@ -39,7 +39,7 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
     )
   private implicit val errorCodes: ErrorCodesConfig = stdConfig.errorCodes
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private val fieldName = "tms"
 

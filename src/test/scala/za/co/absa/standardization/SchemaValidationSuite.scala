@@ -18,6 +18,7 @@ package za.co.absa.standardization
 
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.standardization.types.CommonTypeDefaults
 
 /**
  * A test suite for validation of scalar data types
@@ -50,7 +51,7 @@ class SchemaValidationSuite extends AnyFunSuite with LoggerTestBase {
       )
     )
 
-    val failures = SchemaValidator.validateSchema(schema)
+    val failures = SchemaValidator.validateSchema(schema)(CommonTypeDefaults)
     if (failures.lengthCompare(9) != 0) {
       logger.error("Validation errors:")
       logger.error(failures.mkString("\n"))
@@ -89,7 +90,7 @@ class SchemaValidationSuite extends AnyFunSuite with LoggerTestBase {
       )
     )
 
-    val failures = SchemaValidator.validateSchema(schema)
+    val failures = SchemaValidator.validateSchema(schema)(CommonTypeDefaults)
     if (failures.lengthCompare(7) != 0) {
       logger.error("Validation errors:")
       logger.error(failures.mkString("\n"))
@@ -117,7 +118,7 @@ class SchemaValidationSuite extends AnyFunSuite with LoggerTestBase {
       )
     )
 
-    val failures = SchemaValidator.validateSchema(schema)
+    val failures = SchemaValidator.validateSchema(schema)(CommonTypeDefaults)
     if (failures.lengthCompare(4) != 0) {
       logger.error("Validation errors:")
       logger.error(failures.mkString("\n"))
@@ -142,7 +143,7 @@ class SchemaValidationSuite extends AnyFunSuite with LoggerTestBase {
       )
     )
 
-    val failures = SchemaValidator.validateSchema(schema)
+    val failures = SchemaValidator.validateSchema(schema)(CommonTypeDefaults)
     if (failures.lengthCompare(4) != 0) {
       logger.error("Validation errors:")
       logger.error(failures.mkString("\n"))
@@ -175,7 +176,7 @@ class SchemaValidationSuite extends AnyFunSuite with LoggerTestBase {
           StructField("bar", TimestampType, nullable = true, Metadata.fromJson(""" { "pattern": "DD-MM-yyyy'T'HH:mm:ss" } """)))))
         ))
       ))
-    val failures = SchemaValidator.validateSchema(schema)
+    val failures = SchemaValidator.validateSchema(schema)(CommonTypeDefaults)
     if (failures.lengthCompare(6) != 0) {
       logger.error("Schema:\n")
       logger.error(schema.prettyJson)
@@ -209,7 +210,7 @@ class SchemaValidationSuite extends AnyFunSuite with LoggerTestBase {
           StructField("foo.bar", StringType))))
         ))
       ))
-    val failures = SchemaValidator.validateSchema(schema)
+    val failures = SchemaValidator.validateSchema(schema)(CommonTypeDefaults)
     if (failures.lengthCompare(4) != 0) {
       logger.error("Schema:\n")
       logger.error(schema.prettyJson)

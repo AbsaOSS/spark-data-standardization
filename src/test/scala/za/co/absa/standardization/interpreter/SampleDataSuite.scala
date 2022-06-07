@@ -20,13 +20,13 @@ import org.apache.spark.sql.types.{DataType, StructType}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization._
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, StandardizationConfig}
 
 class SampleDataSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   test("Simple Example Test") {
     import spark.implicits._
