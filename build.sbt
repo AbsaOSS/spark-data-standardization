@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import sys.process._
 
 ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
@@ -27,11 +27,11 @@ ThisBuild / scalaVersion := scala211
 
 def sparkVersion(scalaVersion: String): String = if (scalaVersion==scala212) "3.2.1" else "2.4.7"
 
-def sparkFastTestsVersion(scalaVersion: String): String = if (scalaVersion==scala212) "1.1.0" else "0.23.0"
+def sparkFastTestsVersion(scalaVersion: String): String = if (scalaVersion == scala212) "1.1.0" else "0.23.0"
 
-libraryDependencies ++=  List(
+libraryDependencies ++= List(
   "org.apache.spark" %% "spark-core" % sparkVersion(scalaVersion.value) % "provided",
-  "org.apache.spark" %% "spark-sql" % sparkVersion(scalaVersion.value)  % "provided",
+  "org.apache.spark" %% "spark-sql" % sparkVersion(scalaVersion.value) % "provided",
   "za.co.absa" %% "spark-commons" % "0.2.0",
   "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion(scalaVersion.value) % Test,
   "org.scalatest" %% "scalatest" % "3.2.2" % Test,
@@ -46,6 +46,19 @@ ThisBuild / printSparkScalaVersion := {
 }
 
 Test / parallelExecution := false
+
+// Only apply scalafmt to files that differ from master (i.e. files changed in the feature branch or so),
+// not on the whole repository.
+lazy val currBranchName = "git branch --show-current".!!.trim
+lazy val baseBranchName = (
+  "git show-branch -a"
+    #| raw"grep \*"
+    #| s"grep -v $currBranchName"
+    #| "head -n1"
+    #| raw"sed s/.*\[\(.*\)\].*/\1/"
+).!!.trim
+
+scalafmtFilter.withRank(KeyRanks.Invisible) := s"diff-ref=${baseBranchName}"
 
 // licenceHeader check:
 ThisBuild / organizationName := "ABSA Group Limited"
