@@ -85,11 +85,11 @@ class DefaultsSuite extends AnyFunSuite {
   }
 
   test("Default time zone for timestamps does not exists") {
-    assert(CommonTypeDefaults.getDefaultTimestampTimeZone.isEmpty)
+    assert(CommonTypeDefaults.defaultTimestampTimeZone.isEmpty)
   }
 
   test("Default time zone for dates does not exist") {
-    assert(CommonTypeDefaults.getDefaultDateTimeZone.isEmpty)
+    assert(CommonTypeDefaults.defaultDateTimeZone.isEmpty)
   }
 }
 

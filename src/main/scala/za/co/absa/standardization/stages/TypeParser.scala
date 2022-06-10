@@ -555,7 +555,7 @@ object TypeParser {
     private val defaultTimeZone: Option[String] = field
       .defaultTimeZone
       .map(Option(_))
-      .getOrElse(defaults.getDefaultDateTimeZone)
+      .getOrElse(defaults.defaultDateTimeZone)
 
     private def applyPatternToStringColumn(column: Column, pattern: String): Column = {
       defaultTimeZone.map(tz =>
@@ -610,7 +610,7 @@ object TypeParser {
     private val defaultTimeZone: Option[String] = field
       .defaultTimeZone
       .map(Option(_))
-      .getOrElse(defaults.getDefaultTimestampTimeZone)
+      .getOrElse(defaults.defaultTimestampTimeZone)
 
     private def applyPatternToStringColumn(column: Column, pattern: String): Column = {
       val interim: Column = to_timestamp(column, pattern)
