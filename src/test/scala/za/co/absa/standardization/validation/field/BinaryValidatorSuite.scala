@@ -19,11 +19,11 @@ package za.co.absa.standardization.validation.field
 import org.apache.spark.sql.types.{BinaryType, MetadataBuilder, StructField}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.schema.MetadataKeys
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
 import za.co.absa.standardization.{ValidationError, ValidationWarning}
 
 class BinaryValidatorSuite extends AnyFunSuite {
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private def field(defaultValue: Option[String] = None, encoding: Option[String] = None, nullable: Boolean = true): TypedStructField = {
     val base = new MetadataBuilder()

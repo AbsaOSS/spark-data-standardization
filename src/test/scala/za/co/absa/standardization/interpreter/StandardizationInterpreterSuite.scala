@@ -24,7 +24,7 @@ import za.co.absa.spark.commons.utils.JsonUtils
 import za.co.absa.spark.commons.test.{DefaultSparkConfiguration, SparkTestBase}
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, FileReader, LoggerTestBase, Standardization}
 
@@ -87,7 +87,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
     )
   private implicit val errorCodes: ErrorCodesConfig = stdConfig.errorCodes
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private val stdExpectedSchema = StructType(
     Seq(

@@ -31,7 +31,7 @@ import za.co.absa.standardization.RecordIdGeneration.IdType._
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.stages.TypeParserException
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 
 // For creation of Structs in DF
@@ -52,7 +52,7 @@ class StandardizationParquetSuite extends AnyFunSuite with SparkTestBase with Da
   TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
 
   private implicit val udfLibrary:UDFLibrary = new UDFLibrary(stdConfig)
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private val tsPattern = "yyyy-MM-dd HH:mm:ss zz"
 

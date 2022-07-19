@@ -31,7 +31,7 @@ import za.co.absa.standardization.validation.field._
 
 import scala.util.{Failure, Success, Try}
 
-sealed abstract class TypedStructField(structField: StructField)(implicit defaults: Defaults)
+sealed abstract class TypedStructField(structField: StructField)(implicit defaults: TypeDefaults)
   extends StructFieldEnhancements(structField) with Serializable {
 
   type BaseType
@@ -134,7 +134,7 @@ object TypedStructField {
    * @param structField the structField to wrap TypedStructField around
    * @return            the object of non-abstract TypedStructField successor class relevant to the StructField dataType
    */
-  def apply(structField: StructField)(implicit defaults: Defaults): TypedStructField = {
+  def apply(structField: StructField)(implicit defaults: TypeDefaults): TypedStructField = {
     structField.dataType match {
       case _: StringType    => new StringTypeStructField(structField)
       case _: BinaryType    => new BinaryTypeStructField(structField)
@@ -154,26 +154,26 @@ object TypedStructField {
     }
   }
 
-  def asNumericTypeStructField[N](structField: StructField)(implicit defaults: Defaults): NumericTypeStructField[N] =
+  def asNumericTypeStructField[N](structField: StructField)(implicit defaults: TypeDefaults): NumericTypeStructField[N] =
     TypedStructField(structField).asInstanceOf[NumericTypeStructField[N]]
-  def asDateTimeTypeStructField[T](structField: StructField)(implicit defaults: Defaults): DateTimeTypeStructField[T] =
+  def asDateTimeTypeStructField[T](structField: StructField)(implicit defaults: TypeDefaults): DateTimeTypeStructField[T] =
     TypedStructField(structField).asInstanceOf[DateTimeTypeStructField[T]]
-  def asArrayTypeStructField(structField: StructField)(implicit defaults: Defaults): ArrayTypeStructField =
+  def asArrayTypeStructField(structField: StructField)(implicit defaults: TypeDefaults): ArrayTypeStructField =
     TypedStructField(structField).asInstanceOf[ArrayTypeStructField]
-  def asStructTypeStructField(structField: StructField)(implicit defaults: Defaults): StructTypeStructField =
+  def asStructTypeStructField(structField: StructField)(implicit defaults: TypeDefaults): StructTypeStructField =
     TypedStructField(structField).asInstanceOf[StructTypeStructField]
-  def asBinaryTypeStructField(structField: StructField)(implicit defaults: Defaults): BinaryTypeStructField =
+  def asBinaryTypeStructField(structField: StructField)(implicit defaults: TypeDefaults): BinaryTypeStructField =
     TypedStructField(structField).asInstanceOf[BinaryTypeStructField]
 
   def unapply[T](typedStructField: TypedStructField): Option[StructField] = Some(typedStructField.structField)
 
-  abstract class TypedStructFieldTagged[T](structField: StructField)(implicit defaults: Defaults)
+  abstract class TypedStructFieldTagged[T](structField: StructField)(implicit defaults: TypeDefaults)
     extends TypedStructField(structField) {
     override type BaseType = T
   }
   // StringTypeStructField
   final class StringTypeStructField private[TypedStructField](structField: StructField)
-                                                             (implicit defaults: Defaults)
+                                                             (implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[String](structField) {
     override protected def convertString(string: String): Try[String] = {
       Success(string)
@@ -186,7 +186,7 @@ object TypedStructField {
 
   // BinaryTypeStructField
   final class BinaryTypeStructField private[TypedStructField](structField: StructField)
-                                                             (implicit defaults: Defaults)
+                                                             (implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[Array[Byte]](structField) {
     val normalizedEncoding: Option[String] = structField.metadata.getOptString(MetadataKeys.Encoding).map(_.toLowerCase)
 
@@ -207,7 +207,7 @@ object TypedStructField {
 
   // BooleanTypeStructField
   final class BooleanTypeStructField private[TypedStructField](structField: StructField)
-                                                               (implicit defaults: Defaults)
+                                                               (implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[Boolean](structField) {
     override protected def convertString(string: String): Try[Boolean] = {
       Try{string.toBoolean}
@@ -220,7 +220,7 @@ object TypedStructField {
 
   // NumericTypeStructField
   sealed abstract class NumericTypeStructField[N](structField: StructField, val typeMin: N, val typeMax: N)
-                                                 (implicit defaults: Defaults)
+                                                 (implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[N](structField) {
     val allowInfinity: Boolean = false
     val parser: Try[NumericParser[N]]
@@ -267,7 +267,7 @@ object TypedStructField {
   sealed abstract class IntegralTypeStructField[L: LongLike] private[TypedStructField](structField: StructField,
                                                                                        override val typeMin: L,
                                                                                        override val typeMax: L)
-                                                                                      (implicit defaults: Defaults)
+                                                                                      (implicit defaults: TypeDefaults)
     extends NumericTypeStructField[L](structField, typeMin, typeMax) {
 
     private val radix: Radix = readRadixFromMetadata
@@ -296,23 +296,23 @@ object TypedStructField {
     }
   }
 
-  final class ByteTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: Defaults)
+  final class ByteTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: TypeDefaults)
     extends IntegralTypeStructField(structField, Byte.MinValue, Byte.MaxValue)
 
-  final class ShortTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: Defaults)
+  final class ShortTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: TypeDefaults)
     extends IntegralTypeStructField(structField, Short.MinValue, Short.MaxValue)
 
-  final class IntTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: Defaults)
+  final class IntTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: TypeDefaults)
     extends IntegralTypeStructField(structField, Int.MinValue, Int.MaxValue)
 
-  final class LongTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: Defaults)
+  final class LongTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: TypeDefaults)
     extends IntegralTypeStructField(structField, Long.MinValue, Long.MaxValue)
 
   // FractionalTypeStructField
   sealed abstract class FractionalTypeStructField[D: DoubleLike] private[TypedStructField](structField: StructField,
                                                                                            override val typeMin: D,
                                                                                            override val typeMax: D)
-                                                                                          (implicit defaults: Defaults)
+                                                                                          (implicit defaults: TypeDefaults)
     extends NumericTypeStructField[D](structField, typeMin, typeMax) {
 
     override val allowInfinity: Boolean = structField.metadata.getOptStringAsBoolean(MetadataKeys.AllowInfinity).getOrElse(false)
@@ -334,17 +334,17 @@ object TypedStructField {
   }
 
   // FloatTypeStructField
-  final class FloatTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: Defaults)
+  final class FloatTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: TypeDefaults)
     extends FractionalTypeStructField(structField, Float.MinValue, Float.MaxValue)
 
   // DoubleTypeStructField
-  final class DoubleTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: Defaults)
+  final class DoubleTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: TypeDefaults)
     extends FractionalTypeStructField(structField, Double.MinValue, Double.MaxValue)
 
   // DecimalTypeStructField
   final class DecimalTypeStructField private[TypedStructField](structField: StructField,
                                                                override val dataType: DecimalType)
-                                                              (implicit defaults: Defaults)
+                                                              (implicit defaults: TypeDefaults)
     extends NumericTypeStructField[BigDecimal](
       structField,
       DecimalTypeStructField.minPossible(dataType),
@@ -386,7 +386,7 @@ object TypedStructField {
 
   // DateTimeTypeStructField
   sealed abstract class DateTimeTypeStructField[T] private[TypedStructField](structField: StructField, validator: DateTimeFieldValidator)
-                                                                         (implicit defaults: Defaults)
+                                                                         (implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[T](structField) {
 
     override def pattern: Try[Option[DateTimePattern]] = {
@@ -419,7 +419,7 @@ object TypedStructField {
   }
 
   // TimestampTypeStructField
-  final class TimestampTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: Defaults)
+  final class TimestampTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: TypeDefaults)
     extends DateTimeTypeStructField[Timestamp](structField, TimestampFieldValidator) {
 
     override protected def convertString(string: String): Try[Timestamp] = {
@@ -429,7 +429,7 @@ object TypedStructField {
   }
 
   // DateTypeStructField
-  final class DateTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: Defaults)
+  final class DateTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: TypeDefaults)
     extends DateTimeTypeStructField[Date](structField, DateFieldValidator) {
 
     override protected def convertString(string: String): Try[Date] = {
@@ -452,7 +452,7 @@ object TypedStructField {
   }
 
   final class ArrayTypeStructField private[TypedStructField](structField: StructField, override val dataType: ArrayType)
-                                                            (implicit defaults: Defaults)
+                                                            (implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[Any](structField) with WeakSupport[Any] {
 
     override def validate(): Seq[ValidationIssue] = {
@@ -469,9 +469,9 @@ object TypedStructField {
     }
   }
 
-  final class StructTypeStructField(structField: StructField, override val dataType: StructType)(implicit defaults: Defaults)
+  final class StructTypeStructField(structField: StructField, override val dataType: StructType)(implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[Any](structField) with WeakSupport[Any]
 
-  final class GeneralTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: Defaults)
+  final class GeneralTypeStructField private[TypedStructField](structField: StructField)(implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[Any](structField) with WeakSupport[Any]
 }

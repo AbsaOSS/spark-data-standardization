@@ -18,7 +18,7 @@ package za.co.absa.standardization.types.parsers
 
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.numeric.{DecimalSymbols, NumericPattern}
-import za.co.absa.standardization.types.GlobalDefaults
+import za.co.absa.standardization.types.CommonTypeDefaults
 
 import scala.util.Success
 
@@ -30,7 +30,7 @@ class FractionalParserSuite extends AnyFunSuite {
   private val reallySmallNumberString = s"-$reallyBigNumberString"
 
   test("No pattern") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern(decimalSymbols)
     val parserFloat = FractionalParser[Float](pattern, Float.MinValue, Float.MaxValue)
     val parserDouble = FractionalParser[Double](pattern, Double.MinValue, Double.MaxValue)
@@ -50,7 +50,7 @@ class FractionalParserSuite extends AnyFunSuite {
   }
 
   test("Simple pattern, some limitations") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("0.#", decimalSymbols)
     val parserFloat = FractionalParser[Float](pattern, Float.MinValue, Float.MaxValue)
     val parserDouble = FractionalParser[Double](pattern, Double.MinValue, Double.MaxValue)
@@ -70,7 +70,7 @@ class FractionalParserSuite extends AnyFunSuite {
   }
 
   test("plus doesn't work if pattern is specified") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("0", decimalSymbols)
     val parserFloat = FractionalParser[Float](pattern, Float.MinValue, Float.MaxValue)
     val parserDouble = FractionalParser[Double](pattern, Double.MinValue, Double.MaxValue)
@@ -79,7 +79,7 @@ class FractionalParserSuite extends AnyFunSuite {
   }
 
   test("infinities") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern1 = NumericPattern(decimalSymbols)
     val pattern2 = NumericPattern("0.#", decimalSymbols)
     val parserFloatStd1 = FractionalParser.withInfinity[Float](pattern1)
@@ -109,7 +109,7 @@ class FractionalParserSuite extends AnyFunSuite {
   }
 
   test("infinities redefined") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols.copy(minusSign = '&', infinityValue = "Infinity")
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols.copy(minusSign = '&', infinityValue = "Infinity")
     val pattern1 = NumericPattern(decimalSymbols)
     val pattern2 = NumericPattern("#", decimalSymbols)
     val pattern3 = NumericPattern("#;Negative#", decimalSymbols)
@@ -126,7 +126,7 @@ class FractionalParserSuite extends AnyFunSuite {
   }
 
   test("No pattern, no limitations, minus sign and decimal separator altered") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols.copy(minusSign = 'N', decimalSeparator = ',')
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols.copy(minusSign = 'N', decimalSeparator = ',')
     val pattern = NumericPattern(decimalSymbols)
     val parser = FractionalParser(pattern)
     assert(parser.parse("6,28") == Success(6.28D))
@@ -138,7 +138,7 @@ class FractionalParserSuite extends AnyFunSuite {
   }
 
   test("pattern with altered decimal symbols") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols.copy(
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols.copy(
       decimalSeparator = ',',
       groupingSeparator = ''',
       minusSign = '@'
@@ -159,7 +159,7 @@ class FractionalParserSuite extends AnyFunSuite {
   }
 
   test("Prefix, suffix and different negative pattern") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("Temperature #,##0C;Freezing -0",decimalSymbols)
     val parser = FractionalParser(pattern)
 
@@ -172,7 +172,7 @@ class FractionalParserSuite extends AnyFunSuite {
   }
 
   test("Percent") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("#,##0.#%",decimalSymbols)
     val parser = FractionalParser(pattern)
 

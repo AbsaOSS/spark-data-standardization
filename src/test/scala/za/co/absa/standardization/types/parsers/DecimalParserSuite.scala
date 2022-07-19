@@ -18,13 +18,13 @@ package za.co.absa.standardization.types.parsers
 
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.numeric.{DecimalSymbols, NumericPattern}
-import za.co.absa.standardization.types.GlobalDefaults
+import za.co.absa.standardization.types.CommonTypeDefaults
 
 import scala.util.Success
 
 class DecimalParserSuite extends AnyFunSuite {
   test("No pattern, no limitations") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern(decimalSymbols)
     val parser = DecimalParser(pattern)
     assert(parser.parse("3.14") == Success(BigDecimal("3.14")))
@@ -35,7 +35,7 @@ class DecimalParserSuite extends AnyFunSuite {
   }
 
   test("No pattern, strict parsing") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern(decimalSymbols)
     val parser = DecimalParser(pattern,maxScale = Some(2))
     assert(parser.parse("3.14") == Success(BigDecimal("3.14")))
@@ -48,7 +48,7 @@ class DecimalParserSuite extends AnyFunSuite {
   }
 
   test("No pattern, no limitations, minus sign and decimal separator altered") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols.copy(minusSign = 'N', decimalSeparator = ',')
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols.copy(minusSign = 'N', decimalSeparator = ',')
     val pattern = NumericPattern(decimalSymbols)
     val parser = DecimalParser(pattern)
     assert(parser.parse("3,14") == Success(BigDecimal("3.14")))
@@ -60,7 +60,7 @@ class DecimalParserSuite extends AnyFunSuite {
   }
 
   test("Simple pattern, some limitations") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("0.#", decimalSymbols)
     val parser = DecimalParser(pattern, Some(BigDecimal.valueOf(-1000)), Some(BigDecimal.valueOf(1000)))
     assert(parser.parse("3.14") == Success(BigDecimal("3.14"))) //NB! number of hashes and 0 in pattern is not reliable
@@ -73,7 +73,7 @@ class DecimalParserSuite extends AnyFunSuite {
   }
 
   test("pattern with altered decimal symbols") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols.copy(
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols.copy(
       decimalSeparator = ',',
       groupingSeparator = ' ',
       minusSign = '~'
@@ -96,7 +96,7 @@ class DecimalParserSuite extends AnyFunSuite {
   }
 
   test("grouping separator is not supported in decimal places") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern1 = NumericPattern("0.000,#",decimalSymbols)
     val exception = intercept[IllegalArgumentException] {
       DecimalParser(pattern1)
@@ -109,7 +109,7 @@ class DecimalParserSuite extends AnyFunSuite {
   }
 
   test("Prefix, suffix and different negative pattern") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("Alt: 0.#Feet;Alt: (0.#)Feet",decimalSymbols)
     val parser = DecimalParser(pattern)
 
@@ -121,7 +121,7 @@ class DecimalParserSuite extends AnyFunSuite {
   }
 
   test("Percent") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("#,##0.#%",decimalSymbols)
     val parser = DecimalParser(pattern)
 

@@ -21,7 +21,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, StandardizationConfig}
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
 
@@ -30,7 +30,7 @@ case class Party(key: Integer, clientKeys1: Seq[String], clientKeys2: Seq[String
 
 class CounterPartySuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
 
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   test("Mimic running standardization twice on counter party") {
     import spark.implicits._

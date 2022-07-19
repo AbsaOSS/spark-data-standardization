@@ -23,7 +23,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.stages.SchemaChecker
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.validation.field.FieldValidationIssue
 import za.co.absa.standardization._
@@ -33,7 +33,7 @@ import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStand
 class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
 
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   lazy val data: DataFrame = spark.createDataFrame(TestSamples.dateSamples)
   lazy val schemaWrong: StructType = DataType

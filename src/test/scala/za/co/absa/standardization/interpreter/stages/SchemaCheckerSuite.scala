@@ -21,9 +21,11 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.FileReader
 import za.co.absa.standardization.stages.SchemaChecker
+import za.co.absa.standardization.types.CommonTypeDefaults
 
 class SchemaCheckerSuite extends AnyFunSuite with SparkTestBase {
   test("Bug") {
+    implicit val commonTypeDefaults: CommonTypeDefaults.type = CommonTypeDefaults
     val sourceFile = FileReader.readFileAsString("src/test/resources/data/bug.json")
     val schema = DataType.fromJson(sourceFile).asInstanceOf[StructType]
     val output = SchemaChecker.validateSchemaAndLog(schema)

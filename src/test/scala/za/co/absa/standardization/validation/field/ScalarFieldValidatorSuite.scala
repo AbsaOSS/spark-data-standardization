@@ -20,11 +20,11 @@ import org.apache.spark.sql.types.{MetadataBuilder, StringType, StructField}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.ValidationError
 import za.co.absa.standardization.schema.MetadataKeys
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
 
 class ScalarFieldValidatorSuite extends AnyFunSuite {
 
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   test("Default value is set") {
     val field = StructField("test_field", StringType, nullable = false, new MetadataBuilder().putString(MetadataKeys.DefaultValue, "foo").build())

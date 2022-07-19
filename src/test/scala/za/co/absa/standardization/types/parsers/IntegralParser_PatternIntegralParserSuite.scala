@@ -18,13 +18,13 @@ package za.co.absa.standardization.types.parsers
 
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.numeric.{DecimalSymbols, NumericPattern}
-import za.co.absa.standardization.types.GlobalDefaults
+import za.co.absa.standardization.types.CommonTypeDefaults
 
 import scala.util.Success
 
 class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   test("No pattern, no limitations") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern(decimalSymbols)
     val ipLong = IntegralParser[Long](pattern, None, None)
     val ipInt = IntegralParser[Int](pattern, None, None)
@@ -41,7 +41,7 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   }
 
   test("No pattern, no limitations, minus sign altered") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols.copy(minusSign = 'N')
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols.copy(minusSign = 'N')
     val pattern = NumericPattern(decimalSymbols)
     val ipLong = IntegralParser[Long](pattern, None, None)
     val ipInt = IntegralParser[Int](pattern, None, None)
@@ -62,7 +62,7 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   }
 
   test("Limit breaches") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern(decimalSymbols)
     val ipLong = IntegralParser[Long](pattern, Some(10000000000L), Some(10000000010L))
     val ipInt = IntegralParser[Int](pattern, Some(-700000), None)
@@ -79,7 +79,7 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   }
 
   test("pattern with standard decimal symbols") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("0,000",decimalSymbols)
     val parser = IntegralParser(pattern)
 
@@ -95,7 +95,7 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   }
 
   test("pattern with altered decimal symbols") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols.copy(
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols.copy(
       decimalSeparator = ',',
       groupingSeparator = ' ',
       minusSign = '~'
@@ -117,7 +117,7 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   }
 
   test("Prefix, suffix and different negative pattern") {
-    val decimalSymbols: DecimalSymbols = GlobalDefaults.getDecimalSymbols
+    val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("Price: 0'EUR';Price: -0'EUR'",decimalSymbols)
     val parser = IntegralParser(pattern)
 

@@ -26,10 +26,10 @@ import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField._
 import za.co.absa.standardization.types.parsers.IntegralParser.{PatternIntegralParser, RadixIntegralParser}
 import za.co.absa.standardization.types.parsers.{DecimalParser, FractionalParser}
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
 
 class UDFBuilderSuite extends AnyFunSuite {
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
   private val stdConfig = BasicStandardizationConfig
     .fromDefault()
     .copy(metadataColumns = BasicMetadataColumnsConfig

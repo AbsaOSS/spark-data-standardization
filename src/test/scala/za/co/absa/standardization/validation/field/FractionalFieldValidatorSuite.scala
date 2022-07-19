@@ -21,10 +21,10 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.ValidationError
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField.FractionalTypeStructField
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
 
 class FractionalFieldValidatorSuite extends AnyFunSuite {
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private def field(dataType: DataType, metadataBuilder: MetadataBuilder): FractionalTypeStructField[_] = {
     val result = StructField("test_field", dataType,  nullable = false, metadataBuilder.build())
