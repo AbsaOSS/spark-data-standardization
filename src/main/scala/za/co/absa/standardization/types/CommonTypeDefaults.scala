@@ -48,17 +48,17 @@ class CommonTypeDefaults extends TypeDefaults {
 
   override def getDataTypeDefaultValue(dt: DataType): Any =
     dt match {
-      case _: IntegerType   => integerTypeDefault // 0
-      case _: FloatType     => floatTypeDefault // 0f
-      case _: ByteType      => byteTypeDefault // 0.toByte
-      case _: ShortType     => shortTypeDefault // 0.toShort
-      case _: DoubleType    => doubleTypeDefault // 0.0d
-      case _: LongType      => longTypeDefault // 0L
-      case _: StringType    => stringTypeDefault // ""
-      case _: BinaryType    => binaryTypeDefault // Array.empty[Byte]
-      case _: DateType      => dateTypeDefault // new Date(0) //linux epoch
-      case _: TimestampType => timestampTypeDefault // new Timestamp(0)
-      case _: BooleanType   => booleanTypeDefault // false
+      case _: IntegerType   => integerTypeDefault
+      case _: FloatType     => floatTypeDefault
+      case _: ByteType      => byteTypeDefault
+      case _: ShortType     => shortTypeDefault
+      case _: DoubleType    => doubleTypeDefault
+      case _: LongType      => longTypeDefault
+      case _: StringType    => stringTypeDefault
+      case _: BinaryType    => binaryTypeDefault
+      case _: DateType      => dateTypeDefault
+      case _: TimestampType => timestampTypeDefault
+      case _: BooleanType   => booleanTypeDefault
       case t: DecimalType   => decimalTypeDefault(t.precision, t.scale)
       case _                => throw new IllegalStateException(s"No default value defined for data type ${dt.typeName}")
     }
