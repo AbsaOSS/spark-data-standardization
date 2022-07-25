@@ -17,7 +17,6 @@ import sys.process._
 
 ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
-ThisBuild / version := "0.0.1-SNAPSHOT"
 
 lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.12"
