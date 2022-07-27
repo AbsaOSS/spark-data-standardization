@@ -60,5 +60,3 @@ ThisBuild / developers := List(
 
 ThisBuild / homepage := Some(url("https://github.com/AbsaOSS/spark-data-standardization"))
 ThisBuild / description := "Data Standardization library (originally part of the Enceladus project)"
-
-ThisBuild / pomIncludeRepository := { _ => false }
