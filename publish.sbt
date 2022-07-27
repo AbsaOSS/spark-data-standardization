@@ -23,8 +23,6 @@ ThisBuild / scmInfo := Some(
   )
 )
 
-ThisBuild / versionScheme := Some("early-semver")
-
 ThisBuild / developers := List(
   Developer(
     id    = "Zejnilovic",
@@ -60,3 +58,8 @@ ThisBuild / developers := List(
 
 ThisBuild / homepage := Some(url("https://github.com/AbsaOSS/spark-data-standardization"))
 ThisBuild / description := "Data Standardization library (originally part of the Enceladus project)"
+
+// licenceHeader check:
+ThisBuild / organizationName := "ABSA Group Limited"
+ThisBuild / startYear := Some(2021)
+ThisBuild / licenses += "Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")
