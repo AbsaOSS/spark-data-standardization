@@ -1,5 +1,8 @@
 # Spark Data Standardization Library
 
+[![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![Release](https://github.com/AbsaOSS/spark-data-standardization/actions/workflows/release.yml/badge.svg)](https://github.com/AbsaOSS/spark-data-standardization/actions/workflows/release.yml)
+
 - Dataframe in 
 - Standardized Dataframe out
 
@@ -34,3 +37,7 @@ Spark and Scala compatibility
 >| | Scala 2.11 | Scala 2.12 |
 >|---|---|---|
 >|Spark| 2.4.X | 3.2.1 |
+
+## How to Release
+
+Please see [this file](RELEASE.md) for more details.
