@@ -27,7 +27,7 @@ import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationW
 import scala.util.{Failure, Success, Try}
 
 class TypedStructFieldSuite extends AnyFunSuite {
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
   private val fieldName = "test_field"
   private def createField(dataType: DataType,
                           nullable: Boolean = false,

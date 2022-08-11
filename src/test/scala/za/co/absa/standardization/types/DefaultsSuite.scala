@@ -28,52 +28,52 @@ class DefaultsSuite extends AnyFunSuite {
   TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
 
   test("ByteType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(ByteType, nullable = false) === Success(Some(0.toByte)))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(ByteType, nullable = false) === Success(Some(0.toByte)))
   }
 
   test("ShortType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(ShortType, nullable = false) === Success(Some(0.toShort)))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(ShortType, nullable = false) === Success(Some(0.toShort)))
   }
 
   test("IntegerType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(IntegerType, nullable = false) === Success(Some(0)))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(IntegerType, nullable = false) === Success(Some(0)))
   }
 
   test("LongType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(LongType, nullable = false) === Success(Some(0L)))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(LongType, nullable = false) === Success(Some(0L)))
   }
 
   test("FloatType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(FloatType, nullable = false) === Success(Some(0F)))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(FloatType, nullable = false) === Success(Some(0F)))
   }
 
   test("DoubleType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(DoubleType, nullable = false) === Success(Some(0D)))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(DoubleType, nullable = false) === Success(Some(0D)))
   }
 
   test("StringType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(StringType, nullable = false) === Success(Some("")))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(StringType, nullable = false) === Success(Some("")))
   }
 
   test("DateType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(DateType, nullable = false) === Success(Some(new Date(0))))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(DateType, nullable = false) === Success(Some(new Date(0))))
   }
 
   test("TimestampType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(TimestampType, nullable = false) === Success(Some(new Timestamp(0))))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(TimestampType, nullable = false) === Success(Some(new Timestamp(0))))
   }
 
   test("BooleanType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(BooleanType, nullable = false) === (Success(Some(false))))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(BooleanType, nullable = false) === (Success(Some(false))))
   }
 
   test("DecimalType") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(DecimalType(6, 3), nullable = false) === Success(Some(BigDecimal("000.000"))))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(DecimalType(6, 3), nullable = false) === Success(Some(BigDecimal("000.000"))))
   }
 
   test("ArrayType") {
     val dataType = ArrayType(StringType)
-    val result = GlobalDefaults.getDataTypeDefaultValueWithNull(dataType, nullable = false)
+    val result = CommonTypeDefaults.getDataTypeDefaultValueWithNull(dataType, nullable = false)
     val e = intercept[IllegalStateException] {
       result.get
     }
@@ -81,15 +81,15 @@ class DefaultsSuite extends AnyFunSuite {
   }
 
   test("Nullable default is None") {
-    assert(GlobalDefaults.getDataTypeDefaultValueWithNull(BooleanType, nullable = true) === Success(None))
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(BooleanType, nullable = true) === Success(None))
   }
 
   test("Default time zone for timestamps does not exists") {
-    assert(GlobalDefaults.getDefaultTimestampTimeZone.isEmpty)
+    assert(CommonTypeDefaults.defaultTimestampTimeZone.isEmpty)
   }
 
   test("Default time zone for dates does not exist") {
-    assert(GlobalDefaults.getDefaultDateTimeZone.isEmpty)
+    assert(CommonTypeDefaults.defaultDateTimeZone.isEmpty)
   }
 }
 

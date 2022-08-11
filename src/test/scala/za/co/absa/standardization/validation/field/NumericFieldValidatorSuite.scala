@@ -21,10 +21,10 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.ValidationError
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField.NumericTypeStructField
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
 
 class NumericFieldValidatorSuite extends AnyFunSuite {
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private def field(metadataBuilder: MetadataBuilder): NumericTypeStructField[_] = {
     val result = StructField("test_field", DecimalType(15, 5),  nullable = false, metadataBuilder.build())

@@ -28,7 +28,7 @@ import za.co.absa.standardization.DataFrameTestUtils.RowSeqToDf
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.schema.MetadataKeys
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessageFactory, LoggerTestBase, Standardization, ValidationException}
 
@@ -43,7 +43,7 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
       )
     )
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private val fieldName = "arrayField"
 

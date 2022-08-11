@@ -16,10 +16,13 @@
 
 package za.co.absa.standardization.config
 
+import za.co.absa.standardization.types.TypeDefaults
+
 trait StandardizationConfig {
   val failOnInputNotPerSchema: Boolean
   val errorCodes: ErrorCodesConfig
   val metadataColumns: MetadataColumnsConfig
+  val typeDefaults: TypeDefaults
   val errorColumn: String
   val timezone: String
 }

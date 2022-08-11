@@ -20,6 +20,7 @@ import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types.StructType
 import za.co.absa.standardization.SchemaValidator.{validateErrorColumn, validateSchema}
+import za.co.absa.standardization.types.TypeDefaults
 import za.co.absa.standardization.{ValidationError, ValidationIssue, ValidationWarning}
 
 object SchemaChecker {
@@ -32,7 +33,7 @@ object SchemaChecker {
     * @param schema A Spark schema
     */
   def validateSchemaAndLog(schema: StructType)
-                          (implicit spark: SparkSession): (Seq[String], Seq[String]) = {
+                          (implicit spark: SparkSession, defaults: TypeDefaults): (Seq[String], Seq[String]) = {
     val failures = validateSchema(schema) ::: validateErrorColumn(schema)
 
     type ColName = String

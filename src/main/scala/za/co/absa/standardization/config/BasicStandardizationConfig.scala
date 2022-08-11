@@ -16,9 +16,12 @@
 
 package za.co.absa.standardization.config
 
+import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
+
 case class BasicStandardizationConfig(failOnInputNotPerSchema: Boolean,
                                      errorCodes: ErrorCodesConfig,
                                      metadataColumns: MetadataColumnsConfig,
+                                     typeDefaults: TypeDefaults,
                                      errorColumn: String,
                                      timezone: String) extends StandardizationConfig
 
@@ -28,6 +31,7 @@ object BasicStandardizationConfig {
       DefaultStandardizationConfig.failOnInputNotPerSchema,
       BasicErrorCodesConfig.fromDefault(),
       BasicMetadataColumnsConfig.fromDefault(),
+      CommonTypeDefaults,
       DefaultStandardizationConfig.errorColumn,
       DefaultStandardizationConfig.timezone
     )

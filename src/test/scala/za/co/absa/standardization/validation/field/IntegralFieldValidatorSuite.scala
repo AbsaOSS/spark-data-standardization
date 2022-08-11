@@ -21,11 +21,11 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.numeric.Radix
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField.IntegralTypeStructField
-import za.co.absa.standardization.types.{Defaults, GlobalDefaults, TypedStructField}
+import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
 import za.co.absa.standardization.{ValidationError, ValidationWarning}
 
 class IntegralFieldValidatorSuite extends AnyFunSuite {
-  private implicit val defaults: Defaults = GlobalDefaults
+  private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private def field(dataType: DataType, metadataBuilder: MetadataBuilder): IntegralTypeStructField[_] = {
     val result = StructField("test_field", dataType,  nullable = false, metadataBuilder.build())
