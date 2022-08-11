@@ -17,13 +17,14 @@ import sys.process._
 
 ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
-ThisBuild / version := "0.0.1-SNAPSHOT"
 
 lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.12"
 
 ThisBuild / crossScalaVersions := Seq(scala211, scala212)
 ThisBuild / scalaVersion := scala211
+
+ThisBuild / versionScheme := Some("early-semver")
 
 def sparkVersion(scalaVersion: String): String = if (scalaVersion==scala212) "3.2.1" else "2.4.7"
 
@@ -59,11 +60,6 @@ lazy val baseBranchName = (
 ).!!.trim
 
 scalafmtFilter.withRank(KeyRanks.Invisible) := s"diff-ref=${baseBranchName}"
-
-// licenceHeader check:
-ThisBuild / organizationName := "ABSA Group Limited"
-ThisBuild / startYear := Some(2021)
-ThisBuild / licenses += "Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")
 
 // linting
 Global / excludeLintKeys += ThisBuild / name // will be used in publish, todo #3 - confirm if lint ignore is still needed
