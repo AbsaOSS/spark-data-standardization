@@ -23,9 +23,10 @@ Thi library needs following dependencies to be included in your project
 "za.co.absa" %% "spark-data-standardization" % VERSION 
 ```
 
+### Usage in Maven
+
 ### Scala 2.11 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.11)
 
-### Usage in Maven
 ```xml
 <dependency>
    <groupId>za.co.absa</groupId>
