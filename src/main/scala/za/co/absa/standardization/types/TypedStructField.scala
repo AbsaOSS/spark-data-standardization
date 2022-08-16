@@ -20,7 +20,7 @@ import java.sql.{Date, Timestamp}
 import java.util.Base64
 
 import org.apache.spark.sql.types._
-import za.co.absa.spark.commons.implicits.StructFieldImplicits.{StructFieldEnhancements, StructFieldMetadataEnhancements}
+import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.standardization.ValidationIssue
 import za.co.absa.standardization.numeric.{DecimalSymbols, NumericPattern, Radix}
 import za.co.absa.standardization.schema.{MetadataKeys, MetadataValues}

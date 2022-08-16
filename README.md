@@ -6,15 +6,26 @@
 - Dataframe in 
 - Standardized Dataframe out
 
-## Dependency
-SBT:
+## Usage
+
+### Needed Provided Dependencies
+
+Thi library needs following dependencies to be included in your project
+
+```sbt
+"org.apache.spark" %% "spark-core" % SPARK_VERSION,
+"org.apache.spark" %% "spark-sql" % SPARK_VERSION,
+"za.co.absa" %% s"spark-commons-spark${SPARK_MAJOR}.${SPARK_MINOR}" % "0.3.1",
+```
+
+### Usage in SBT:
 ```sbt
 "za.co.absa" %% "spark-data-standardization" % VERSION 
 ```
 
 ### Scala 2.11 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.11)
 
-Maven
+### Usage in Maven
 ```xml
 <dependency>
    <groupId>za.co.absa</groupId>
