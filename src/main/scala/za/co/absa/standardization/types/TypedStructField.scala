@@ -28,11 +28,10 @@ import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.parsers._
 import za.co.absa.standardization.validation.field._
-
 import scala.util.{Failure, Success, Try}
 
-sealed abstract class TypedStructField(structField: StructField)(implicit defaults: TypeDefaults)
-  extends StructFieldEnhancements(structField) with Serializable {
+sealed abstract class TypedStructField(val structField: StructField)(implicit defaults: TypeDefaults)
+  extends Serializable {
 
   type BaseType
 

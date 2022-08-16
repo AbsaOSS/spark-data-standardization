@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import sys.process._
+import Dependencies._
 
 ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
@@ -26,24 +28,13 @@ ThisBuild / scalaVersion := scala211
 
 ThisBuild / versionScheme := Some("early-semver")
 
-def sparkVersion(scalaVersion: String): String = if (scalaVersion==scala212) "3.2.1" else "2.4.7"
-
-def sparkFastTestsVersion(scalaVersion: String): String = if (scalaVersion == scala212) "1.1.0" else "0.23.0"
-
-libraryDependencies ++= List(
-  "org.apache.spark" %% "spark-core" % sparkVersion(scalaVersion.value) % "provided",
-  "org.apache.spark" %% "spark-sql" % sparkVersion(scalaVersion.value) % "provided",
-  "za.co.absa" %% "spark-commons" % "0.2.0",
-  "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion(scalaVersion.value) % Test,
-  "org.scalatest" %% "scalatest" % "3.2.2" % Test,
-  "com.typesafe" % "config" % "1.4.1"
-)
+libraryDependencies ++= dependencyList(scalaVersion.value)
 
 lazy val printSparkScalaVersion = taskKey[Unit]("Print Spark and Scala versions for standardization")
 ThisBuild / printSparkScalaVersion := {
   val log = streams.value.log
   val scalaVers = scalaVersion.value
-  log.info(s"Building with Spark ${sparkVersion(scalaVers)}, Scala ${scalaVers}")
+  log.info(s"Building with Spark ${getSparkVersion(scalaVers)}, Scala ${scalaVers}")
 }
 
 Test / parallelExecution := false
