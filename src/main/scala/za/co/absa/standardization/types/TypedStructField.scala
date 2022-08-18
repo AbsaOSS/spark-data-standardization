@@ -20,7 +20,7 @@ import java.sql.{Date, Timestamp}
 import java.util.Base64
 
 import org.apache.spark.sql.types._
-import za.co.absa.spark.commons.implicits.StructFieldImplicits.{StructFieldEnhancements, StructFieldMetadataEnhancements}
+import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.standardization.ValidationIssue
 import za.co.absa.standardization.numeric.{DecimalSymbols, NumericPattern, Radix}
 import za.co.absa.standardization.schema.{MetadataKeys, MetadataValues}
@@ -28,11 +28,10 @@ import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.parsers._
 import za.co.absa.standardization.validation.field._
-
 import scala.util.{Failure, Success, Try}
 
-sealed abstract class TypedStructField(structField: StructField)(implicit defaults: TypeDefaults)
-  extends StructFieldEnhancements(structField) with Serializable {
+sealed abstract class TypedStructField(val structField: StructField)(implicit defaults: TypeDefaults)
+  extends Serializable {
 
   type BaseType
 

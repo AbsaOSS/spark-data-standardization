@@ -208,7 +208,7 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
     val seq = Seq(
       s"""{"$fieldName": [["a", "bb", "ccc"],["1", "12"],["Hello", null, "World"]]}"""
     )
-    val src = JsonUtils.getDataFrameFromJson(spark, seq)
+    val src = JsonUtils.getDataFrameFromJson(seq)
 
     val subArrayJson = """{"type": "array", "elementType": "string", "containsNull": false}"""
     val desiredSchema = generateDesiredSchema(subArrayJson, s""""${MetadataKeys.DefaultValue}": "Nope"""")

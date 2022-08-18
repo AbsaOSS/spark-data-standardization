@@ -343,7 +343,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
 
 
     val srcString:String = FileReader.readFileAsString("src/test/resources/data/patients.json")
-    val src = JsonUtils.getDataFrameFromJson(spark, Seq(srcString))
+    val src = JsonUtils.getDataFrameFromJson(Seq(srcString))
 
     logDataFrameContent(src)
 
