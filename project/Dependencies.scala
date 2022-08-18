@@ -23,9 +23,9 @@ object Dependencies {
     s"$major.$minor"
   }
 
-  private def sparkFastTestsVersion(scalaVersion: String): String = if (scalaVersion.startsWith("2.12")) "1.1.0" else "0.23.0"
+  private def sparkFastTestsVersion(scalaVersion: String): String = if (scalaVersion.startsWith("2.11")) "0.23.0" else "1.1.0"
 
-  def getSparkVersion(scalaVersion: String): String = if (scalaVersion.startsWith("2.12")) "3.2.1" else "2.4.7"
+  def getSparkVersion(scalaVersion: String): String = if (scalaVersion.startsWith("2.11")) "2.4.7" else "3.2.1"
 
   def dependencyList(scalaVersion: String): Seq[ModuleID] = {
     val sparkVersion = getSparkVersion(scalaVersion)
@@ -34,7 +34,7 @@ object Dependencies {
       "org.apache.spark" %% "spark-core" % sparkVersion % Provided,
       "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
       "za.co.absa" %% s"spark-commons-spark$sparkVersionUpToMinor" % "0.3.1" % Provided,
-      "za.co.absa" %% "spark-commons-test" % "0.3.1",
+      "za.co.absa" %% "spark-commons-test" % "0.3.1" % Test,
       "com.typesafe" % "config" % "1.4.1",
       "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion(scalaVersion) % Test,
       "org.scalatest" %% "scalatest" % "3.2.2" % Test

@@ -10,7 +10,7 @@
 
 ### Needed Provided Dependencies
 
-Thi library needs following dependencies to be included in your project
+The library needs following dependencies to be included in your project
 
 ```sbt
 "org.apache.spark" %% "spark-core" % SPARK_VERSION,
