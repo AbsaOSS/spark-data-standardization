@@ -39,18 +39,21 @@ ThisBuild / printSparkScalaVersion := {
 
 Test / parallelExecution := false
 
-// Only apply scalafmt to files that differ from master (i.e. files changed in the feature branch or so),
-// not on the whole repository.
-lazy val currBranchName = "git branch --show-current".!!.trim
-lazy val baseBranchName = (
-  "git show-branch -a"
-    #| raw"grep \*"
-    #| s"grep -v $currBranchName"
-    #| "head -n1"
-    #| raw"sed s/.*\[\(.*\)\].*/\1/"
-).!!.trim
-
-scalafmtFilter.withRank(KeyRanks.Invisible) := s"diff-ref=${baseBranchName}"
+// Only apply scalafmt to files that differ from master (i.e. files changed in the feature branch or so; n/a on Windows)
+lazy val fmtFilterExpression: String = System.getProperty("os.name").toLowerCase match {
+  case win if win.contains("win") => ""
+  case nonWin =>
+    lazy val currBranchName = "git branch --show-current".!!.trim
+    lazy val baseBranchName = (
+      "git show-branch -a"
+        #| raw"grep \*"
+        #| s"grep -v $currBranchName"
+        #| "head -n1"
+        #| raw"sed s/.*\[\(.*\)\].*/\1/"
+      ).!!.trim
+    s"diff-ref=${baseBranchName}"
+}
+scalafmtFilter.withRank(KeyRanks.Invisible) := fmtFilterExpression
 
 // linting
 Global / excludeLintKeys += ThisBuild / name // will be used in publish, todo #3 - confirm if lint ignore is still needed
