@@ -50,7 +50,7 @@ lazy val fmtFilterExpression: String = System.getProperty("os.name").toLowerCase
         #| s"grep -v $currBranchName"
         #| "head -n1"
         #| raw"sed s/.*\[\(.*\)\].*/\1/"
-      ).!!.trim
+    ).!!.trim
     s"diff-ref=${baseBranchName}"
 }
 scalafmtFilter.withRank(KeyRanks.Invisible) := fmtFilterExpression
