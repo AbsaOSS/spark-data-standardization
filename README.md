@@ -59,6 +59,5 @@ Please see [this file](RELEASE.md) for more details.
 sbt jacoco
 ```
 Code coverage will be generated on path:
-```aidl
 {local-path}\spark-data-standardization\target\scala-2.XY\jacoco\report\html
 ```
