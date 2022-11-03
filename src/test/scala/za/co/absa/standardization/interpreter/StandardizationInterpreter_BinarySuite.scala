@@ -21,10 +21,11 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization, ValidationException}
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 
 class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestBase with LoggerTestBase with Matchers {
 
@@ -56,7 +57,7 @@ class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestB
     )
 
     val src = seq.toDF(fieldName)
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val result = std.as[BinaryRow].collect().toList
@@ -84,7 +85,7 @@ class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestB
     )
 
     val src = seq.toDF(fieldName)
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val result = std.as[BinaryRow].collect().toList
@@ -102,7 +103,7 @@ class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestB
 
     val src = seq.toDF(fieldName)
     val caught = intercept[ValidationException](
-      Standardization.standardize(src, desiredSchema).cache()
+      Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     )
 
     caught.errors.length shouldBe 1
@@ -128,7 +129,7 @@ class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestB
       )
 
       val src = seq.toDF(fieldName)
-      val std = Standardization.standardize(src, desiredSchema).cache()
+      val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
       logDataFrameContent(std)
 
       val result = std.as[BinaryRow].collect().toList
@@ -158,7 +159,7 @@ class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestB
     )
 
     val src = seq.toDF(fieldName)
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val result = std.as[BinaryRow].collect().toList
@@ -191,7 +192,7 @@ class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestB
       )
 
       val src = seq.toDF(fieldName)
-      val std = Standardization.standardize(src, desiredSchema).cache()
+      val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
       logDataFrameContent(std)
 
       val result = std.as[BinaryRow].collect().toList

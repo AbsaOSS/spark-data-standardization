@@ -22,9 +22,10 @@ import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
 
@@ -72,7 +73,7 @@ class StandardizationInterpreter_IntegralSuite extends AnyFunSuite with SparkTes
       .csv(s"${pathToTestData}integral_overflow_test.csv")
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = Seq(
@@ -112,7 +113,7 @@ class StandardizationInterpreter_IntegralSuite extends AnyFunSuite with SparkTes
     val src = spark.read.json(s"${pathToTestData}integral_overflow_test_text.json")
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = Seq(
@@ -152,7 +153,7 @@ class StandardizationInterpreter_IntegralSuite extends AnyFunSuite with SparkTes
     val src = spark.read.json(s"${pathToTestData}integral_overflow_test_numbers.json")
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = Seq(
@@ -193,7 +194,7 @@ class StandardizationInterpreter_IntegralSuite extends AnyFunSuite with SparkTes
     ))
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = Seq(
@@ -247,7 +248,7 @@ class StandardizationInterpreter_IntegralSuite extends AnyFunSuite with SparkTes
     val src = spark.createDataFrame(seq)
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = Seq(
@@ -334,7 +335,7 @@ class StandardizationInterpreter_IntegralSuite extends AnyFunSuite with SparkTes
     val src = spark.createDataFrame(seq)
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = Seq(
@@ -415,7 +416,7 @@ class StandardizationInterpreter_IntegralSuite extends AnyFunSuite with SparkTes
         .build())
     ))
 
-    val std = Standardization.standardize(src, desiredSchemaWithAlters, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithAlters, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = List(
@@ -479,7 +480,7 @@ class StandardizationInterpreter_IntegralSuite extends AnyFunSuite with SparkTes
         .build())
     ))
 
-    val std = Standardization.standardize(src, desiredSchemaWithPatterns, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithPatterns, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = List(
@@ -540,7 +541,7 @@ class StandardizationInterpreter_IntegralSuite extends AnyFunSuite with SparkTes
         .build())
     ))
 
-    val std = Standardization.standardize(src, desiredSchemaWithAlters, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithAlters, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = List(

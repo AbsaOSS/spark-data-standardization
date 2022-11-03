@@ -21,7 +21,8 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.utils.JsonUtils
-import za.co.absa.spark.commons.test.{DefaultSparkConfiguration, SparkTestBase}
+import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
@@ -347,7 +348,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
 
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val actualSchema = std.schema.treeString
