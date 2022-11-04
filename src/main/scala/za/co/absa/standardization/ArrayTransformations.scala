@@ -22,6 +22,7 @@ import org.apache.spark.sql.types.{ArrayType, DataType, StructType}
 import org.apache.spark.sql.{Column, Dataset, Row, SparkSession}
 import org.slf4j.LoggerFactory
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
+import za.co.absa.spark.commons.utils.SchemaUtils
 
 object ArrayTransformations {
   private val logger = LoggerFactory.getLogger(this.getClass)
@@ -49,7 +50,7 @@ object ArrayTransformations {
   }
 
   def nestedWithColumn(ds: Dataset[Row])(columnName: String, column: Column): Dataset[Row] = {
-    val toks = columnName.split("\\.").toList
+    val toks = SchemaUtils.splitPath(columnName)
 
     def helper(tokens: List[String], pathAcc: Seq[String]): Column = {
       val currPath = (pathAcc :+ tokens.head).mkString(".")

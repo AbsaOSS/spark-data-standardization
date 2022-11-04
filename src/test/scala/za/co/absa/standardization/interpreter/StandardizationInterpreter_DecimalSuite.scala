@@ -22,11 +22,12 @@ import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 
 class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
@@ -81,7 +82,7 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
     val src = seq.toDF("description","small", "big")
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = Seq(
@@ -142,7 +143,7 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
         ErrorMessage.stdCastErr("big", "NaN")))
     )
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DecimalRow].collect().sortBy(_.description).toList)
@@ -179,7 +180,7 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
         .build())
     ))
 
-    val std = Standardization.standardize(src, desiredSchemaWithAlters, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithAlters, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = List(
@@ -221,7 +222,7 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
         .build())
     ))
 
-    val std = Standardization.standardize(src, desiredSchemaWithPatterns, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithPatterns, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = List(
@@ -273,7 +274,7 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
         .build())
     ))
 
-    val std = Standardization.standardize(src, desiredSchemaWithPatterns, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithPatterns, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = List(
