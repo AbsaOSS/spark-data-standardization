@@ -21,10 +21,11 @@ import org.apache.spark.sql.types.{DateType, MetadataBuilder, StructField, Struc
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 
 class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
@@ -64,7 +65,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
     val src = seq.toDF(fieldName)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)
@@ -90,7 +91,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
     val src = seq.toDF(fieldName)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)
@@ -116,7 +117,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
     val src = seq.toDF(fieldName)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)
@@ -142,7 +143,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
     val src = seq.toDF(fieldName)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)
@@ -172,7 +173,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
     val src = seq.toDF(fieldName)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)
@@ -203,7 +204,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     val src = seq.toDF(fieldName)
     spark.sql("set spark.sql.legacy.timeParserPolicy=LEGACY")
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)
@@ -233,7 +234,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
     val src = seq.toDF(fieldName)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)
@@ -266,7 +267,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
     val src = seq.toDF(fieldName)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)
@@ -300,7 +301,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
     val src = seq.toDF(fieldName)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)
@@ -332,7 +333,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
 
     val src = seq.toDF(fieldName)
 
-    val std = Standardization.standardize(src, desiredSchema).cache()
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[DateRow].collect().toList)

@@ -77,6 +77,6 @@ object FieldValidator extends FieldValidator {
     * @return simple type name
     */
   private[field] def simpleTypeName(typeName: String) = {
-    typeName.split("""\.""").last
+    typeName.split('.').last
   }
 }

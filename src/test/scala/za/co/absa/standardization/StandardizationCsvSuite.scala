@@ -22,9 +22,10 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
+
 
 class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
   import spark.implicits._
@@ -80,8 +81,8 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
         |
         |""".stripMargin.replace("\r\n", "\n")
 
-    val rawDataFrame = spark.read.option("header", false).schema(schemaWithStringType).csv(csvContent)
-    val stdDf = Standardization.standardize(rawDataFrame, schema, stdConfig).cache()
+    val rawDataFrame = spark.read.option("header", value = false).schema(schemaWithStringType).csv(csvContent)
+    val stdDf = Standardization.standardize(rawDataFrame, schema, stdConfig).cacheIfNotCachedYet()
     val actualOutput = stdDf.dataAsString(truncate = false)
 
     assert(actualOutput == expectedOutput)
@@ -105,10 +106,10 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
       StructField("standardization_info_date_string", StringType, nullable = true)
     ))
 
-    val rawDataFrame = spark.read.option("header", false).schema(schemaStr).csv(csvContent)
+    val rawDataFrame = spark.read.option("header", value = false).schema(schemaStr).csv(csvContent)
 
     assertThrows[ValidationException] {
-      Standardization.standardize(rawDataFrame, schema).cache()
+      Standardization.standardize(rawDataFrame, schema).cacheIfNotCachedYet()
     }
   }
 
@@ -130,10 +131,10 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
       StructField("standardization_info_date_string", StringType, nullable = true)
     ))
 
-    val rawDataFrame = spark.read.option("header", false).schema(schemaStr).csv(csvContent)
+    val rawDataFrame = spark.read.option("header", value = false).schema(schemaStr).csv(csvContent)
       .withColumn(ErrorMessage.errorColumnName, typedLit(List[ErrorMessage]()))
 
-    val stdDf = Standardization.standardize(rawDataFrame, schema).cache()
+    val stdDf = Standardization.standardize(rawDataFrame, schema).cacheIfNotCachedYet()
     val failedRecords = stdDf.filter(size(col(ErrorMessage.errorColumnName)) > 0).count
 
     assert(stdDf.schema.exists(field => field.name == ErrorMessage.errorColumnName))

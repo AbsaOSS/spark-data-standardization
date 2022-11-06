@@ -51,7 +51,7 @@ object ArrayTransformations {
   }
 
   def nestedWithColumn(ds: Dataset[Row])(columnName: String, column: Column): Dataset[Row] = {
-    val toks = columnName.split("\\.").toList
+    val toks = SchemaUtils.splitPath(columnName)
 
     def helper(tokens: List[String], pathAcc: Seq[String]): Column = {
       val currPath = (pathAcc :+ tokens.head).mkString(".")
