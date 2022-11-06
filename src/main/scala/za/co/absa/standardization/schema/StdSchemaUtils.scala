@@ -16,7 +16,12 @@
 
 package za.co.absa.standardization.schema
 
+import org.apache.spark.sql.Column
 import org.apache.spark.sql.types._
+import za.co.absa.spark.commons.utils.SchemaUtils
+import org.apache.spark.sql.functions.col
+
+import scala.util.{Success, Try}
 
 object StdSchemaUtils {
 
@@ -46,10 +51,32 @@ object StdSchemaUtils {
         .replace('.', '_')
   }
 
+  def evaluateColumnName(columnName: String): Column = {
+    def segmentToColumn(colFnc: String => Column, columnSegment: String): Column = { // TODO
+      val PatternForSubfield = """^(.+)\[(.+)]$""".r
+      columnSegment match {
+        case PatternForSubfield(column, subfield) =>
+          Try(subfield.toInt) match {
+            case Success(arrayIndex) => colFnc(column)(arrayIndex)
+            case _ => colFnc(column)(subfield)
+          }
+        case _ => colFnc(columnSegment)
+      }
+    }
+
+    val segments = SchemaUtils.splitPath(columnName)
+
+    segments.tail.foldLeft(segmentToColumn(col, segments.head)) {case(acc, columnSegment) =>
+      segmentToColumn(acc.apply, columnSegment)
+    }
+  }
+
   implicit class FieldWithSource(val structField: StructField) {
     def sourceName: String = {
       StdSchemaUtils.getFieldNameOverriddenByMetadata(structField.structField)
     }
   }
+
+
 
 }
