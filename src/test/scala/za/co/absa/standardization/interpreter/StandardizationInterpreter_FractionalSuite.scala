@@ -20,11 +20,12 @@ import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 
 class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
@@ -77,7 +78,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
     val src = seq.toDF("description","floatField", "doubleField")
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = Seq(
@@ -121,7 +122,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
       FractionalRow("03-Long", Option(-value.toFloat), Option(value.toDouble))
     )
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[FractionalRow].collect().sortBy(_.description).toList)
@@ -155,7 +156,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
         ErrorMessage.stdCastErr("doubleField", "NaN")))
     )
 
-    val std = Standardization.standardize(src, desiredSchema, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[FractionalRow].collect().sortBy(_.description).toList)
@@ -178,7 +179,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
     val src = seq.toDF("description","floatField", "doubleField")
     logDataFrameContent(src)
 
-    val std = Standardization.standardize(src, desiredSchemaWithInfinity, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithInfinity, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = Seq(
@@ -222,7 +223,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
         ErrorMessage.stdCastErr("doubleField", "NaN")))
     )
 
-    val std = Standardization.standardize(src, desiredSchemaWithInfinity, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithInfinity, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     assertResult(exp)(std.as[FractionalRow].collect().sortBy(_.description).toList)
@@ -282,7 +283,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
         .build())
     ))
 
-    val std = Standardization.standardize(src, desiredSchemaWithAlters, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithAlters, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = List(
@@ -367,7 +368,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
         .build())
     ))
 
-    val std = Standardization.standardize(src, desiredSchemaWithPatterns, stdConfig).cache()
+    val std = Standardization.standardize(src, desiredSchemaWithPatterns, stdConfig).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
     val exp = List(
