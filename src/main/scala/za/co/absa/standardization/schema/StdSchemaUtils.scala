@@ -52,7 +52,7 @@ object StdSchemaUtils {
   }
 
   def evaluateColumnName(columnName: String): Column = {
-    def segmentToColumn(colFnc: String => Column, columnSegment: String): Column = { // TODO
+    def segmentToColumn(colFnc: String => Column, columnSegment: String): Column = {
       val PatternForSubfield = """^(.+)\[(.+)]$""".r
       columnSegment match {
         case PatternForSubfield(column, subfield) =>
