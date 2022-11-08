@@ -57,3 +57,17 @@ scalafmtFilter.withRank(KeyRanks.Invisible) := fmtFilterExpression
 
 // linting
 Global / excludeLintKeys += ThisBuild / name // will be used in publish, todo #3 - confirm if lint ignore is still needed
+
+// JaCoCo code coverage
+Test / jacocoReportSettings := JacocoReportSettings(
+  s"spark-data-standardization Jacoco Report - ${scalaVersion.value}",
+  None,
+  JacocoThresholds(),
+  Seq(JacocoReportFormats.HTML, JacocoReportFormats.XML),
+  "utf-8")
+
+// exclude example
+//Test / jacocoExcludes := Seq(
+//  "za.co.absa.standardization.udf.UDFBuilder*", // class and related objects
+//  "za.co.absa.standardization.udf.UDFNames" // class only
+//)
