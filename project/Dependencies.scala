@@ -37,7 +37,8 @@ object Dependencies {
       "za.co.absa" %% "spark-commons-test" % "0.3.2" % Test,
       "com.typesafe" % "config" % "1.4.1",
       "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion(scalaVersion) % Test,
-      "org.scalatest" %% "scalatest" % "3.2.2" % Test
+      "org.scalatest" %% "scalatest" % "3.2.2" % Test,
+      "org.mockito" %% "mockito-scala" % "1.17.12" % Test
     )
   }
 }
