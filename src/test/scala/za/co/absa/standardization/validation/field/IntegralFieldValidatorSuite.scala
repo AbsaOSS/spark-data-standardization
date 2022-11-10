@@ -75,10 +75,6 @@ class IntegralFieldValidatorSuite extends AnyFunSuite {
       ValidationError("""Malformed pattern "%0.###,#"""")
     )
 
-    println(NumericFieldValidator.validate(f).toSet)
-
-    println(exp)
-
     assert(NumericFieldValidator.validate(f).toSet == exp)
   }
 

@@ -371,8 +371,6 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
     val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
     logDataFrameContent(std)
 
-    std.show(false)
-    std.printSchema()
     assertResult(exp)(std.as[TimestampRow].collect().toList)
   }
 
