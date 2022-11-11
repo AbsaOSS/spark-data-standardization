@@ -64,7 +64,8 @@ Test / jacocoReportSettings := JacocoReportSettings(
   None,
   JacocoThresholds(),
   Seq(JacocoReportFormats.HTML, JacocoReportFormats.XML),
-  "utf-8")
+  "utf-8"
+)
 
 // exclude example
 //Test / jacocoExcludes := Seq(
