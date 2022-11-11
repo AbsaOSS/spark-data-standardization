@@ -60,5 +60,5 @@ sbt jacoco
 ```
 Code coverage will be generated on path:
 ```
-{local-path}\spark-data-standardization\target\scala-2.XY\jacoco\report\html
+{project-root}/target/scala-2.XY/jacoco/report/html
 ```
