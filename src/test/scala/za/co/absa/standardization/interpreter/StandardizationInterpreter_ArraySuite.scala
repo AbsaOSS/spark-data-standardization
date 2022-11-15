@@ -74,7 +74,6 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
     )
 
     val stdDF = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
-    println(stdDF.schema.treeString)
     assert(stdDF.schema.treeString == expectedSchema) // checking schema first
 
     val expectedData = Seq(
