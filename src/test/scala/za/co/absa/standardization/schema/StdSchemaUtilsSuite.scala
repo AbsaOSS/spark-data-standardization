@@ -21,7 +21,6 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.schema.StdSchemaUtils._
-import org.apache.spark.sql.functions.col
 
 class StdSchemaUtilsSuite extends AnyFunSuite with Matchers with SparkTestBase{
   // scalastyle:off magic.number

@@ -79,10 +79,10 @@ class ArrayTransformationsSuite extends AnyFunSuite with SparkTestBase {
 
     val res = ArrayTransformations.flattenArrays(df, "a")
 
-    val exp = List(
+    val exp = Seq(
       Nested1Level(List(Some(1), None, Some(2), Some(3), Some(4), Some(5), Some(6))),
       Nested1Level(List()),
-      Nested1Level(null)).toSeq
+      Nested1Level(null))
 
     val resLocal = res.as[Nested1Level].collect().toSeq
 

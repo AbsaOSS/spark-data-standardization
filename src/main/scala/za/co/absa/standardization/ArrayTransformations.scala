@@ -23,7 +23,6 @@ import org.apache.spark.sql.{Column, Dataset, Row, SparkSession}
 import org.slf4j.LoggerFactory
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.spark.commons.utils.SchemaUtils
-import za.co.absa.standardization.schema.StdSchemaUtils
 import za.co.absa.spark.commons.sql.functions.col_of_path
 
 object ArrayTransformations {
