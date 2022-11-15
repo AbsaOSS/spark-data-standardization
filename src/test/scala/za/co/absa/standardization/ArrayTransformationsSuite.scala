@@ -88,5 +88,4 @@ class ArrayTransformationsSuite extends AnyFunSuite with SparkTestBase {
 
     assertResult(exp)(resLocal)
   }
-
 }

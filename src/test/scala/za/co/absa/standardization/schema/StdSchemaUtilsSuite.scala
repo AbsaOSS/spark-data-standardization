@@ -37,7 +37,7 @@ class StdSchemaUtilsSuite extends AnyFunSuite with Matchers with SparkTestBase{
     assertResult("override_a")(getFieldNameOverriddenByMetadata(structFieldWithMetadataSourceColumn))
   }
 
-    test("unpath - empty string remains empty") {
+  test("unpath - empty string remains empty") {
     val result = unpath("")
     val expected = ""
     assert(result == expected)
@@ -53,20 +53,5 @@ class StdSchemaUtilsSuite extends AnyFunSuite with Matchers with SparkTestBase{
     val result = unpath("grand_parent.parent.first_child")
     val expected = "grand__parent_parent_first__child"
     assert(result == expected)
-  }
-
-  test("evaluateColumnName - simple column") {
-    val columnName = "simple"
-    val result = StdSchemaUtils.evaluateColumnName(columnName)
-    val expected = col(columnName)
-    assert(result == expected)
-  }
-
-  test("evaluateColumnName - including array and map columns") {
-    val columnName = "array_column[42].in_between.another_array[0].map_column[map_key]"
-    val result = StdSchemaUtils.evaluateColumnName(columnName)
-    val expected = col("array_column")(42)("in_between")("another_array")(0)("map_column")("map_key")
-    assert(result == expected)
-
   }
 }
