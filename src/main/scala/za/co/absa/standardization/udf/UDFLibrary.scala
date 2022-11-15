@@ -22,12 +22,13 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SparkSession}
 import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfig}
 import za.co.absa.standardization.udf.UDFNames._
-import za.co.absa.standardization.{ErrorMessage, Mapping}
+import za.co.absa.standardization.ErrorMessage
+import za.co.absa.spark.commons.OncePerSparkSession
 
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
-class UDFLibrary(stdConfig: StandardizationConfig)(implicit spark: SparkSession) extends SingleRegisteredPerSparkSession with Serializable {
+class UDFLibrary(stdConfig: StandardizationConfig)(implicit spark: SparkSession) extends OncePerSparkSession with Serializable {
 
   private implicit val errorCodes: ErrorCodesConfig = stdConfig.errorCodes
 
