@@ -23,6 +23,7 @@ import org.apache.spark.sql.{Column, Dataset, Row, SparkSession}
 import org.slf4j.LoggerFactory
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.spark.commons.utils.SchemaUtils
+import za.co.absa.spark.commons.sql.functions.col_of_path
 
 object ArrayTransformations {
   private val logger = LoggerFactory.getLogger(this.getClass)
@@ -61,7 +62,7 @@ object ArrayTransformations {
         column as tokens.head
       } // some other attribute
       else if (!columnName.startsWith(currPath)) {
-        arrCol(currPath)
+        col_of_path(currPath)
       } // partial match, keep going
       else if (topType.isEmpty) {
         struct(helper(tokens.tail, pathAcc ++ List(tokens.head))) as tokens.head
@@ -76,7 +77,7 @@ object ArrayTransformations {
             }
             struct(fields.map(field => helper((List(field) ++ tokens.tail).distinct, pathAcc :+ tokens.head) as field): _*) as tokens.head
           case _: ArrayType => throw new IllegalStateException("Cannot reconstruct array columns. Please use this within arrayTransform.")
-          case _: DataType  => arrCol(currPath) as tokens.head
+          case _: DataType  => col_of_path(currPath) as tokens.head
         }
       }
     }
@@ -84,15 +85,4 @@ object ArrayTransformations {
     ds.withColumn(toks.head, helper(toks, Seq()))
   }
 
-  def arrCol(any: String): Column = {
-    val toks = any.replaceAll("\\[(\\d+)\\]", "\\.$1").split("\\.")
-    toks.tail.foldLeft(col(toks.head)){
-      case (acc, tok) =>
-        if (tok.matches("\\d+")) {
-          acc(tok.toInt)
-        } else {
-          acc(tok)
-        }
-    }
-  }
 }
