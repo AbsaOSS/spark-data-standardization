@@ -60,15 +60,12 @@ Global / excludeLintKeys += ThisBuild / name // will be used in publish, todo #3
 
 // JaCoCo code coverage
 Test / jacocoReportSettings := JacocoReportSettings(
-  s"spark-data-standardization Jacoco Report - ${scalaVersion.value}",
-  None,
-  JacocoThresholds(),
-  Seq(JacocoReportFormats.HTML, JacocoReportFormats.XML),
-  "utf-8"
+  title = s"spark-data-standardization Jacoco Report - ${scalaVersion.value}",
+  formats = Seq(JacocoReportFormats.HTML, JacocoReportFormats.XML)
 )
 
 // exclude example
-//Test / jacocoExcludes := Seq(
+Test / jacocoExcludes := Seq(
 //  "za.co.absa.standardization.udf.UDFBuilder*", // class and related objects
 //  "za.co.absa.standardization.udf.UDFNames" // class only
-//)
+)
