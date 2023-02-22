@@ -22,9 +22,9 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
+import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
+import za.co.absa.standardization.{LoggerTestBase, Standardization, StandardizationErrorMessage}
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 
 class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
@@ -88,7 +88,7 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59.99905")),
       TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43.123005")),
       TimestampRow(Timestamp.valueOf("1969-12-31 00:00:00")),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "Fail")))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "Fail")))
     )
 
     val src = seq.toDF(fieldName)
@@ -169,8 +169,8 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00")),
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59")),
       TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43")),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "02.02.1970_00-00-00"))),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "nope")))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "02.02.1970_00-00-00"))),
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope")))
     )
 
     val src = seq.toDF(fieldName)
@@ -204,8 +204,8 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59")),
       TimestampRow(Timestamp.valueOf("2004-02-29 05:00:00")),
       TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43")),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "02.02.1970_24-00-00"))),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "nope")))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "02.02.1970_24-00-00"))),
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope")))
     )
 
     val src = seq.toDF(fieldName)
@@ -234,8 +234,8 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00.001")),
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59.999")),
       TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43.123")),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "1970 02 02 00 00 00 112"))),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "nope")))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "1970 02 02 00 00 00 112"))),
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope")))
     )
 
     val src = seq.toDF(fieldName)
@@ -268,8 +268,8 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00.000001")),
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59.999999")),
       TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43.123456")),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "02011970 010000 000001"))),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "nope")))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "02011970 010000 000001"))),
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope")))
     )
 
     val src = seq.toDF(fieldName)
@@ -299,8 +299,8 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00.001002")),
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59.999999")),
       TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43.123456")),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "02/01/1970 00:00:00 001"))),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "nope")))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "02/01/1970 00:00:00 001"))),
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope")))
     )
 
     val src = seq.toDF(fieldName)
@@ -330,8 +330,8 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00.003001")),
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59.999999")),
       TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43.123456")),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "(      ) 02/01/1970 01:00:00.000 CET"))),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "nope")))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "(      ) 02/01/1970 01:00:00.000 CET"))),
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope")))
     )
 
     val src = seq.toDF(fieldName)
@@ -362,8 +362,8 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00.003001")),
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59.999999")),
       TimestampRow(Timestamp.valueOf("1980-02-09 14:41:43.789123")),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "70002 staT [000] 12:00:00(aM) @000000"))),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(ErrorMessage.stdCastErr(fieldName, "nope")))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "70002 staT [000] 12:00:00(aM) @000000"))),
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope")))
     )
 
     val src = seq.toDF(fieldName)

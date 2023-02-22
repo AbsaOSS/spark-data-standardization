@@ -18,6 +18,7 @@ package za.co.absa.standardization
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types._
+import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.standardization.types.{TypeDefaults, TypedStructField}
 import za.co.absa.standardization.validation.field.FieldValidationIssue
 

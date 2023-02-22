@@ -18,7 +18,9 @@ package za.co.absa.standardization
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types.StructType
+import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfig}
+//import za.co.absa.spark.commons.errorhandling.ErrorMessage._
 
 /**
  * Case class to represent an error message
@@ -30,42 +32,36 @@ import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfi
  * @param rawValues - Sequence of raw values (which are the potential culprits of the error)
  * @param mappings - Sequence of Mappings i.e Mapping Table Column -> Equivalent Mapped Dataset column
  */
-case class ErrorMessage(errType: String, errCode: String, errMsg: String, errCol: String, rawValues: Seq[String], mappings: Seq[Mapping] = Seq())
+//case class ErrorMessage(errType: String, errCode: String, errMsg: String, errCol: String, rawValues: Seq[String], mappings: Seq[Mapping] = Seq())
 //TODO mapping to be discussed
-case class Mapping(mappingTableColumn: String, mappedDatasetColumn: String)
+//case class Mapping(mappingTableColumn: String, mappedDatasetColumn: String)
 
-object ErrorMessage {
-  val errorColumnName = "errCol"
+object StandardizationErrorMessage {
+//  val errorColumnName = "errCol"
 
   def stdCastErr(errCol: String, rawValue: String)(implicit errorCodes: ErrorCodesConfig): ErrorMessage = ErrorMessage(
-    errType = "stdCastError",
-    errCode = errorCodes.castError,
-    errMsg = "Standardization Error - Type cast",
-    errCol = errCol,
-    rawValues = Seq(rawValue))
+    "stdCastError",
+    errorCodes.castError,
+    "Standardization Error - Type cast",
+    errCol,
+    Seq(rawValue))
   def stdNullErr(errCol: String)(implicit errorCodes: ErrorCodesConfig): ErrorMessage = ErrorMessage(
-    errType = "stdNullError",
-    errCode = errorCodes.nullError,
-    errMsg = "Standardization Error - Null detected in non-nullable attribute",
-    errCol = errCol,
-    rawValues = Seq("null"))
+    "stdNullError",
+    errorCodes.nullError,
+    "Standardization Error - Null detected in non-nullable attribute",
+    errCol,
+    Seq("null"))
   def stdTypeError(errCol: String, sourceType: String, targetType: String)
                   (implicit errorCodes: ErrorCodesConfig): ErrorMessage = ErrorMessage(
-    errType = "stdTypeError",
-    errCode = errorCodes.typeError,
-    errMsg = s"Standardization Error - Type '$sourceType' cannot be cast to '$targetType'",
-    errCol = errCol,
-    rawValues = Seq.empty)
+    "stdTypeError",
+    errorCodes.typeError,
+    s"Standardization Error - Type '$sourceType' cannot be cast to '$targetType'",
+    errCol,
+    Seq.empty)
   def stdSchemaError(errRow: String)(implicit errorCodes: ErrorCodesConfig): ErrorMessage = ErrorMessage(
-    errType = "stdSchemaError",
-    errCode = errorCodes.schemaError,
-    errMsg = s"The input data does not adhere to requested schema",
-    errCol = null, // scalastyle:ignore null
-    rawValues = Seq(errRow))
-
-  def errorColSchema(implicit spark: SparkSession): StructType = {
-    import spark.implicits._
-    spark.emptyDataset[ErrorMessage].schema
-  }
+    "stdSchemaError",
+    errorCodes.schemaError,
+    s"The input data does not adhere to requested schema",
+    null, // scalastyle:ignore null
+    Seq(errRow))
 }
-

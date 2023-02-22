@@ -20,10 +20,11 @@ import java.sql.{Date, Timestamp}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset, Row}
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.stages.SchemaChecker
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
+import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.validation.field.FieldValidationIssue
 import za.co.absa.standardization._
@@ -104,12 +105,12 @@ class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
       null,
       ts, ts, ts, null, ts0, ts0,
       List(
-        ErrorMessage.stdCastErr("dateSampleWrong1","10-20-2017"),
-        ErrorMessage.stdCastErr("dateSampleWrong2","201711"),
-        ErrorMessage.stdCastErr("dateSampleWrong3",""),
-        ErrorMessage.stdCastErr("timestampSampleWrong1", "20171020T081131"),
-        ErrorMessage.stdCastErr("timestampSampleWrong2", "2017-10-20t081131"),
-        ErrorMessage.stdCastErr("timestampSampleWrong3", "2017-10-20")
+        StandardizationErrorMessage.stdCastErr("dateSampleWrong1","10-20-2017"),
+        StandardizationErrorMessage.stdCastErr("dateSampleWrong2","201711"),
+        StandardizationErrorMessage.stdCastErr("dateSampleWrong3",""),
+        StandardizationErrorMessage.stdCastErr("timestampSampleWrong1", "20171020T081131"),
+        StandardizationErrorMessage.stdCastErr("timestampSampleWrong2", "2017-10-20t081131"),
+        StandardizationErrorMessage.stdCastErr("timestampSampleWrong3", "2017-10-20")
       )
     ))
     val std: Dataset[Row] = Standardization.standardize(data, schemaOk, stdConfig)

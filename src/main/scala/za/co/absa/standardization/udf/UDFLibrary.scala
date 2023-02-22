@@ -22,8 +22,9 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SparkSession}
 import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfig}
 import za.co.absa.standardization.udf.UDFNames._
-import za.co.absa.standardization.ErrorMessage
 import za.co.absa.spark.commons.OncePerSparkSession
+import za.co.absa.spark.commons.errorhandling.ErrorMessage
+import za.co.absa.standardization.StandardizationErrorMessage
 
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
@@ -35,12 +36,12 @@ class UDFLibrary(stdConfig: StandardizationConfig)(implicit spark: SparkSession)
   override protected def register(implicit spark: SparkSession): Unit = {
 
     spark.udf.register(stdCastErr, { (errCol: String, rawValue: String) =>
-      ErrorMessage.stdCastErr(errCol, rawValue)
+      StandardizationErrorMessage.stdCastErr(errCol, rawValue)
     })
 
-    spark.udf.register(stdNullErr, { errCol: String => ErrorMessage.stdNullErr(errCol) })
+    spark.udf.register(stdNullErr, { errCol: String => StandardizationErrorMessage.stdNullErr(errCol) })
 
-    spark.udf.register(stdSchemaErr, { errRow: String => ErrorMessage.stdSchemaError(errRow) })
+    spark.udf.register(stdSchemaErr, { errRow: String => StandardizationErrorMessage.stdSchemaError(errRow) })
 
     spark.udf.register(arrayDistinctErrors, // this UDF is registered for _spark-hats_ library sake
       (arr: mutable.WrappedArray[ErrorMessage]) =>

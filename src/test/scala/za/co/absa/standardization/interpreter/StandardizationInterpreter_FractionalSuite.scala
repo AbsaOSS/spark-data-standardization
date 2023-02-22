@@ -18,13 +18,14 @@ package za.co.absa.standardization.interpreter
 
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.schema.MetadataKeys
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
+import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
+import za.co.absa.standardization.{LoggerTestBase, Standardization, StandardizationErrorMessage}
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 
 class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
@@ -42,7 +43,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
   private def err(value: String, cnt: Int): Seq[ErrorMessage] = {
-    val item = ErrorMessage.stdCastErr("src",value)
+    val item = StandardizationErrorMessage.stdCastErr("src",value)
     val array = Array.fill(cnt) (item)
     array.toList
   }
@@ -84,21 +85,21 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
     val exp = Seq(
       FractionalRow("01-Pi", Option(3.14F), Option(3.14)),
       FractionalRow("02-Null", Option(0), None, Seq(
-        ErrorMessage.stdNullErr("floatField"))),
+        StandardizationErrorMessage.stdNullErr("floatField"))),
       FractionalRow("03-Long", Option(9.223372E18F), Option(-9.223372036854776E18)),
       FractionalRow("04-infinity", Option(0), None, Seq(
-        ErrorMessage.stdCastErr("floatField", "-Infinity"),
-        ErrorMessage.stdCastErr("doubleField", "Infinity"))),
+        StandardizationErrorMessage.stdCastErr("floatField", "-Infinity"),
+        StandardizationErrorMessage.stdCastErr("doubleField", "Infinity"))),
       FractionalRow("05-Really big", Option(0), None, Seq(
-        ErrorMessage.stdCastErr("floatField", "123456789123456791245678912324789123456789123456789.12"),
-        ErrorMessage.stdCastErr("doubleField", "12345678912345679124567891232478912345678912345678912"
+        StandardizationErrorMessage.stdCastErr("floatField", "123456789123456791245678912324789123456789123456789.12"),
+        StandardizationErrorMessage.stdCastErr("doubleField", "12345678912345679124567891232478912345678912345678912"
           + "3456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789"
           + "1234567891234567891234567891234567891234567891234678912345678912345678912345678912345679124567891232478912"
           + "3456789123456789123456789123456789123456791245678912324789123456789123456789123456789123456789123456789123"
           + "456789123456789.1"))),
       FractionalRow("06-Text", Option(0), None, Seq(
-        ErrorMessage.stdCastErr("floatField", "foo"),
-        ErrorMessage.stdCastErr("doubleField", "bar"))),
+        StandardizationErrorMessage.stdCastErr("floatField", "foo"),
+        StandardizationErrorMessage.stdCastErr("doubleField", "bar"))),
       FractionalRow("07-Exponential notation", Option(-12300.0f), Option(0.0098765))
     )
 
@@ -117,7 +118,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
 
     val exp = Seq(
       FractionalRow("01-Null", Option(0), None, Seq(
-        ErrorMessage.stdNullErr("floatField"))),
+        StandardizationErrorMessage.stdNullErr("floatField"))),
       FractionalRow("02-Big Long", Option(9.223372E18F), Option(-9.223372036854776E18)), //NBN! the loss of precision
       FractionalRow("03-Long", Option(-value.toFloat), Option(value.toDouble))
     )
@@ -144,16 +145,16 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
     val exp = Seq(
       FractionalRow("01-Pi", Option(Math.PI.toFloat), Option(Math.PI)),
       FractionalRow("02-Null", Option(0), None, Seq(
-        ErrorMessage.stdNullErr("floatField"))),
+        StandardizationErrorMessage.stdNullErr("floatField"))),
       FractionalRow("03-Long", Option(9.223372E18F), Option(-9.223372036854776E18)),
       FractionalRow("04-Infinity", Option(0), None, Seq(
-        ErrorMessage.stdCastErr("floatField", "-Infinity"),
-        ErrorMessage.stdCastErr("doubleField", "Infinity"))),
+        StandardizationErrorMessage.stdCastErr("floatField", "-Infinity"),
+        StandardizationErrorMessage.stdCastErr("doubleField", "Infinity"))),
       FractionalRow("05-Really big", Option(0), Option(reallyBig), Seq(
-        ErrorMessage.stdCastErr("floatField", reallyBig.toString))),
+        StandardizationErrorMessage.stdCastErr("floatField", reallyBig.toString))),
       FractionalRow("06-NaN", Option(0), None, Seq(
-        ErrorMessage.stdCastErr("floatField", "NaN"),
-        ErrorMessage.stdCastErr("doubleField", "NaN")))
+        StandardizationErrorMessage.stdCastErr("floatField", "NaN"),
+        StandardizationErrorMessage.stdCastErr("doubleField", "NaN")))
     )
 
     val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
@@ -185,13 +186,13 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
     val exp = Seq(
       FractionalRow("01-Euler", Option(2.71F), Option(2.71)),
       FractionalRow("02-Null", Option(0), None, Seq(
-        ErrorMessage.stdNullErr("floatField"))),
+        StandardizationErrorMessage.stdNullErr("floatField"))),
       FractionalRow("03-Long", Option(9.223372E18F), Option(-9.223372036854776E18)),
       FractionalRow("04-infinity", Some(Float.NegativeInfinity), Option(Double.PositiveInfinity)),
       FractionalRow("05-Really big", Option(Float.PositiveInfinity), Option(Double.NegativeInfinity)),
       FractionalRow("06-Text", Option(0), None, Seq(
-        ErrorMessage.stdCastErr("floatField", "foo"),
-        ErrorMessage.stdCastErr("doubleField", "bar"))),
+        StandardizationErrorMessage.stdCastErr("floatField", "foo"),
+        StandardizationErrorMessage.stdCastErr("doubleField", "bar"))),
       FractionalRow("07-Exponential notation", Option(-12300.0f), Option(0.0098765))
     )
 
@@ -214,13 +215,13 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
     val exp = Seq(
       FractionalRow("01-Euler", Option(Math.E.toFloat), Option(Math.E)),
       FractionalRow("02-Null", Option(0), None, Seq(
-        ErrorMessage.stdNullErr("floatField"))),
+        StandardizationErrorMessage.stdNullErr("floatField"))),
       FractionalRow("03-Long", Option(9.223372E18F), Option(-9.223372036854776E18)),
       FractionalRow("04-Infinity", Option(Float.NegativeInfinity), Option(Double.PositiveInfinity)),
       FractionalRow("05-Really big", Option(Float.PositiveInfinity), Option(reallyBig)),
       FractionalRow("06-NaN", Option(0), None, Seq(
-        ErrorMessage.stdCastErr("floatField", "NaN"),
-        ErrorMessage.stdCastErr("doubleField", "NaN")))
+        StandardizationErrorMessage.stdCastErr("floatField", "NaN"),
+        StandardizationErrorMessage.stdCastErr("doubleField", "NaN")))
     )
 
     val std = Standardization.standardize(src, desiredSchemaWithInfinity, stdConfig).cacheIfNotCachedYet()
@@ -289,7 +290,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
     val exp = List(
       ("01-Positive", "+3", 3.0F, Some(3.0D), Some(3.0F), 3.0D, Seq.empty),
       ("02-Negative", "~8123,4", -8123.4F, Some(-8123.4D), Some(-8123.4F), -8123.4D, Seq.empty),
-      ("03-Null", null, 0F, None, None, 0D, Array.fill(2)(ErrorMessage.stdNullErr("src")).toList),
+      ("03-Null", null, 0F, None, None, 0D, Array.fill(2)(StandardizationErrorMessage.stdNullErr("src")).toList),
       ("04-Big", "7899012345678901234567890123456789012346789,123456789", 0F, Some(7.899012345678901E42D), Some(Float.PositiveInfinity), 7.899012345678901E42,
         err("7899012345678901234567890123456789012346789,123456789", 1)
       ),
@@ -374,7 +375,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
     val exp = List(
       ("01-Positive", "+3°", 3.0F, Some(3.0D), Some(3.0F), 3.0D, Seq.empty),
       ("02-Negative", "(8 123,4°)", -8123.4F, Some(-8123.4D), Some(-8123.4F), -8123.4D, Seq.empty),
-      ("03-Null", null, 0F, None, None, 0D, Array.fill(2)(ErrorMessage.stdNullErr("src")).toList),
+      ("03-Null", null, 0F, None, None, 0D, Array.fill(2)(StandardizationErrorMessage.stdNullErr("src")).toList),
       ("04-Big", "+789 9012 345 678 901 234 567 890 123 456 789 012 346 789,123456789°", 0F, Some(7.899012345678901E42D), Some(Float.PositiveInfinity), 7.899012345678901E42,
         err("+789 9012 345 678 901 234 567 890 123 456 789 012 346 789,123456789°", 1)
       ),
