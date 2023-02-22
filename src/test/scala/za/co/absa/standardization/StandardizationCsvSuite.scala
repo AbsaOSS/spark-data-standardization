@@ -42,14 +42,12 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
-
-  private val csvContent = spark.sparkContext.parallelize(
-    """101,102,1,2019-05-04,2019-05-04
-      |201,202,2,2019-05-05,2019-05-05
-      |301,302,1,2019-05-06,2019-05-06
-      |401,402,1,2019-05-07,2019-05-07
-      |501,502,,2019-05-08,2019-05-08"""
-      .stripMargin.lines.toList ).toDS()
+  private val csvContent = spark.sparkContext.parallelize(List(
+    """101,102,1,2019-05-04,2019-05-04""",
+    """201,202,2,2019-05-05,2019-05-05""",
+    """301,302,1,2019-05-06,2019-05-06""",
+    """401,402,1,2019-05-07,2019-05-07""",
+    """501,502,,2019-05-08,2019-05-08""")).toDS()
 
   test("Test standardizing a CSV without special columns") {
     val schema: StructType = StructType(Seq(
