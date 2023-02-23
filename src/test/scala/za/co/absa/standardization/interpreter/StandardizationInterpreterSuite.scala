@@ -25,7 +25,7 @@ import za.co.absa.spark.commons.utils.JsonUtils
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{FileReader, LoggerTestBase, Standardization, StandardizationErrorMessage}

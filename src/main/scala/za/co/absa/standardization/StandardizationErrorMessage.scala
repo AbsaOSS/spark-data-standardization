@@ -16,11 +16,8 @@
 
 package za.co.absa.standardization
 
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.types.StructType
 import za.co.absa.spark.commons.errorhandling.ErrorMessage
-import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfig}
-//import za.co.absa.spark.commons.errorhandling.ErrorMessage._
+import za.co.absa.standardization.config.{ErrorCodesConfig}
 
 /**
  * Case class to represent an error message
@@ -32,12 +29,8 @@ import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfi
  * @param rawValues - Sequence of raw values (which are the potential culprits of the error)
  * @param mappings - Sequence of Mappings i.e Mapping Table Column -> Equivalent Mapped Dataset column
  */
-//case class ErrorMessage(errType: String, errCode: String, errMsg: String, errCol: String, rawValues: Seq[String], mappings: Seq[Mapping] = Seq())
-//TODO mapping to be discussed
-//case class Mapping(mappingTableColumn: String, mappedDatasetColumn: String)
 
 object StandardizationErrorMessage {
-//  val errorColumnName = "errCol"
 
   def stdCastErr(errCol: String, rawValue: String)(implicit errorCodes: ErrorCodesConfig): ErrorMessage = ErrorMessage(
     "stdCastError",

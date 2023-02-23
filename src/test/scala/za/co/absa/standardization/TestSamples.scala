@@ -18,7 +18,7 @@ package za.co.absa.standardization
 
 import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 
 import java.math.BigDecimal
 import java.sql.{Date, Timestamp}

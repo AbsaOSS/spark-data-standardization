@@ -28,7 +28,7 @@ import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.validation.field.FieldValidationIssue
 import za.co.absa.standardization._
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 
 
 class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {

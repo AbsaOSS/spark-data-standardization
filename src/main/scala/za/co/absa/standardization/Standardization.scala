@@ -25,7 +25,7 @@ import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.standardization.config.{DefaultStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.stages.{SchemaChecker, TypeParser}
-import za.co.absa.standardization.types.{CommonTypeDefaults, ParseOutput, TypeDefaults}
+import za.co.absa.standardization.types.{ParseOutput, TypeDefaults}
 import za.co.absa.standardization.udf.{UDFLibrary, UDFNames}
 
 object Standardization {
