@@ -35,7 +35,7 @@ object SchemaValidator {
     * @return A list of ValidationErrors objects, each containing a column name and the list of errors and warnings
     */
   def validateSchema(schema: StructType)(implicit defaults: TypeDefaults): List[FieldValidationIssue] = {
-    var errorsAccumulator = new ListBuffer[FieldValidationIssue]
+    val errorsAccumulator = new ListBuffer[FieldValidationIssue]//
     val flatSchema = flattenSchema(schema)
     for {s <- flatSchema} {
       val fieldWithPath = if (s.structPath.isEmpty) s.field else s.field.copy(name = s.structPath + "." + s.field.name)
@@ -105,7 +105,7 @@ object SchemaValidator {
   private def flattenSchema(schema: StructType): Seq[FlatField] = {
 
     def flattenStruct(schema: StructType, structPath: String): Seq[FlatField] = {
-      var fields = new ListBuffer[FlatField]
+      val fields = new ListBuffer[FlatField]
       val prefix = if (structPath.isEmpty) structPath else structPath + "."
       for (field <- schema) {
         field.dataType match {
@@ -120,7 +120,7 @@ object SchemaValidator {
     }
 
     def flattenArray(field: StructField, arr: ArrayType, structPath: String): Seq[FlatField] = {
-      var arrayFields = new ListBuffer[FlatField]
+      val arrayFields = new ListBuffer[FlatField]
       arr.elementType match {
         case stuctInArray: StructType => arrayFields ++= flattenStruct(stuctInArray, structPath)
         case arrayType: ArrayType => arrayFields ++= flattenArray(field, arrayType, structPath + "[]")

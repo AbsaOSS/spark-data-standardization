@@ -38,7 +38,7 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
       .copy(recordIdStrategy = NoId
       )
     )
-//  private val stdConfig = defaultStdConfig.copy(metadataColumns = defaultStdConfig.metadataColumns.copy(recordIdStrategy = NoId))
+
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
