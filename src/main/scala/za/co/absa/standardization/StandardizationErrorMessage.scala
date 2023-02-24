@@ -19,17 +19,6 @@ package za.co.absa.standardization
 import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.standardization.config.{ErrorCodesConfig}
 
-/**
- * Case class to represent an error message
- *
- * @param errType - Type or source of the error
- * @param errCode - Internal error code
- * @param errMsg - Textual description of the error
- * @param errCol - The name of the column where the error occurred
- * @param rawValues - Sequence of raw values (which are the potential culprits of the error)
- * @param mappings - Sequence of Mappings i.e Mapping Table Column -> Equivalent Mapped Dataset column
- */
-
 object StandardizationErrorMessage {
 
   def stdCastErr(errCol: String, rawValue: String)(implicit errorCodes: ErrorCodesConfig): ErrorMessage = ErrorMessage(
