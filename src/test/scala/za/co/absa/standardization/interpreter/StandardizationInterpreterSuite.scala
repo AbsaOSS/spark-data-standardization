@@ -20,14 +20,15 @@ import java.sql.{Date, Timestamp}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.spark.commons.utils.JsonUtils
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig, StandardizationConfig}
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
+import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.{ErrorMessage, FileReader, LoggerTestBase, Standardization}
+import za.co.absa.standardization.{FileReader, LoggerTestBase, Standardization, StandardizationErrorMessage}
 
 import java.util.TimeZone
 
@@ -125,7 +126,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
       MyWrapper(MyHolder("447129"))))
 
     val exp = Seq(
-      MyWrapperStd(MyHolder(""), Seq(ErrorMessage.stdNullErr("counterparty.yourRef"))),
+      MyWrapperStd(MyHolder(""), Seq(StandardizationErrorMessage.stdNullErr("counterparty.yourRef"))),
       MyWrapperStd(MyHolder("447129"), Seq()))
 
     val schema = StructType(Seq(
@@ -149,7 +150,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
       ErrorPreserveStd("a", 1, List()),
       ErrorPreserveStd("b", 2, List()),
       ErrorPreserveStd("c", 3, List(new ErrorMessage("myErrorType", "E-1", "Testing This stuff", "whatEvColumn", Seq("some value")))),
-      ErrorPreserveStd("d", 0, List(ErrorMessage.stdCastErr("b", "abc"),
+      ErrorPreserveStd("d", 0, List(StandardizationErrorMessage.stdCastErr("b", "abc"),
         new ErrorMessage("myErrorType2", "E-2", "Testing This stuff blabla", "whatEvColumn2", Seq("some other value")))))
 
     val expSchema = spark.emptyDataset[ErrorPreserveStd].schema
@@ -239,7 +240,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
 
     val expected = List (
       StdTime(1, new Date(1507075200000L), new Timestamp(1507115471000L), List()),
-      StdTime(2, new Date(1735689600000L), new Timestamp(1735741586000L), List(ErrorMessage.stdCastErr("date", ""), ErrorMessage.stdCastErr("timestamp", "")))
+      StdTime(2, new Date(1735689600000L), new Timestamp(1735741586000L), List(StandardizationErrorMessage.stdCastErr("date", ""), StandardizationErrorMessage.stdCastErr("timestamp", "")))
     )
 
     val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
@@ -263,7 +264,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
 
     val expected = List (
       StdTime(1, new Date(1507075200000L), new Timestamp(1507115471000L), List()),
-      StdTime(2, new Date(1735689600000L), new Timestamp(1735741586000L), List(ErrorMessage.stdCastErr("date", ""), ErrorMessage.stdCastErr("timestamp", "")))
+      StdTime(2, new Date(1735689600000L), new Timestamp(1735741586000L), List(StandardizationErrorMessage.stdCastErr("date", ""), StandardizationErrorMessage.stdCastErr("timestamp", "")))
     )
 
     val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
@@ -287,7 +288,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
 
     val expected = List (
       StdTime(1, new Date(1507075200000L), new Timestamp(1507115471000L), List()),
-      StdTime(2, null, new Timestamp(0L), List(ErrorMessage.stdCastErr("date", ""), ErrorMessage.stdCastErr("timestamp", "")))
+      StdTime(2, null, new Timestamp(0L), List(StandardizationErrorMessage.stdCastErr("date", ""), StandardizationErrorMessage.stdCastErr("timestamp", "")))
     )
 
     val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
@@ -311,7 +312,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
 
     val expected = List (
       StdTime(1, new Date(1507075200000L), new Timestamp(1507115471000L), List()),
-      StdTime(2, new Date(0L), null, List(ErrorMessage.stdCastErr("date", ""), ErrorMessage.stdCastErr("timestamp", "")))
+      StdTime(2, new Date(0L), null, List(StandardizationErrorMessage.stdCastErr("date", ""), StandardizationErrorMessage.stdCastErr("timestamp", "")))
     )
 
     val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
@@ -380,11 +381,11 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
     val exp = Seq(
       PatientRow("Jane", "Goodall", BodyStats(164, 61, "green", Option(true), Seq(36.6, 36.7, 37.0, 36.6))),
       PatientRow("Scott", "Lang", BodyStats(0, 83, "blue", Option(false),Seq(36.6, 36.7, 37.0, 36.6)), Seq(
-        ErrorMessage.stdCastErr("body stats.height", "various")
+        StandardizationErrorMessage.stdCastErr("body stats.height", "various")
       )),
       PatientRow("Aldrich", "Killian", BodyStats(181, 90, "brown or orange", None, Seq(36.7, 36.5, 38.0, 48.0, 152.0, 831.0, 0.0)), Seq(
-        ErrorMessage.stdCastErr("body stats.miscellaneous.glasses", "not any more"),
-        ErrorMessage.stdCastErr("body stats.temperature measurements[*]", "exploded")
+        StandardizationErrorMessage.stdCastErr("body stats.miscellaneous.glasses", "not any more"),
+        StandardizationErrorMessage.stdCastErr("body stats.temperature measurements[*]", "exploded")
       ))
     )
 

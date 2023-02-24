@@ -16,9 +16,9 @@
 
 package za.co.absa.standardization.interpreter
 
-import java.sql.{Date, Timestamp}
+import za.co.absa.spark.commons.errorhandling.ErrorMessage
 
-import za.co.absa.standardization.ErrorMessage
+import java.sql.{Date, Timestamp}
 
 //Decimal Suite
 case class DecimalRow(description: String,

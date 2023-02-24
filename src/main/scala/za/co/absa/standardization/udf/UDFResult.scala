@@ -16,7 +16,8 @@
 
 package za.co.absa.standardization.udf
 
-import za.co.absa.standardization.ErrorMessage
+import za.co.absa.spark.commons.errorhandling.ErrorMessage
+import za.co.absa.standardization.StandardizationErrorMessage
 import za.co.absa.standardization.config.StandardizationConfig
 
 import scala.util.{Failure, Success, Try}
@@ -32,8 +33,8 @@ object UDFResult {
   def fromTry[T](result: Try[Option[T]], columnName: String, rawValue: String, stdConfig: StandardizationConfig, defaultValue: Option[T] = None): UDFResult[T] = {
     result match {
       case Success(success)                       => UDFResult.success(success)
-      case Failure(_) if Option(rawValue).isEmpty => UDFResult(defaultValue, Seq(ErrorMessage.stdNullErr(columnName)(stdConfig.errorCodes)))
-      case Failure(_)                             => UDFResult(defaultValue, Seq(ErrorMessage.stdCastErr(columnName, rawValue)(stdConfig.errorCodes)))
+      case Failure(_) if Option(rawValue).isEmpty => UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdNullErr(columnName)(stdConfig.errorCodes)))
+      case Failure(_)                             => UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdCastErr(columnName, rawValue)(stdConfig.errorCodes)))
     }
   }
 }

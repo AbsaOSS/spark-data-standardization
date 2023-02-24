@@ -19,11 +19,12 @@ package za.co.absa.standardization
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
+import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 
 
@@ -37,18 +38,16 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
       .copy(recordIdStrategy = NoId
       )
     )
-//  private val stdConfig = defaultStdConfig.copy(metadataColumns = defaultStdConfig.metadataColumns.copy(recordIdStrategy = NoId))
+
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
-
-  private val csvContent = spark.sparkContext.parallelize(
-    """101,102,1,2019-05-04,2019-05-04
-      |201,202,2,2019-05-05,2019-05-05
-      |301,302,1,2019-05-06,2019-05-06
-      |401,402,1,2019-05-07,2019-05-07
-      |501,502,,2019-05-08,2019-05-08"""
-      .stripMargin.lines.toList ).toDS()
+  private val csvContent = spark.sparkContext.parallelize(List(
+    """101,102,1,2019-05-04,2019-05-04""",
+    """201,202,2,2019-05-05,2019-05-05""",
+    """301,302,1,2019-05-06,2019-05-06""",
+    """401,402,1,2019-05-07,2019-05-07""",
+    """501,502,,2019-05-08,2019-05-08""")).toDS()
 
   test("Test standardizing a CSV without special columns") {
     val schema: StructType = StructType(Seq(

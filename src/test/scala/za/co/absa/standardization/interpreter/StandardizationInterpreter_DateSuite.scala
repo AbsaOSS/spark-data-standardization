@@ -22,9 +22,9 @@ import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
+import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.{ErrorMessage, LoggerTestBase, Standardization}
+import za.co.absa.standardization.{LoggerTestBase, Standardization, StandardizationErrorMessage}
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 
 class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
@@ -167,8 +167,8 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
       DateRow(Date.valueOf("1970-01-02")),
       DateRow(Date.valueOf("2000-12-31")),
       DateRow(Date.valueOf("2019-07-16")),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "1970-02-02"))),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "crash")))
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "1970-02-02"))),
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash")))
     )
 
     val src = seq.toDF(fieldName)
@@ -197,8 +197,8 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
       DateRow(Date.valueOf("1970-01-02")),
       DateRow(Date.valueOf("2000-12-31")),
       DateRow(Date.valueOf("2019-07-16")),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "00-75-00 03.01.1970 EET"))),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "crash")))
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "00-75-00 03.01.1970 EET"))),
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash")))
     )
 
     val src = seq.toDF(fieldName)
@@ -228,8 +228,8 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
       DateRow(Date.valueOf("1970-01-02")),
       DateRow(Date.valueOf("2000-12-31")),
       DateRow(Date.valueOf("2019-07-16")),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "00:75:00(001002003) 03+01+1970 +02:00"))),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "crash")))
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "00:75:00(001002003) 03+01+1970 +02:00"))),
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash")))
     )
 
     val src = seq.toDF(fieldName)
@@ -261,8 +261,8 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
       DateRow(Date.valueOf("1970-01-02")),
       DateRow(Date.valueOf("2000-12-31")),
       DateRow(Date.valueOf("2019-07-16")),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "1970-02-02"))),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "crash")))
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "1970-02-02"))),
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash")))
     )
 
     val src = seq.toDF(fieldName)
@@ -295,8 +295,8 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
       DateRow(Date.valueOf("1970-01-01")),
       DateRow(Date.valueOf("2000-12-30")),
       DateRow(Date.valueOf("2019-07-15")),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "1970-02-02"))),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "crash")))
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "1970-02-02"))),
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash")))
     )
 
     val src = seq.toDF(fieldName)
@@ -326,9 +326,9 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
       DateRow(Date.valueOf("1970-02-01")),
       DateRow(Date.valueOf("2000-12-31")),
       DateRow(Date.valueOf("2019-07-16")),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "02 3 of 1970"))),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "February 4 1970"))),
-      DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "crash")))
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "02 3 of 1970"))),
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "February 4 1970"))),
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash")))
     )
 
     val src = seq.toDF(fieldName)
@@ -358,8 +358,8 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     DateRow(Date.valueOf("1970-02-01")),
     DateRow(Date.valueOf("2000-12-31")),
     DateRow(Date.valueOf("2019-07-16")),
-    DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "1970/02/02 insignificant "))),
-    DateRow(Date.valueOf("1970-01-01"), Seq(ErrorMessage.stdCastErr(fieldName, "crash")))
+    DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "1970/02/02 insignificant "))),
+    DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash")))
   )
 
   val src = seq.toDF(fieldName)
