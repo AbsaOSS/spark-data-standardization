@@ -339,5 +339,4 @@ object Section {
     val (negativeOnes, positiveOnes) = sections.partition(_.start < 0)
     doMerge(negativeOnes) ++ doMerge(positiveOnes)
   }
-
 }
