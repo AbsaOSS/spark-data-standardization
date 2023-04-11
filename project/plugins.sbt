@@ -23,10 +23,9 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.5")
 // sbt-jacoco - workaround related dependencies required to download
 lazy val ow2Version = "9.5"
 lazy val jacocoVersion = "0.8.9-SNAPSHOT"
-//def variable: Boolean = "2.11.12" == scalaVersion.value
 
-//addSbtPlugin("org.scala-lang.modules" % "scala-xml" % "1.3.0" from "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.3.0/scala-xml_2.11-1.3.0.jar").filter(_ => variable)
-//addSbtPlugin("org.scala-lang.modules" % "scala-xml" % "1.3.0" from "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.3.0/scala-xml_2.11-1.3.0.jar")
+addSbtPlugin("com.jsuereth" %% "scala-arm" % "2.0" from "https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.11/2.0/scala-arm_2.11-2.0.jar")
+addSbtPlugin("com.jsuereth" %% "scala-arm" % "2.0" from "https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.12/2.0/scala-arm_2.12-2.0.jar")
 
 addSbtPlugin("za.co.absa.jacoco" % "report" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.report-0.8.9-SNAPSHOT.jar")
 addSbtPlugin("za.co.absa.jacoco" % "core" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.core-0.8.9-SNAPSHOT.jar")
