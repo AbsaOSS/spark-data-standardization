@@ -152,6 +152,99 @@ sealed abstract case class Section(start: Int, length: Int) extends Ordered[Sect
     }
   }
 
+  def injectInto2(string: String, what: String): Try[String] = {
+
+    def fail(): Try[String] = {
+      Failure(new InvalidParameterException(
+        s"The length of the string to inject (${what.length}) doesn't match Section($start, $length) for string of length ${string.length}."
+      ))
+    }
+
+    if (what.length > length) {
+      fail()
+    } else if ((what == "") && ((length == 0) || (start > string.length) || (start + string.length + length < 0))) {
+      // injecting empty string is easy if valid; which is either if the section length = 0, or the index to inject to
+      // is beyond the limits of the final string
+      Try(string)
+    } else if (start >= 0) {
+      if (start > string.length) {
+        // beyond the into string
+        fail()
+      } else if (start == string.length) {
+        // at the end of the into string
+        Try(string + what)
+      } else if (what.length == length) {
+        // injection in the middle (or beginning)
+        Try(string.substring(0, start) + what + string.substring(start))
+      } else {
+        // wrong size of injection
+        fail()
+      }
+    } else {
+      val index = string.length + start + what.length
+      val whatLengthDeficit = what.length - length
+      if (index == string.length) {
+        // at the end of the into string
+        Try(string + what)
+      } else if (index == whatLengthDeficit) {
+        // somewhere withing the into string
+        Try(what + string)
+      } else if (whatLengthDeficit == 0 && index > 0 && index < string.length) {
+        // at the beginning of the into string, maybe appropriately shorter if to be place "before" 0 index
+        Try(string.substring(0, index) + what + string.substring(index))
+      } else {
+        fail()
+      }
+    }
+  }
+
+  def injectInto3(string: String, what: String): Try[String] = {
+
+    def fail(): Try[String] = {
+      Failure(new InvalidParameterException(
+        s"The length of the string to inject (${what.length}) doesn't match Section($start, $length) for string of length ${string.length}."
+      ))
+    }
+
+    if (what.length > length) {
+      fail()
+    } else if ((what == "") && ((length == 0) || (start > string.length) || (start + string.length + length < 0))) {
+      // injecting empty string is easy if valid; which is either if the section length = 0, or the index to inject to
+      // is beyond the limits of the final string
+      Try(string)
+    } else if (start >= 0) {
+      if (start > string.length) {
+        // beyond the into string
+        fail()
+      } else if (start == string.length) {
+        // at the end of the into string
+        Try(string + what)
+      } else if (what.length == length) {
+        // injection in the middle (or beginning)
+        Try(string.substring(0, start) + what + string.substring(start))
+      } else {
+        // wrong size of injection
+        fail()
+      }
+    } else {
+      val index = string.length + start + what.length
+      val whatLengthDeficit = what.length - length
+      if (index == string.length) {
+        // at the end of the into string
+        Try(string + what)
+      } else if (index == whatLengthDeficit) {
+        // somewhere withing the into string
+        Try(what + string)
+      } else if (whatLengthDeficit == 0 && index > 0 && index < string.length) {
+        // at the beginning of the into string, maybe appropriately shorter if to be place "before" 0 index
+        Try(string.substring(0, index) + what + string.substring(index))
+      } else {
+        fail()
+      }
+    }
+  }
+
+
   /**
    * Metrics defined on Section, it equals the number of positions (characters) between two sections
    * @param secondSection  the Section to compute the distance from/to
@@ -339,4 +432,5 @@ object Section {
     val (negativeOnes, positiveOnes) = sections.partition(_.start < 0)
     doMerge(negativeOnes) ++ doMerge(positiveOnes)
   }
+
 }
