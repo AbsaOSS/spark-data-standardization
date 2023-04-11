@@ -27,69 +27,69 @@ import scala.util.Success
 class DefaultsSuite extends AnyFunSuite {
   TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
 
-//  test("ByteType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(ByteType, nullable = false) === Success(Some(0.toByte)))
-//  }
-//
-//  test("ShortType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(ShortType, nullable = false) === Success(Some(0.toShort)))
-//  }
-//
-//  test("IntegerType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(IntegerType, nullable = false) === Success(Some(0)))
-//  }
-//
-//  test("LongType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(LongType, nullable = false) === Success(Some(0L)))
-//  }
-//
-//  test("FloatType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(FloatType, nullable = false) === Success(Some(0F)))
-//  }
-//
-//  test("DoubleType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(DoubleType, nullable = false) === Success(Some(0D)))
-//  }
-//
-//  test("StringType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(StringType, nullable = false) === Success(Some("")))
-//  }
-//
-//  test("DateType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(DateType, nullable = false) === Success(Some(new Date(0))))
-//  }
-//
-//  test("TimestampType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(TimestampType, nullable = false) === Success(Some(new Timestamp(0))))
-//  }
-//
-//  test("BooleanType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(BooleanType, nullable = false) === (Success(Some(false))))
-//  }
-//
-//  test("DecimalType") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(DecimalType(6, 3), nullable = false) === Success(Some(BigDecimal("000.000"))))
-//  }
-//
-//  test("ArrayType") {
-//    val dataType = ArrayType(StringType)
-//    val result = CommonTypeDefaults.getDataTypeDefaultValueWithNull(dataType, nullable = false)
-//    val e = intercept[IllegalStateException] {
-//      result.get
-//    }
-//    assert(e.getMessage == s"No default value defined for data type ${dataType.typeName}")
-//  }
-//
-//  test("Nullable default is None") {
-//    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(BooleanType, nullable = true) === Success(None))
-//  }
-//
-//  test("Default time zone for timestamps does not exists") {
-//    assert(CommonTypeDefaults.defaultTimestampTimeZone.isEmpty)
-//  }
-//
-//  test("Default time zone for dates does not exist") {
-//    assert(CommonTypeDefaults.defaultDateTimeZone.isEmpty)
-//  }
+  test("ByteType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(ByteType, nullable = false) === Success(Some(0.toByte)))
+  }
+
+  test("ShortType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(ShortType, nullable = false) === Success(Some(0.toShort)))
+  }
+
+  test("IntegerType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(IntegerType, nullable = false) === Success(Some(0)))
+  }
+
+  test("LongType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(LongType, nullable = false) === Success(Some(0L)))
+  }
+
+  test("FloatType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(FloatType, nullable = false) === Success(Some(0F)))
+  }
+
+  test("DoubleType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(DoubleType, nullable = false) === Success(Some(0D)))
+  }
+
+  test("StringType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(StringType, nullable = false) === Success(Some("")))
+  }
+
+  test("DateType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(DateType, nullable = false) === Success(Some(new Date(0))))
+  }
+
+  test("TimestampType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(TimestampType, nullable = false) === Success(Some(new Timestamp(0))))
+  }
+
+  test("BooleanType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(BooleanType, nullable = false) === (Success(Some(false))))
+  }
+
+  test("DecimalType") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(DecimalType(6, 3), nullable = false) === Success(Some(BigDecimal("000.000"))))
+  }
+
+  test("ArrayType") {
+    val dataType = ArrayType(StringType)
+    val result = CommonTypeDefaults.getDataTypeDefaultValueWithNull(dataType, nullable = false)
+    val e = intercept[IllegalStateException] {
+      result.get
+    }
+    assert(e.getMessage == s"No default value defined for data type ${dataType.typeName}")
+  }
+
+  test("Nullable default is None") {
+    assert(CommonTypeDefaults.getDataTypeDefaultValueWithNull(BooleanType, nullable = true) === Success(None))
+  }
+
+  test("Default time zone for timestamps does not exists") {
+    assert(CommonTypeDefaults.defaultTimestampTimeZone.isEmpty)
+  }
+
+  test("Default time zone for dates does not exist") {
+    assert(CommonTypeDefaults.defaultDateTimeZone.isEmpty)
+  }
 }
 

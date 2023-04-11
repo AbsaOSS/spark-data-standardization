@@ -49,95 +49,95 @@ class StandardizationCsvSuite extends AnyFunSuite with SparkTestBase {
     """401,402,1,2019-05-07,2019-05-07""",
     """501,502,,2019-05-08,2019-05-08""")).toDS()
 
-//  test("Test standardizing a CSV without special columns") {
-//    val schema: StructType = StructType(Seq(
-//      StructField("A1", IntegerType, nullable = true),
-//      StructField("A2", IntegerType, nullable = true),
-//      StructField("A3", IntegerType, nullable = true),
-//      StructField("A4", StringType, nullable = true,
-//        Metadata.fromJson("""{"pattern": "yyyy-MM-dd"}""")),
-//      StructField("A5", StringType, nullable = true)
-//    ))
-//
-//    val schemaWithStringType: StructType = StructType(Seq(
-//      StructField("A1", StringType, nullable = true),
-//      StructField("A2", StringType, nullable = true),
-//      StructField("A3", StringType, nullable = true),
-//      StructField("A4", StringType, nullable = true),
-//      StructField("A5", StringType, nullable = true)
-//    ))
-//
-//    val expectedOutput =
-//      """+---+---+----+----------+----------+------+
-//        ||A1 |A2 |A3  |A4        |A5        |errCol|
-//        |+---+---+----+----------+----------+------+
-//        ||101|102|1   |2019-05-04|2019-05-04|[]    |
-//        ||201|202|2   |2019-05-05|2019-05-05|[]    |
-//        ||301|302|1   |2019-05-06|2019-05-06|[]    |
-//        ||401|402|1   |2019-05-07|2019-05-07|[]    |
-//        ||501|502|null|2019-05-08|2019-05-08|[]    |
-//        |+---+---+----+----------+----------+------+
-//        |
-//        |""".stripMargin.replace("\r\n", "\n")
-//
-//    val rawDataFrame = spark.read.option("header", value = false).schema(schemaWithStringType).csv(csvContent)
-//    val stdDf = Standardization.standardize(rawDataFrame, schema, stdConfig).cacheIfNotCachedYet()
-//    val actualOutput = stdDf.dataAsString(truncate = false)
-//
-//    assert(actualOutput == expectedOutput)
-//  }
-//
-//  test("Test standardizing a CSV with special columns when error column has wrong type") {
-//    val schema: StructType = StructType(Seq(
-//      StructField("A1", IntegerType, nullable = true),
-//      StructField(ErrorMessage.errorColumnName, IntegerType, nullable = true),
-//      StructField("standardization_info_version", IntegerType, nullable = true),
-//      StructField("standardization_info_date", DateType, nullable = true,
-//        Metadata.fromJson("""{"pattern": "yyyy-MM-dd"}""")),
-//      StructField("standardization_info_date_string", StringType, nullable = true)
-//    ))
-//
-//    val schemaStr: StructType = StructType(Seq(
-//      StructField("A1", StringType, nullable = true),
-//      StructField(ErrorMessage.errorColumnName, StringType, nullable = true),
-//      StructField("standardization_info_version", StringType, nullable = true),
-//      StructField("standardization_info_date", StringType, nullable = true),
-//      StructField("standardization_info_date_string", StringType, nullable = true)
-//    ))
-//
-//    val rawDataFrame = spark.read.option("header", value = false).schema(schemaStr).csv(csvContent)
-//
-//    assertThrows[ValidationException] {
-//      Standardization.standardize(rawDataFrame, schema).cacheIfNotCachedYet()
-//    }
-//  }
-//
-//  test("Test standardizing a CSV with special columns when error column has correct type") {
-//    val schema: StructType = StructType(Seq(
-//      StructField("A1", IntegerType, nullable = true),
-//      StructField("A2", IntegerType, nullable = true),
-//      StructField("standardization_info_version", IntegerType, nullable = false),
-//      StructField("standardization_info_date", DateType, nullable = true,
-//        Metadata.fromJson("""{"pattern": "yyyy-MM-dd"}""")),
-//      StructField("standardization_info_date_string", StringType, nullable = true)
-//    ))
-//
-//    val schemaStr: StructType = StructType(Seq(
-//      StructField("A1", StringType, nullable = true),
-//      StructField("A2", StringType, nullable = true),
-//      StructField("standardization_info_version", StringType, nullable = true),
-//      StructField("standardization_info_date", StringType, nullable = true),
-//      StructField("standardization_info_date_string", StringType, nullable = true)
-//    ))
-//
-//    val rawDataFrame = spark.read.option("header", value = false).schema(schemaStr).csv(csvContent)
-//      .withColumn(ErrorMessage.errorColumnName, typedLit(List[ErrorMessage]()))
-//
-//    val stdDf = Standardization.standardize(rawDataFrame, schema).cacheIfNotCachedYet()
-//    val failedRecords = stdDf.filter(size(col(ErrorMessage.errorColumnName)) > 0).count
-//
-//    assert(stdDf.schema.exists(field => field.name == ErrorMessage.errorColumnName))
-//    assert(failedRecords == 1)
-//  }
+  test("Test standardizing a CSV without special columns") {
+    val schema: StructType = StructType(Seq(
+      StructField("A1", IntegerType, nullable = true),
+      StructField("A2", IntegerType, nullable = true),
+      StructField("A3", IntegerType, nullable = true),
+      StructField("A4", StringType, nullable = true,
+        Metadata.fromJson("""{"pattern": "yyyy-MM-dd"}""")),
+      StructField("A5", StringType, nullable = true)
+    ))
+
+    val schemaWithStringType: StructType = StructType(Seq(
+      StructField("A1", StringType, nullable = true),
+      StructField("A2", StringType, nullable = true),
+      StructField("A3", StringType, nullable = true),
+      StructField("A4", StringType, nullable = true),
+      StructField("A5", StringType, nullable = true)
+    ))
+
+    val expectedOutput =
+      """+---+---+----+----------+----------+------+
+        ||A1 |A2 |A3  |A4        |A5        |errCol|
+        |+---+---+----+----------+----------+------+
+        ||101|102|1   |2019-05-04|2019-05-04|[]    |
+        ||201|202|2   |2019-05-05|2019-05-05|[]    |
+        ||301|302|1   |2019-05-06|2019-05-06|[]    |
+        ||401|402|1   |2019-05-07|2019-05-07|[]    |
+        ||501|502|null|2019-05-08|2019-05-08|[]    |
+        |+---+---+----+----------+----------+------+
+        |
+        |""".stripMargin.replace("\r\n", "\n")
+
+    val rawDataFrame = spark.read.option("header", value = false).schema(schemaWithStringType).csv(csvContent)
+    val stdDf = Standardization.standardize(rawDataFrame, schema, stdConfig).cacheIfNotCachedYet()
+    val actualOutput = stdDf.dataAsString(truncate = false)
+
+    assert(actualOutput == expectedOutput)
+  }
+
+  test("Test standardizing a CSV with special columns when error column has wrong type") {
+    val schema: StructType = StructType(Seq(
+      StructField("A1", IntegerType, nullable = true),
+      StructField(ErrorMessage.errorColumnName, IntegerType, nullable = true),
+      StructField("standardization_info_version", IntegerType, nullable = true),
+      StructField("standardization_info_date", DateType, nullable = true,
+        Metadata.fromJson("""{"pattern": "yyyy-MM-dd"}""")),
+      StructField("standardization_info_date_string", StringType, nullable = true)
+    ))
+
+    val schemaStr: StructType = StructType(Seq(
+      StructField("A1", StringType, nullable = true),
+      StructField(ErrorMessage.errorColumnName, StringType, nullable = true),
+      StructField("standardization_info_version", StringType, nullable = true),
+      StructField("standardization_info_date", StringType, nullable = true),
+      StructField("standardization_info_date_string", StringType, nullable = true)
+    ))
+
+    val rawDataFrame = spark.read.option("header", value = false).schema(schemaStr).csv(csvContent)
+
+    assertThrows[ValidationException] {
+      Standardization.standardize(rawDataFrame, schema).cacheIfNotCachedYet()
+    }
+  }
+
+  test("Test standardizing a CSV with special columns when error column has correct type") {
+    val schema: StructType = StructType(Seq(
+      StructField("A1", IntegerType, nullable = true),
+      StructField("A2", IntegerType, nullable = true),
+      StructField("standardization_info_version", IntegerType, nullable = false),
+      StructField("standardization_info_date", DateType, nullable = true,
+        Metadata.fromJson("""{"pattern": "yyyy-MM-dd"}""")),
+      StructField("standardization_info_date_string", StringType, nullable = true)
+    ))
+
+    val schemaStr: StructType = StructType(Seq(
+      StructField("A1", StringType, nullable = true),
+      StructField("A2", StringType, nullable = true),
+      StructField("standardization_info_version", StringType, nullable = true),
+      StructField("standardization_info_date", StringType, nullable = true),
+      StructField("standardization_info_date_string", StringType, nullable = true)
+    ))
+
+    val rawDataFrame = spark.read.option("header", value = false).schema(schemaStr).csv(csvContent)
+      .withColumn(ErrorMessage.errorColumnName, typedLit(List[ErrorMessage]()))
+
+    val stdDf = Standardization.standardize(rawDataFrame, schema).cacheIfNotCachedYet()
+    val failedRecords = stdDf.filter(size(col(ErrorMessage.errorColumnName)) > 0).count
+
+    assert(stdDf.schema.exists(field => field.name == ErrorMessage.errorColumnName))
+    assert(failedRecords == 1)
+  }
 
 }

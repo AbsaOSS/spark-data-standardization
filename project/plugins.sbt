@@ -35,4 +35,3 @@ addSbtPlugin("org.ow2.asm" % "asm-commons" % ow2Version from "https://repo1.mave
 addSbtPlugin("org.ow2.asm" % "asm-tree" % ow2Version from "https://repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.5/asm-tree-9.5.jar")
 
 addSbtPlugin("za.co.absa.sbt" % "sbt-jacoco" % "3.4.1-SNAPSHOT" from "https://github.com/AbsaOSS/sbt-jacoco/releases/download/3.4.1/sbt-jacoco.jar")
-//addSbtPlugin("com.github.sbt" % "sbt-jacoco" % "3.4.0")
