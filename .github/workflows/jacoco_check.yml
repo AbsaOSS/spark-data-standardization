@@ -29,8 +29,12 @@ jobs:
         include:
           - scala: 2.11.12
             scalaShort: "2.11"
+            overall: 60
+            changed: 80
           - scala: 2.12.12
             scalaShort: "2.12"
+            overall: 60
+            changed: 80
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -46,23 +50,23 @@ jobs:
         with:
           paths: ${{ github.workspace }}/target/scala-${{ matrix.scalaShort }}/jacoco/report/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 60
-          min-coverage-changed-files: 80
+          min-coverage-overall: ${{ matrix.overall }}
+          min-coverage-changed-files: ${{ matrix.changed }}
           title: JaCoCo code coverage report - scala ${{ matrix.scala }}
           update-comment: true
       - name: Get the Coverage info
         run: |
           echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
           echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
-      - name: Fail PR if changed files coverage is less than 80%
-        if: ${{ steps.jacoco.outputs.coverage-changed-files < 80.0 }}
+      - name: Fail PR if changed files coverage is less than ${{ matrix.overall }}%
+        if: ${{ steps.jacoco.outputs.coverage-changed-files < ${{ matrix.overall }} }}
         uses: actions/github-script@v6
         with:
           script: |
-            core.setFailed('Changed files coverage is less than 80%!')
-      - name: Fail PR if overall coverage is less than 60%
-        if: ${{ steps.jacoco.outputs.coverage-overall < 60.0 }}
+            core.setFailed('Changed files coverage is less than ${{ matrix.overall }}%!')
+      - name: Fail PR if overall coverage is less than ${{ matrix.changed }}%
+        if: ${{ steps.jacoco.outputs.coverage-overall < ${{ matrix.changed }} }}
         uses: actions/github-script@v6
         with:
           script: |
-            core.setFailed('Overall coverage is less than 60%!')
+            core.setFailed('Overall coverage is less than ${{ matrix.changed }}%!')
