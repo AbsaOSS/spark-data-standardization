@@ -27,9 +27,9 @@ lazy val jacocoVersion = "0.8.9-SNAPSHOT"
 addSbtPlugin("com.jsuereth" %% "scala-arm" % "2.0" from "https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.11/2.0/scala-arm_2.11-2.0.jar")
 addSbtPlugin("com.jsuereth" %% "scala-arm" % "2.0" from "https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.12/2.0/scala-arm_2.12-2.0.jar")
 
-addSbtPlugin("za.co.absa.jacoco" % "report" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.report-0.8.9-SNAPSHOT.jar")
-addSbtPlugin("za.co.absa.jacoco" % "core" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.core-0.8.9-SNAPSHOT.jar")
-addSbtPlugin("za.co.absa.jacoco" % "agent" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.agent-0.8.9-SNAPSHOT.jar")
+addSbtPlugin("za.co.absa.jacoco" % "report" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.report-0.8.9-absa.1.jar")
+addSbtPlugin("za.co.absa.jacoco" % "core" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.core-0.8.9-absa.1.jar")
+addSbtPlugin("za.co.absa.jacoco" % "agent" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.agent-0.8.9-absa.1.jar")
 addSbtPlugin("org.ow2.asm" % "asm" % ow2Version from "https://repo1.maven.org/maven2/org/ow2/asm/asm/9.5/asm-9.5.jar")
 addSbtPlugin("org.ow2.asm" % "asm-commons" % ow2Version from "https://repo1.maven.org/maven2/org/ow2/asm/asm-commons/9.5/asm-commons-9.5.jar")
 addSbtPlugin("org.ow2.asm" % "asm-tree" % ow2Version from "https://repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.5/asm-tree-9.5.jar")
