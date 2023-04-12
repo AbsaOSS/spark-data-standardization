@@ -22,16 +22,16 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.5")
 
 // sbt-jacoco - workaround related dependencies required to download
 lazy val ow2Version = "9.5"
-lazy val jacocoVersion = "0.8.9"
+lazy val jacocoVersion = "0.8.9-absa.1"
 
 addSbtPlugin("com.jsuereth" %% "scala-arm" % "2.0" from "https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.11/2.0/scala-arm_2.11-2.0.jar")
 addSbtPlugin("com.jsuereth" %% "scala-arm" % "2.0" from "https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.12/2.0/scala-arm_2.12-2.0.jar")
 
-addSbtPlugin("za.co.absa.jacoco" % "report" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.report-0.8.9-absa.1.jar")
-addSbtPlugin("za.co.absa.jacoco" % "core" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.core-0.8.9-absa.1.jar")
-addSbtPlugin("za.co.absa.jacoco" % "agent" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9/org.jacoco.agent-0.8.9-absa.1.jar")
+addSbtPlugin("za.co.absa.jacoco" % "report" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9-absa.1/org.jacoco.report-0.8.9-absa.1.jar")
+addSbtPlugin("za.co.absa.jacoco" % "core" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9-absa.1/org.jacoco.core-0.8.9-absa.1.jar")
+addSbtPlugin("za.co.absa.jacoco" % "agent" % jacocoVersion from "https://github.com/AbsaOSS/jacoco/releases/download/0.8.9-absa.1/org.jacoco.agent-0.8.9-absa.1.jar")
 addSbtPlugin("org.ow2.asm" % "asm" % ow2Version from "https://repo1.maven.org/maven2/org/ow2/asm/asm/9.5/asm-9.5.jar")
 addSbtPlugin("org.ow2.asm" % "asm-commons" % ow2Version from "https://repo1.maven.org/maven2/org/ow2/asm/asm-commons/9.5/asm-commons-9.5.jar")
 addSbtPlugin("org.ow2.asm" % "asm-tree" % ow2Version from "https://repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.5/asm-tree-9.5.jar")
 
-addSbtPlugin("za.co.absa.sbt" % "sbt-jacoco" % "3.4.1" from "https://github.com/AbsaOSS/sbt-jacoco/releases/download/3.4.1/sbt-jacoco.jar")
+addSbtPlugin("za.co.absa.sbt" % "sbt-jacoco" % "3.4.1-absa.1" from "https://github.com/AbsaOSS/sbt-jacoco/releases/download/3.4.1-absa.1/sbt-jacoco-3.4.1-absa.1.jar")
