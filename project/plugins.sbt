@@ -25,7 +25,7 @@ lazy val ow2Version = "9.5"
 lazy val jacocoVersion = "0.8.9-absa.1"
 
 def jacocoUrl(keyword: String): String = s"https://github.com/AbsaOSS/jacoco/releases/download/$jacocoVersion/org.jacoco.$keyword-$jacocoVersion.jar"
-def ow2Url(keyword: String): String = s"https://repo1.maven.org/maven2/org/ow2/asm/asm/$ow2Version/$keyword-$ow2Version.jar"
+def ow2Url(keyword: String): String = s"https://repo1.maven.org/maven2/org/ow2/asm/$keyword/$ow2Version/$keyword-$ow2Version.jar"
 
 addSbtPlugin("com.jsuereth" %% "scala-arm" % "2.0" from "https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.11/2.0/scala-arm_2.11-2.0.jar")
 addSbtPlugin("com.jsuereth" %% "scala-arm" % "2.0" from "https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.12/2.0/scala-arm_2.12-2.0.jar")
