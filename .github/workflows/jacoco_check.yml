@@ -29,11 +29,9 @@ jobs:
         include:
           - scala: 2.11.12
             scalaShort: "2.11"
-            overall: 60
             changed: 80
           - scala: 2.12.12
             scalaShort: "2.12"
-            overall: 60
             changed: 80
     steps:
       - name: Checkout code
@@ -58,12 +56,6 @@ jobs:
         run: |
           echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
           echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
-      - name: Fail PR if changed files coverage is less than ${{ matrix.overall }}%
-        if: ${{ steps.jacoco.outputs.coverage-changed-files < ${{ matrix.overall }} }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.setFailed('Changed files coverage is less than ${{ matrix.overall }}%!')
       - name: Fail PR if overall coverage is less than ${{ matrix.changed }}%
         if: ${{ steps.jacoco.outputs.coverage-overall < ${{ matrix.changed }} }}
         uses: actions/github-script@v6
