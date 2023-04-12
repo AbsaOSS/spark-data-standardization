@@ -59,7 +59,7 @@ jobs:
           echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
           echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
       - name: Fail PR if overall coverage is less than ${{ matrix.changed }}%
-        if: ${{ steps.jacoco.outputs.coverage-overall < ${{ matrix.changed }} }}
+        if: ${{ steps.jacoco.outputs.coverage-overall }} < ${{ matrix.changed }}
         uses: actions/github-script@v6
         with:
           script: |
