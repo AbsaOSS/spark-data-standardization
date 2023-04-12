@@ -29,12 +29,12 @@ jobs:
         include:
           - scala: 2.11.12
             scalaShort: "2.11"
-            overall: 87
-            changed: 80
+            overall: !!int 87
+            changed: !!int 80
           - scala: 2.12.12
             scalaShort: "2.12"
-            overall: 87
-            changed: 80
+            overall: !!int 87
+            changed: !!int 80
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
