@@ -56,7 +56,7 @@ Please see [this file](RELEASE.md) for more details.
 
 ## How to generate Code coverage report
 ```sbt
-sbt jacoco
+sbt ++<scala.version> jacoco
 ```
 Code coverage will be generated on path:
 ```
