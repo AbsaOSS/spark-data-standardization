@@ -60,7 +60,7 @@ Global / excludeLintKeys += ThisBuild / name // will be used in publish, todo #3
 
 // JaCoCo code coverage
 Test / jacocoReportSettings := JacocoReportSettings(
-  title = s"spark-data-standardization Jacoco Report - ${scalaVersion.value}",
+  title = s"spark-data-standardization Jacoco Report - Scala ${scalaVersion.value}",
   formats = Seq(JacocoReportFormats.HTML, JacocoReportFormats.XML)
 )
 
