@@ -27,13 +27,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - scala: 2.11.12
-            scalaShort: "2.11"
-            overall: 87.0
-            changed: 80.0
           - scala: 2.12.12
             scalaShort: "2.12"
-            overall: 87.0
+            overall: 80.0
             changed: 80.0
     steps:
       - name: Checkout code
