@@ -61,7 +61,7 @@ class UDFBuilderSuite extends AnyFunSuite {
       override def resolveClass(desc: ObjectStreamClass): Class[_] =
         Class.forName(desc.getName, false, loader)
     }
-    (ois readObject ()).asInstanceOf[UserDefinedFunction]
+    ois.readObject().asInstanceOf[UserDefinedFunction]
   }
 
   test("Serialization and deserialization of stringUdfViaNumericParser (DecimalParser)") {
@@ -86,7 +86,7 @@ class UDFBuilderSuite extends AnyFunSuite {
       override def resolveClass(desc: ObjectStreamClass): Class[_] =
         Class.forName(desc.getName, false, loader)
     }
-    (ois readObject ()).asInstanceOf[UserDefinedFunction]
+    ois.readObject().asInstanceOf[UserDefinedFunction]
   }
 
   test("Serialization and deserialization of stringUdfViaNumericParser (RadixIntegralParser)") {
@@ -114,7 +114,7 @@ class UDFBuilderSuite extends AnyFunSuite {
       override def resolveClass(desc: ObjectStreamClass): Class[_] =
         Class.forName(desc.getName, false, loader)
     }
-    (ois readObject ()).asInstanceOf[UserDefinedFunction]
+    ois.readObject().asInstanceOf[UserDefinedFunction]
   }
 
   test("Serialization and deserialization of stringUdfViaNumericParser (PatternIntegralParser)") {
@@ -141,7 +141,7 @@ class UDFBuilderSuite extends AnyFunSuite {
       override def resolveClass(desc: ObjectStreamClass): Class[_] =
         Class.forName(desc.getName, false, loader)
     }
-    (ois readObject ()).asInstanceOf[UserDefinedFunction]
+    ois.readObject().asInstanceOf[UserDefinedFunction]
   }
 
 }

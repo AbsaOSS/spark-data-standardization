@@ -16,7 +16,7 @@
 
 package za.co.absa.standardization.udf
 
-import za.co.absa.spark.commons.errorhandling.ErrorMessage
+import za.co.absa.standardization.ErrorMessage
 import za.co.absa.standardization.StandardizationErrorMessage
 import za.co.absa.standardization.config.StandardizationConfig
 

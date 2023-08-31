@@ -23,17 +23,17 @@ import org.apache.spark.sql.{Row, SparkSession}
 import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfig}
 import za.co.absa.standardization.udf.UDFNames._
 import za.co.absa.spark.commons.OncePerSparkSession
-import za.co.absa.spark.commons.errorhandling.ErrorMessage
+import za.co.absa.standardization.ErrorMessage
 import za.co.absa.standardization.StandardizationErrorMessage
 
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
-class UDFLibrary(stdConfig: StandardizationConfig)(implicit spark: SparkSession) extends OncePerSparkSession with Serializable {
+class UDFLibrary(stdConfig: StandardizationConfig) extends OncePerSparkSession with Serializable {
 
   private implicit val errorCodes: ErrorCodesConfig = stdConfig.errorCodes
 
-  override protected def register(implicit spark: SparkSession): Unit = {
+  override protected def registerBody(spark: SparkSession): Unit = {
 
     spark.udf.register(stdCastErr, { (errCol: String, rawValue: String) =>
       StandardizationErrorMessage.stdCastErr(errCol, rawValue)
@@ -54,11 +54,11 @@ class UDFLibrary(stdConfig: StandardizationConfig)(implicit spark: SparkSession)
 
     spark.udf.register(cleanErrCol,
                        UDFLibrary.cleanErrCol,
-                       ArrayType.apply(ErrorMessage.errorColSchema, containsNull = false))
+                       ArrayType.apply(ErrorMessage.errorColSchema(spark), containsNull = false))
 
     spark.udf.register(errorColumnAppend,
                        UDFLibrary.errorColumnAppend,
-                       ArrayType.apply(ErrorMessage.errorColSchema, containsNull = false))
+                       ArrayType.apply(ErrorMessage.errorColSchema(spark), containsNull = false))
 
 
     spark.udf.register(binaryUnbase64,

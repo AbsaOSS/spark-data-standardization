@@ -16,12 +16,10 @@
 
 package za.co.absa.standardization
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
-import za.co.absa.spark.commons.errorhandling.ErrorMessage
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.standardization.config.{DefaultStandardizationConfig, StandardizationConfig}
 import za.co.absa.standardization.stages.{SchemaChecker, TypeParser}
@@ -30,7 +28,6 @@ import za.co.absa.standardization.udf.{UDFLibrary, UDFNames}
 
 object Standardization {
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
-  final val DefaultColumnNameOfCorruptRecord = "_corrupt_record"
 
   final val ColumnNameOfCorruptRecordConf = "spark.sql.columnNameOfCorruptRecord"
 
@@ -39,7 +36,7 @@ object Standardization {
                   standardizationConfig: StandardizationConfig = DefaultStandardizationConfig)
                  (implicit sparkSession: SparkSession): DataFrame = {
     implicit val udfLib: UDFLibrary = new UDFLibrary(standardizationConfig)
-    implicit val hadoopConf: Configuration = sparkSession.sparkContext.hadoopConfiguration
+    udfLib.register(sparkSession)
     implicit val defaults: TypeDefaults = standardizationConfig.typeDefaults
 
     logger.info(s"Step 1: Schema validation")
@@ -75,7 +72,7 @@ object Standardization {
   }
 
   private def standardizeDataset(df: DataFrame, expSchema: StructType, stdConfig: StandardizationConfig)
-                                (implicit spark: SparkSession, udfLib: UDFLibrary, defaults: TypeDefaults): DataFrame  = {
+                                (implicit spark: SparkSession, defaults: TypeDefaults): DataFrame  = {
 
     val rowErrors: List[Column] = gatherRowErrors(df.schema)
     val (stdCols, errorCols, oldErrorColumn) = expSchema.fields.foldLeft(List.empty[Column], rowErrors, None: Option[Column]) {
@@ -97,7 +94,7 @@ object Standardization {
   }
 
   private def cleanTheFinalErrorColumn(dataFrame: DataFrame)
-                                      (implicit spark: SparkSession, udfLib: UDFLibrary): DataFrame = {
+                                      (implicit spark: SparkSession): DataFrame = {
     ArrayTransformations.flattenArrays(dataFrame, ErrorMessage.errorColumnName)
       .withColumn(ErrorMessage.errorColumnName, callUDF(UDFNames.cleanErrCol, col(ErrorMessage.errorColumnName)))
   }

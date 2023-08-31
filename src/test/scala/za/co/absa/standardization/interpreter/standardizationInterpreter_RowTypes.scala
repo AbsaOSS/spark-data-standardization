@@ -16,7 +16,7 @@
 
 package za.co.absa.standardization.interpreter
 
-import za.co.absa.spark.commons.errorhandling.ErrorMessage
+import za.co.absa.standardization.ErrorMessage
 
 import java.sql.{Date, Timestamp}
 
