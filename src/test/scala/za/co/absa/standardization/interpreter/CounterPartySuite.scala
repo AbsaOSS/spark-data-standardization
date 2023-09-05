@@ -53,7 +53,6 @@ class CounterPartySuite extends AnyFunSuite with SparkTestBase with LoggerTestBa
         .copy(recordIdStrategy = NoId
         )
       )
-//    implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
 
     val input = spark.createDataFrame(Seq(
       Root(Party(key = 0, clientKeys1 = Seq("a", "b", "c"), clientKeys2 = Seq("d", "e", "f"))),
