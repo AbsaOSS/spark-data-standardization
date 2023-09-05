@@ -20,7 +20,7 @@ import java.sql.{Date, Timestamp}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset, Row}
 import org.scalatest.funsuite.AnyFunSuite
-import za.co.absa.spark.commons.errorhandling.ErrorMessage
+import za.co.absa.standardization.ErrorMessage
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.stages.SchemaChecker
@@ -75,7 +75,9 @@ class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
       FieldValidationIssue("timestampNullDefaultWrong", "", List(
         ValidationError("null is not a valid value for field 'timestampNullDefaultWrong'")))
     )
-    assert(validationErrors == exp)
+    val sortedValidationErrors = validationErrors.map(f => f.copy(issues = f.issues.sortBy(_.msg))).sortBy(_.fieldName)
+    val sortedExp = exp.map(f => f.copy(issues = f.issues.sortBy(_.msg))).sortBy(_.fieldName)
+    assert(sortedValidationErrors == sortedExp)
   }
 
   test("Validation for this data should return critical errors") {

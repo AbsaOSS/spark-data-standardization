@@ -38,7 +38,7 @@ trait ParseViaDecimalFormat[N] {
       if (pos.getIndex < stringToParse.length) {
         Failure(new NumericParserException(s"Parsing of '$stringToParse' failed."))
       } else {
-        Success(Unit)
+        Success()
       }
     }
 

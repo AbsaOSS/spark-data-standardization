@@ -25,7 +25,7 @@ import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.slf4j.{Logger, LoggerFactory}
-import za.co.absa.spark.commons.errorhandling.ErrorMessage
+import za.co.absa.standardization.ErrorMessage
 import za.co.absa.spark.commons.implicits.ColumnImplicits.ColumnEnhancements
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.spark.commons.utils.SchemaUtils
@@ -39,7 +39,7 @@ import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.TypedStructField._
 import za.co.absa.standardization.types.{ParseOutput, TypeDefaults, TypedStructField}
-import za.co.absa.standardization.udf.{UDFBuilder, UDFLibrary, UDFNames}
+import za.co.absa.standardization.udf.{UDFBuilder, UDFNames}
 
 import scala.reflect.runtime.universe._
 import scala.util.{Random, Try}
@@ -136,7 +136,7 @@ object TypeParser {
                   origSchema: StructType,
                   stdConfig: StandardizationConfig,
                   failOnInputNotPerSchema: Boolean = true)
-                 (implicit udfLib: UDFLibrary, defaults: TypeDefaults): ParseOutput = {
+                 (implicit defaults: TypeDefaults): ParseOutput = {
     // udfLib implicit is present for error column UDF implementation
     val sourceName = SchemaUtils.appendPath(path, field.sourceName)
     val origField = origSchema.getField(sourceName)
@@ -261,7 +261,7 @@ object TypeParser {
     }
   }
 
-  private abstract class PrimitiveParser[T](implicit defaults: TypeDefaults) extends TypeParser[T] {
+  private abstract class PrimitiveParser[T] extends TypeParser[T] {
     override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       val castedCol: Column = assemblePrimitiveCastLogic
       val castHasError: Column = assemblePrimitiveCastErrorLogic(castedCol)

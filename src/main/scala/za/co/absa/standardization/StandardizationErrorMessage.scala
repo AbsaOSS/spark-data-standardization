@@ -16,7 +16,7 @@
 
 package za.co.absa.standardization
 
-import za.co.absa.spark.commons.errorhandling.ErrorMessage
+import za.co.absa.standardization.ErrorMessage
 import za.co.absa.standardization.config.{ErrorCodesConfig}
 
 object StandardizationErrorMessage {

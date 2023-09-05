@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         include:
-          # The project supports Scala 2.11, 2.12
+          # The project supports Scala 2.11, 2.12, 2.13
           # The CI runs all tests suites for all supported Scala versions at build.yml
           # The codebase for all Scala versions is the same, so the coverage is calculated only once
           # Scala 2.12 is chosen since it is supported by the most wide range of Spark versions and

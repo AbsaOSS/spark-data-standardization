@@ -128,7 +128,7 @@ object DateTimePattern {
     override val patternWithoutSecondFractions: String = Section.removeMultipleFrom(pattern, secondFractionsSections)
 
     private def scanForPlaceholder(withinString: String, placeHolder: Char): Option[Section] = {
-      val start = withinString.findFirstUnquoted(Set(placeHolder), Set('''))
+      val start = withinString.findFirstUnquoted(Set(placeHolder), Set('\''))
       start.map(index => Section.ofSameChars(withinString, index))
     }
 
@@ -179,6 +179,6 @@ object DateTimePattern {
   }
 
   def timeZoneInPattern(pattern: String): Boolean = {
-    isEpoch(pattern) || pattern.hasUnquoted(patternTimeZoneChars, Set('''))
+    isEpoch(pattern) || pattern.hasUnquoted(patternTimeZoneChars, Set('\''))
   }
 }

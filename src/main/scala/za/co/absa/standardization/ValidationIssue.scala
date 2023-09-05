@@ -16,7 +16,9 @@
 
 package za.co.absa.standardization
 
-sealed abstract class ValidationIssue
+sealed abstract class ValidationIssue {
+  val msg: String
+}
 
 case class ValidationWarning(msg: String) extends ValidationIssue
 

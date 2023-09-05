@@ -33,11 +33,11 @@ object Dependencies {
     List(
       "org.apache.spark" %% "spark-core" % sparkVersion % Provided,
       "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-      "za.co.absa" %% s"spark-commons-spark$sparkVersionUpToMinor" % "0.5.0" % Provided,
-      "za.co.absa" %% "spark-commons-test" % "0.4.0" % Test,
-      "com.typesafe" % "config" % "1.4.1",
+      "za.co.absa" %% s"spark-commons-spark$sparkVersionUpToMinor" % "0.6.1" % Provided,
+      "za.co.absa" %% "spark-commons-test" % "0.6.1" % Test,
+      "com.typesafe" % "config" % "1.4.2",
       "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion(scalaVersion) % Test,
-      "org.scalatest" %% "scalatest" % "3.2.2" % Test
+      "org.scalatest" %% "scalatest" % "3.2.15" % Test
     )
   }
 }

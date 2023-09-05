@@ -21,9 +21,10 @@ ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
 
 lazy val scala211 = "2.11.12"
-lazy val scala212 = "2.12.12"
+lazy val scala212 = "2.12.18"
+lazy val scala213 = "2.13.11"
 
-ThisBuild / crossScalaVersions := Seq(scala211, scala212)
+ThisBuild / crossScalaVersions := Seq(scala211, scala212, scala213)
 ThisBuild / scalaVersion := scala211
 
 ThisBuild / versionScheme := Some("early-semver")

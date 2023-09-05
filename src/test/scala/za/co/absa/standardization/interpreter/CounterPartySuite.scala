@@ -18,7 +18,7 @@ package za.co.absa.standardization.interpreter
 
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
-import za.co.absa.spark.commons.errorhandling.ErrorMessage
+import za.co.absa.standardization.ErrorMessage
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
@@ -53,7 +53,6 @@ class CounterPartySuite extends AnyFunSuite with SparkTestBase with LoggerTestBa
         .copy(recordIdStrategy = NoId
         )
       )
-    implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
 
     val input = spark.createDataFrame(Seq(
       Root(Party(key = 0, clientKeys1 = Seq("a", "b", "c"), clientKeys2 = Seq("d", "e", "f"))),
