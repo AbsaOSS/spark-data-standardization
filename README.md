@@ -15,7 +15,7 @@ The library needs following dependencies to be included in your project
 ```sbt
 "org.apache.spark" %% "spark-core" % SPARK_VERSION,
 "org.apache.spark" %% "spark-sql" % SPARK_VERSION,
-"za.co.absa" %% s"spark-commons-spark${SPARK_MAJOR}.${SPARK_MINOR}" % "0.3.1",
+"za.co.absa" %% s"spark-commons-spark${SPARK_MAJOR}.${SPARK_MINOR}" % "0.6.1",
 ```
 
 ### Usage in SBT:
@@ -45,10 +45,20 @@ The library needs following dependencies to be included in your project
 </dependency>
 ```
 
+### Scala 2.13 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.13)
+
+```xml
+<dependency>
+   <groupId>za.co.absa</groupId>
+   <artifactId>spark-data-standardization_2.13</artifactId>
+   <version>${latest_version}</version>
+</dependency>
+```
+
 Spark and Scala compatibility
->| | Scala 2.11 | Scala 2.12 |
->|---|---|---|
->|Spark| 2.4.X | 3.2.1 |
+>| | Scala 2.11 | Scala 2.12 | Scala 2.13 |
+>|---|---|---|---|
+>|Spark| 2.4.X | 3.2.1 | 3.2.1 |
 
 ## How to Release
 
