@@ -58,7 +58,7 @@ The library needs following dependencies to be included in your project
 Spark and Scala compatibility
 >| | Scala 2.11 | Scala 2.12 | Scala 2.13 |
 >|---|---|---|---|
->|Spark| 2.4.X | 3.2.1 | 3.2.1 |
+>|Spark| 2.4.7 | 3.2.1 | 3.2.1 |
 
 ## How to Release
 
