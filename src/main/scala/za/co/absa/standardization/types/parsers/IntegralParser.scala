@@ -24,10 +24,12 @@ import za.co.absa.standardization.typeClasses.LongLike
 
 import scala.util.{Failure, Success, Try}
 
-abstract class IntegralParser[N: LongLike] private(override val pattern: NumericPattern,
+abstract class IntegralParser[N: LongLike] private(override val sourceTypeStr: String,
+                                                   override val targetTypeStr: String,
+                                                   override val pattern: NumericPattern,
                                                    override val min: Option[N],
                                                    override val max: Option[N])
-  extends NumericParser[N](pattern, min, max) {
+  extends NumericParser[N](sourceTypeStr, targetTypeStr, pattern, min, max) {
   protected val ev: LongLike[N] = implicitly[LongLike[N]]
 
   val radix: Radix
@@ -36,55 +38,69 @@ abstract class IntegralParser[N: LongLike] private(override val pattern: Numeric
 }
 
 object IntegralParser {
-  def apply(pattern: NumericPattern,
+  def apply(sourceTypeStr: String,
+            targetTypeStr: String,
+            pattern: NumericPattern,
             min: Long = Long.MinValue,
             max: Long = Long.MaxValue): IntegralParser[Long] = {
-    new PatternIntegralParser(pattern, Option(min), Option(max))
+    new PatternIntegralParser(sourceTypeStr, targetTypeStr, pattern, Option(min), Option(max))
   }
 
-  def apply[N: LongLike](pattern: NumericPattern,
+  def apply[N: LongLike](sourceTypeStr: String,
+                         targetTypeStr: String,
+                         pattern: NumericPattern,
                          min: Option[N],
                          max: Option[N]): IntegralParser[N] = {
-    new PatternIntegralParser(pattern, min, max)
+    new PatternIntegralParser(sourceTypeStr, targetTypeStr, pattern, min, max)
   }
 
-  def ofRadix(radix: Radix,
+  def ofRadix(sourceTypeStr: String,
+              targetTypeStr: String,
+              radix: Radix,
               decimalSymbols: DecimalSymbols = NumericParser.defaultDecimalSymbols,
               min: Long = Long.MinValue,
               max: Long = Long.MaxValue): IntegralParser[Long] = {
-    new RadixIntegralParser(radix, decimalSymbols, Option(min), Option(max))
+    new RadixIntegralParser(sourceTypeStr, targetTypeStr, radix, decimalSymbols, Option(min), Option(max))
   }
 
-  def ofRadix[N: LongLike](radix: Radix,
+  def ofRadix[N: LongLike](sourceTypeStr: String,
+                           targetTypeStr: String,
+                           radix: Radix,
                            decimalSymbols: DecimalSymbols,
                            min: Option[N],
                            max: Option[N]): IntegralParser[N] = {
-    new RadixIntegralParser[N](radix, decimalSymbols, min, max)
+    new RadixIntegralParser[N](sourceTypeStr, targetTypeStr, radix, decimalSymbols, min, max)
   }
 
-  def ofStringRadix(stringRadix: String,
+  def ofStringRadix(sourceTypeStr: String,
+                    targetTypeStr: String,
+                    stringRadix: String,
                     decimalSymbols: DecimalSymbols = NumericParser.defaultDecimalSymbols,
                     min: Long = Long.MinValue,
                     max: Long = Long.MaxValue): IntegralParser[Long] = {
-    ofRadix(Radix(stringRadix), decimalSymbols, min, max)
+    ofRadix(sourceTypeStr, targetTypeStr, Radix(stringRadix), decimalSymbols, min, max)
   }
 
-  def ofStringRadix[N: LongLike](stringRadix: String,
+  def ofStringRadix[N: LongLike](sourceTypeStr: String,
+                                 targetTypeStr: String,
+                                 stringRadix: String,
                                  decimalSymbols: DecimalSymbols,
                                  min: Option[N],
                                  max: Option[N]): IntegralParser[N] = {
-    ofRadix(Radix(stringRadix), decimalSymbols, min, max)
+    ofRadix(sourceTypeStr, targetTypeStr, Radix(stringRadix), decimalSymbols, min, max)
   }
 
   def tryStringToBase(string: String): Try[Radix] = {
     Try(Radix(string))
   }
 
-  final class RadixIntegralParser[N: LongLike] (override val radix: Radix,
+  final class RadixIntegralParser[N: LongLike] (override val sourceTypeStr: String,
+                                                override val targetTypeStr: String,
+                                                override val radix: Radix,
                                                 decimalSymbols: DecimalSymbols,
                                                 override val min: Option[N],
                                                 override val max: Option[N])
-    extends IntegralParser(NumericPattern(decimalSymbols), min, max) {
+    extends IntegralParser(sourceTypeStr, targetTypeStr, NumericPattern(decimalSymbols), min, max) {
 
     private val minBI = BigInteger.valueOf(min.map(ev.toLong).getOrElse(Long.MinValue))
     private val maxBI = BigInteger.valueOf(max.map(ev.toLong).getOrElse(Long.MaxValue))
@@ -150,10 +166,12 @@ object IntegralParser {
 
   }
 
-  final class PatternIntegralParser[N: LongLike](override val pattern: NumericPattern,
+  final class PatternIntegralParser[N: LongLike](override val sourceTypeStr: String,
+                                                 override val targetTypeStr: String,
+                                                 override val pattern: NumericPattern,
                                                  override val min: Option[N],
                                                  override val max: Option[N])
-    extends IntegralParser(pattern, min, max) with ParseViaDecimalFormat[N] {
+    extends IntegralParser(sourceTypeStr, targetTypeStr, pattern, min, max) with ParseViaDecimalFormat[N] {
     override val radix: Radix = Radix.DefaultRadix
 
     override protected val numberConversion: Number => N = {number =>

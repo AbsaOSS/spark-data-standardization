@@ -78,14 +78,14 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
 
     val expectedData = Seq(
       Row(Seq(null, null, null), Seq(
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("00:00:00 01.12.2018"), Seq()),
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("00:10:00 02.12.2018"), Seq()),
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("00:20:00 03.12.2018"), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:00:00 01.12.2018"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:10:00 02.12.2018"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:20:00 03.12.2018"), Seq())
       )),
       Row(Seq(null, null, null), Seq(
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("00:00:00 01.12.2019"), Seq()),
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("00:10:00 02.12.2019"), Seq()),
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("00:20:00 03.12.2019"), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:00:00 01.12.2019"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:10:00 02.12.2019"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:20:00 03.12.2019"), Seq())
       )),
       Row(Seq(Timestamp.valueOf("2020-01-12 00:00:00"), Timestamp.valueOf("2020-12-02 00:10:00"), Timestamp.valueOf("2020-12-03 00:20:00")), Seq())
     )
@@ -115,9 +115,9 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
       Row(Seq(Timestamp.valueOf("2008-12-01 00:00:00"), Timestamp.valueOf("2008-12-02 00:10:00"), Timestamp.valueOf("2008-12-03 00:20:00")), Seq()),
       Row(Seq(Timestamp.valueOf("2009-12-01 00:00:00"), Timestamp.valueOf("2009-12-02 00:10:00"), Timestamp.valueOf("2009-12-03 00:20:00")), Seq()),
       Row(Seq(null, null, null), Seq(
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("2010-01-12 00:00:00"), Seq()),
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("2010-12-02 00:10:00"), Seq()),
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("2010-12-03 00:20:00"), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (HH:mm:ss dd.MM.yyyy)", "arrayField[*]", Seq("2010-01-12 00:00:00"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (HH:mm:ss dd.MM.yyyy)", "arrayField[*]", Seq("2010-12-02 00:10:00"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (HH:mm:ss dd.MM.yyyy)", "arrayField[*]", Seq("2010-12-03 00:20:00"), Seq())
       ))
     )
     val expectedDF = expectedData.toDfWithSchema(stdDF.schema) // checking just the data
@@ -161,11 +161,11 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
     val expectedData = Seq(
       Row(Seq(1,2,3), Seq()),
       Row(Seq(-7, null), Seq(
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("Size: ~13.13"), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'integer'", "arrayField[*]", Seq("Size: ~13.13"), Seq())
       )),
       Row(Seq(null, null, null), Seq(
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("A"), Seq()),
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq(""), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'integer'", "arrayField[*]", Seq("A"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'integer'", "arrayField[*]", Seq(""), Seq())
       ))
     )
     val expectedDF = expectedData.toDfWithSchema(stdDF.schema) // checking just the data
@@ -193,11 +193,11 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
     val expectedData = Seq(
       Row(Seq(1.1F, 2.2F, 3.3F), Seq()),
       Row(Seq(-7.7F, 3.14F), Seq(
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("-13.13"), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'float'", "arrayField[*]", Seq("-13.13"), Seq())
       )),
       Row(Seq(3.14F, null, 3.14F), Seq(
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq("A"), Seq()),
-        Row("stdCastError", "E00000", "Standardization Error - Type cast", "arrayField[*]", Seq(""), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'float'", "arrayField[*]", Seq("A"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'float'", "arrayField[*]", Seq(""), Seq())
       ))
     )
     val expectedDF = expectedData.toDfWithSchema(stdDF.schema) // checking just the data

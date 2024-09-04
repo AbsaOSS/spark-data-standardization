@@ -22,11 +22,13 @@ import za.co.absa.standardization.numeric.NumericPattern
 
 import scala.util.{Failure, Success, Try}
 
-class DecimalParser(override val pattern: NumericPattern,
+class DecimalParser(override val sourceTypeStr: String,
+                    override val targetTypeStr: String,
+                    override val pattern: NumericPattern,
                     override val min: Option[BigDecimal],
                     override val max: Option[BigDecimal],
                     val maxScale: Option[Int] = None)
-  extends NumericParser(pattern, min, max) with ParseViaDecimalFormat[BigDecimal] {
+  extends NumericParser(sourceTypeStr, targetTypeStr, pattern, min, max) with ParseViaDecimalFormat[BigDecimal] {
 
   override protected val stringConversion: String => BigDecimal = BigDecimal(_)
   override protected val numberConversion: Number => BigDecimal = {n => BigDecimal(n.asInstanceOf[java.math.BigDecimal])}
@@ -49,10 +51,12 @@ class DecimalParser(override val pattern: NumericPattern,
 }
 
 object DecimalParser {
-  def apply(pattern: NumericPattern,
+  def apply(sourceTypeStr: String,
+            targetTypeStr: String,
+            pattern: NumericPattern,
             min: Option[BigDecimal] = None,
             max: Option[BigDecimal] = None,
             maxScale: Option[Int] = None): DecimalParser = {
-    new DecimalParser(pattern, min, max, maxScale)
+    new DecimalParser(sourceTypeStr, targetTypeStr, pattern, min, max, maxScale)
   }
 }

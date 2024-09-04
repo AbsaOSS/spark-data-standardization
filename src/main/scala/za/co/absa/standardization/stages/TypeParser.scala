@@ -22,7 +22,7 @@ import java.util.Date
 import java.util.regex.Pattern
 import org.apache.spark.sql.Column
 import org.apache.spark.sql.expressions.UserDefinedFunction
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.functions.{lit, _}
 import org.apache.spark.sql.types._
 import org.slf4j.{Logger, LoggerFactory}
 import za.co.absa.standardization.ErrorMessage
@@ -70,10 +70,10 @@ sealed trait TypeParser[T] {
   }
 
   protected val failOnInputNotPerSchema: Boolean
-  protected val field: TypedStructField
+  val field: TypedStructField
   protected val metadata: Metadata = field.structField.metadata
   protected val path: String
-  protected val origType: DataType
+  val origType: DataType
   protected val fieldInputName: String = field.structField.sourceName
   protected val fieldOutputName: String = field.name
   protected val inputFullPathName: String = SchemaUtils.appendPath(path, fieldInputName)
@@ -265,10 +265,21 @@ object TypeParser {
     override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       val castedCol: Column = assemblePrimitiveCastLogic
       val castHasError: Column = assemblePrimitiveCastErrorLogic(castedCol)
+      val patternOpt = field.pattern.toOption.flatten.map(_.pattern)
+      val pattern = patternOpt match {
+        case Some(s) if field.structField.metadata.contains("pattern") => lit(s)
+        case _ => lit(null: String)
+      }
 
+      val f = field
       val err: Column  = if (field.nullable) {
         when(column.isNotNull and castHasError, // cast failed
-          array(callUDF(UDFNames.stdCastErr, lit(columnIdForUdf), column.cast(StringType)))
+          array(callUDF(UDFNames.stdCastErr,
+            lit(columnIdForUdf),
+            column.cast(StringType),
+            lit(origType.typeName),
+            lit(field.dataType.typeName),
+            lit(pattern)))
         ).otherwise( // everything is OK
           typedLit(Seq.empty[ErrorMessage])
         )
@@ -276,7 +287,12 @@ object TypeParser {
         when(column.isNull, // NULL not allowed
           array(callUDF(UDFNames.stdNullErr, lit(columnIdForUdf)))
         ).otherwise( when(castHasError, // cast failed
-          array(callUDF(UDFNames.stdCastErr, lit(columnIdForUdf), column.cast(StringType)))
+          array(callUDF(UDFNames.stdCastErr,
+            lit(columnIdForUdf),
+            column.cast(StringType),
+            lit(origType.typeName),
+            lit(field.dataType.typeName),
+            lit(pattern)))
         ).otherwise( // everything is OK
           typedLit(Seq.empty[ErrorMessage])
         ))
@@ -300,10 +316,12 @@ object TypeParser {
   }
 
   private abstract class ScalarParser[T](implicit defaults: TypeDefaults) extends PrimitiveParser[T] {
+    override val origType: DataType
     override def assemblePrimitiveCastLogic: Column = column.cast(field.dataType)
   }
 
-  private abstract class NumericParser[N: TypeTag](override val field: NumericTypeStructField[N])
+  private abstract class NumericParser[N: TypeTag](override val origType: DataType,
+                                                   override val field: NumericTypeStructField[N])
                                                   (implicit defaults: TypeDefaults) extends ScalarParser[N] {
     override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       if (field.needsUdfParsing) {
@@ -344,7 +362,7 @@ object TypeParser {
     }
 
     private def standardizeUsingUdf(stdConfig: StandardizationConfig): ParseOutput = {
-      val udfFnc: UserDefinedFunction = UDFBuilder.stringUdfViaNumericParser(field.parser.get, field.nullable, columnIdForUdf, stdConfig, defaultValue)
+      val udfFnc: UserDefinedFunction = UDFBuilder.stringUdfViaNumericParser(field.parser(StringType).get, field.nullable, columnIdForUdf, stdConfig, defaultValue)
       ParseOutput(udfFnc(column)("result").cast(field.dataType).as(fieldOutputName), udfFnc(column)("error"))
     }
   }
@@ -352,11 +370,11 @@ object TypeParser {
   private final case class IntegralParser[N: LongLike: TypeTag](override val field: NumericTypeStructField[N],
                                                                 path: String,
                                                                 column: Column,
-                                                                origType: DataType,
+                                                                override val origType: DataType,
                                                                 failOnInputNotPerSchema: Boolean,
                                                                 isArrayElement: Boolean,
                                                                 overflowableTypes: Set[DataType])
-                                                               (implicit defaults: TypeDefaults) extends NumericParser[N](field) {
+                                                               (implicit defaults: TypeDefaults) extends NumericParser[N](origType, field) {
     override protected def assemblePrimitiveCastErrorLogic(castedCol: Column): Column = {
       val basicLogic: Column = super.assemblePrimitiveCastErrorLogic(castedCol)
 
@@ -383,22 +401,22 @@ object TypeParser {
   private final case class DecimalParser(override val field: NumericTypeStructField[BigDecimal],
                                          path: String,
                                          column: Column,
-                                         origType: DataType,
+                                         override val origType: DataType,
                                          failOnInputNotPerSchema: Boolean,
                                          isArrayElement: Boolean)
                                         (implicit defaults: TypeDefaults)
-    extends NumericParser[BigDecimal](field)
+    extends NumericParser[BigDecimal](origType, field)
     // NB! loss of precision is not addressed for any DecimalType
     // e.g. 3.141592 will be Standardized to Decimal(10,2) as 3.14
 
   private final case class FractionalParser[N: DoubleLike: TypeTag](override val field: NumericTypeStructField[N],
                                                                     path: String,
                                                                     column: Column,
-                                                                    origType: DataType,
+                                                                    override val origType: DataType,
                                                                     failOnInputNotPerSchema: Boolean,
                                                                     isArrayElement: Boolean)
                                                                    (implicit defaults: TypeDefaults)
-    extends NumericParser[N](field) {
+    extends NumericParser[N](origType, field) {
     override protected def assemblePrimitiveCastErrorLogic(castedCol: Column): Column = {
       //NB! loss of precision is not addressed for any fractional type
       if (field.allowInfinity) {

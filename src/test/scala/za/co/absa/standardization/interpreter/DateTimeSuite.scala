@@ -107,12 +107,12 @@ class DateTimeSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
       null,
       ts, ts, ts, null, ts0, ts0,
       List(
-        StandardizationErrorMessage.stdCastErr("dateSampleWrong1","10-20-2017"),
-        StandardizationErrorMessage.stdCastErr("dateSampleWrong2","201711"),
-        StandardizationErrorMessage.stdCastErr("dateSampleWrong3",""),
-        StandardizationErrorMessage.stdCastErr("timestampSampleWrong1", "20171020T081131"),
-        StandardizationErrorMessage.stdCastErr("timestampSampleWrong2", "2017-10-20t081131"),
-        StandardizationErrorMessage.stdCastErr("timestampSampleWrong3", "2017-10-20")
+        StandardizationErrorMessage.stdCastErr("dateSampleWrong1","10-20-2017", "aa", "bb", None),
+        StandardizationErrorMessage.stdCastErr("dateSampleWrong2","201711", "aa", "bb", None),
+        StandardizationErrorMessage.stdCastErr("dateSampleWrong3","", "aa", "bb", None),
+        StandardizationErrorMessage.stdCastErr("timestampSampleWrong1", "20171020T081131", "aa", "bb", None),
+        StandardizationErrorMessage.stdCastErr("timestampSampleWrong2", "2017-10-20t081131", "aa", "bb", None),
+        StandardizationErrorMessage.stdCastErr("timestampSampleWrong3", "2017-10-20", "aa", "bb", None)
       )
     ))
     val std: Dataset[Row] = Standardization.standardize(data, schemaOk, stdConfig)

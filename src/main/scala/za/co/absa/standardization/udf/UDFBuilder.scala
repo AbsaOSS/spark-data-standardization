@@ -52,7 +52,7 @@ object UDFBuilder {
       case None if columnNullable => Success(None)
       case None => Failure(nullException)
     }
-    UDFResult.fromTry(result, columnNameForError, input, stdConfig, defaultValue)
+    UDFResult.fromTry(result, columnNameForError, input, parser.sourceTypeStr, parser.targetTypeStr, None, stdConfig, defaultValue)
   }
 
   private val nullException = new NumericParserException("Null value on input for non-nullable field")

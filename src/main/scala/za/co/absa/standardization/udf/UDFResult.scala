@@ -30,11 +30,19 @@ object UDFResult {
     UDFResult(result, Seq.empty)
   }
 
-  def fromTry[T](result: Try[Option[T]], columnName: String, rawValue: String, stdConfig: StandardizationConfig, defaultValue: Option[T] = None): UDFResult[T] = {
+  def fromTry[T](result: Try[Option[T]],
+                 columnName: String,
+                 rawValue: String,
+                 sourceType: String,
+                 targetType: String,
+                 pattern: Option[String],
+                 stdConfig: StandardizationConfig,
+                 defaultValue: Option[T] = None): UDFResult[T] = {
     result match {
       case Success(success)                       => UDFResult.success(success)
       case Failure(_) if Option(rawValue).isEmpty => UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdNullErr(columnName)(stdConfig.errorCodes)))
-      case Failure(_)                             => UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdCastErr(columnName, rawValue)(stdConfig.errorCodes)))
+      case Failure(_)                             =>
+        UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdCastErr(columnName, rawValue, sourceType, targetType, pattern)(stdConfig.errorCodes)))
     }
   }
 }

@@ -26,10 +26,10 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   test("No pattern, no limitations") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern(decimalSymbols)
-    val ipLong = IntegralParser[Long](pattern, None, None)
-    val ipInt = IntegralParser[Int](pattern, None, None)
-    val ipShort = IntegralParser[Short](pattern, None, None)
-    val ipByte = IntegralParser[Byte](pattern, None, None)
+    val ipLong = IntegralParser[Long]("string", "long", pattern, None, None)
+    val ipInt = IntegralParser[Int]("string", "integer", pattern, None, None)
+    val ipShort = IntegralParser[Short]("string", "short",pattern, None, None)
+    val ipByte = IntegralParser[Byte]("string", "byte",pattern, None, None)
     assert(ipLong.parse("98987565664") == Success(98987565664L))
     assert(ipLong.parse("-31225927393149") == Success(-31225927393149L))
     assert(ipInt.parse("2100000") == Success(2100000))
@@ -43,10 +43,10 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   test("No pattern, no limitations, minus sign altered") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols.copy(minusSign = 'N')
     val pattern = NumericPattern(decimalSymbols)
-    val ipLong = IntegralParser[Long](pattern, None, None)
-    val ipInt = IntegralParser[Int](pattern, None, None)
-    val ipShort = IntegralParser[Short](pattern, None, None)
-    val ipByte = IntegralParser[Byte](pattern, None, None)
+    val ipLong = IntegralParser[Long]("string", "long", pattern, None, None)
+    val ipInt = IntegralParser[Int]("string", "integer", pattern, None, None)
+    val ipShort = IntegralParser[Short]("string", "short", pattern, None, None)
+    val ipByte = IntegralParser[Byte]("string", "byte", pattern, None, None)
     assert(ipLong.parse("98987565664") == Success(98987565664L))
     assert(ipLong.parse("N31225927393149") == Success(-31225927393149L))
     assert(ipLong.parse("-31225927393149").isFailure)
@@ -64,10 +64,10 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   test("Limit breaches") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern(decimalSymbols)
-    val ipLong = IntegralParser[Long](pattern, Some(10000000000L), Some(10000000010L))
-    val ipInt = IntegralParser[Int](pattern, Some(-700000), None)
-    val ipShort = IntegralParser[Short](pattern, None, Some(5000))
-    val ipByte = IntegralParser[Byte](pattern, None, None)
+    val ipLong = IntegralParser[Long]("string", "long", pattern, Some(10000000000L), Some(10000000010L))
+    val ipInt = IntegralParser[Int]("string", "integer", pattern, Some(-700000), None)
+    val ipShort = IntegralParser[Short]("string", "short", pattern, None, Some(5000))
+    val ipByte = IntegralParser[Byte]("string", "byte", pattern, None, None)
     assert(ipLong.parse("10000000011").isFailure)
     assert(ipLong.parse("9999999999").isFailure)
     assert(ipInt.parse("2147483648").isFailure)
@@ -81,7 +81,7 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   test("pattern with standard decimal symbols") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("0,000",decimalSymbols)
-    val parser = IntegralParser(pattern)
+    val parser = IntegralParser("string", "integer", pattern)
 
     assert(parser.parse("100") == Success(100))
     assert(parser.parse("-1") == Success(-1))
@@ -101,7 +101,7 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
       minusSign = '~'
     )
     val pattern = NumericPattern("#,##0",decimalSymbols) //NB! that the standard grouping separator is used
-    val parser = IntegralParser(pattern)
+    val parser = IntegralParser("string", "integer", pattern)
 
     assert(parser.parse("100") == Success(100))
     assert(parser.parse("~1") == Success(-1))
@@ -119,7 +119,7 @@ class IntegralParser_PatternIntegralParserSuite extends AnyFunSuite {
   test("Prefix, suffix and different negative pattern") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("Price: 0'EUR';Price: -0'EUR'",decimalSymbols)
-    val parser = IntegralParser(pattern)
+    val parser = IntegralParser("string", "integer", pattern)
 
     assert(parser.parse("Price: 100EUR") == Success(100))
     assert(parser.parse("Price: -12EUR") == Success(-12))

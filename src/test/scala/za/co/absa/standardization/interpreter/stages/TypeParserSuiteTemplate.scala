@@ -113,7 +113,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
       }
       assert(caughtErr.getMessage == errMessage)
     } else {
-      testTemplate(dateField, schema, path, "yyyy-MM-dd")
+      testTemplate(dateField, schema, path)
     }
   }
 
@@ -130,7 +130,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
       }
       assert(caughtErr.getMessage == errMessage)
     } else {
-      testTemplate(timestampField, schema, path, "yyyy-MM-dd HH:mm:ss")
+      testTemplate(timestampField, schema, path)
     }
   }
 
@@ -212,8 +212,9 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
 
   private def testTemplate(target: StructField, schema: StructType, path: String, pattern: String = "", timezone: Option[String] = None): Unit = {
     val srcField = fullName(path, sourceFieldName)
+    val srcType = schema.fields.head.dataType.asInstanceOf[StructType].fields.find(_.name == sourceFieldName).get.dataType
     val castString = createCastTemplate(target.dataType, pattern, timezone).format(srcField, srcField)
-    val errColumnExpression = assembleErrorExpression(srcField, target, applyRecasting(castString))
+    val errColumnExpression = assembleErrorExpression(srcField, target, applyRecasting(castString), srcType.typeName, target.dataType.typeName, pattern)
     val stdCastExpression = assembleCastExpression(srcField, target, applyRecasting(castString), errColumnExpression)
     val output: ParseOutput = TypeParser.standardize(target, path, schema, stdConfig)
 
@@ -272,14 +273,15 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     if (SPARK_VERSION.startsWith("2.")) expresionWithQuotes else expresionWithQuotes.replaceAll("`", "")
   }
 
-  private def assembleErrorExpression(srcField: String, target: StructField, castS: String): String = {
+  private def assembleErrorExpression(srcField: String, target: StructField, castS: String, fromType: String, toType: String, pattern: String): String = {
     val errCond = createErrorCondition(srcField, target, castS)
+    val patternExpr = if (pattern.isEmpty) "NULL" else pattern
 
     if (target.nullable) {
-      s"CASE WHEN (($srcField IS NOT NULL) AND ($errCond)) THEN array(stdCastErr($srcField, CAST($srcField AS STRING))) ELSE [] END"
+      s"CASE WHEN (($srcField IS NOT NULL) AND ($errCond)) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), $fromType, $toType, $patternExpr)) ELSE [] END"
     } else {
       s"CASE WHEN ($srcField IS NULL) THEN array(stdNullErr($srcField)) ELSE " +
-        s"CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING))) ELSE [] END END"
+        s"CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), $fromType, $toType, $patternExpr)) ELSE [] END END"
     }
   }
 

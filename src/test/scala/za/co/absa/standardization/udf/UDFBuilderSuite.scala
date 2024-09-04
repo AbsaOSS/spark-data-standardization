@@ -47,7 +47,7 @@ class UDFBuilderSuite extends AnyFunSuite {
 
     val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[Double]]
     val defaultValue: Option[Double] = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[Double])
-    val parser = numericTypeField.parser.get.asInstanceOf[FractionalParser[Double]]
+    val parser = numericTypeField.parser(StringType).get.asInstanceOf[FractionalParser[Double]]
     val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, stdConfig, defaultValue)
     //write
     val baos = new ByteArrayOutputStream
@@ -72,7 +72,7 @@ class UDFBuilderSuite extends AnyFunSuite {
 
     val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[BigDecimal]]
     val defaultValue = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[BigDecimal])
-    val parser = numericTypeField.parser.get.asInstanceOf[DecimalParser]
+    val parser = numericTypeField.parser(StringType).get.asInstanceOf[DecimalParser]
     val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, stdConfig, defaultValue)
     //write
     val baos = new ByteArrayOutputStream
@@ -100,7 +100,7 @@ class UDFBuilderSuite extends AnyFunSuite {
 
     val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[Long]]
     val defaultValue: Option[Long] = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[Long])
-    val parser = numericTypeField.parser.get.asInstanceOf[RadixIntegralParser[Long]]
+    val parser = numericTypeField.parser(StringType).get.asInstanceOf[RadixIntegralParser[Long]]
     val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, stdConfig, defaultValue)
     //write
     val baos = new ByteArrayOutputStream
@@ -127,7 +127,7 @@ class UDFBuilderSuite extends AnyFunSuite {
 
     val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[Short]]
     val defaultValue: Option[Short] = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[Short])
-    val parser = numericTypeField.parser.get.asInstanceOf[PatternIntegralParser[Short]]
+    val parser = numericTypeField.parser(StringType).get.asInstanceOf[PatternIntegralParser[Short]]
     val udfFnc = UDFBuilder.stringUdfViaNumericParser(parser, numericTypeField.nullable, fieldName, stdConfig, defaultValue)
     //write
     val baos = new ByteArrayOutputStream

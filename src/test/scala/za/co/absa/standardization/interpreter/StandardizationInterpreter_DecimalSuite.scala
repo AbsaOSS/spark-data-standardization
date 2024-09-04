@@ -91,23 +91,23 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
       DecimalRow("02-Null", Option(zero), None, Seq(
         StandardizationErrorMessage.stdNullErr("small"))),
       DecimalRow("03-Long", Option(zero), Option(Long.MinValue), Seq(
-        StandardizationErrorMessage.stdCastErr("small", Long.MaxValue.toString))),
+        StandardizationErrorMessage.stdCastErr("small", Long.MaxValue.toString, "string", "decimal(5,2)", None))),
       DecimalRow("04-infinity", Option(zero), None,  Seq(
-        StandardizationErrorMessage.stdCastErr("small", "-Infinity"),
-        StandardizationErrorMessage.stdCastErr("big", "Infinity"))),
+        StandardizationErrorMessage.stdCastErr("small", "-Infinity", "string", "decimal(5,2)", None),
+        StandardizationErrorMessage.stdCastErr("big", "Infinity", "string", "decimal(38,18)", None))),
       DecimalRow("05-Really big", Option(zero), None, Seq(
-        StandardizationErrorMessage.stdCastErr("small", "123456789123456791245678912324789123456789123456789.12"),
+        StandardizationErrorMessage.stdCastErr("small", "123456789123456791245678912324789123456789123456789.12", "string", "decimal(5,2)", None),
         StandardizationErrorMessage.stdCastErr("big", "1234567891234567912456789123247891234567891234567891234567891"
           + "2345678912345678912345678912345678912345678912345678912345678912345678912345678912345678912345678912345678"
           + "9123456789123456789123456789123456789123467891234567891234567891234567891234567912456789123247891234567891"
           + "2345678912345678912345678912345679124567891232478912345678912345678912345678912345678912345678912345678912"
-          + "3456789.1"))),
+          + "3456789.1", "string", "decimal(38,18)", None))),
       DecimalRow("06-Text", Option(zero), None, Seq(
-        StandardizationErrorMessage.stdCastErr("small", "foo"),
-        StandardizationErrorMessage.stdCastErr("big", "bar"))),
+        StandardizationErrorMessage.stdCastErr("small", "foo", "string", "decimal(5,2)", None),
+        StandardizationErrorMessage.stdCastErr("big", "bar", "string", "decimal(38,18)", None))),
       DecimalRow("07-Exponential notation", Option(bd(-123)), Option(bd(0.00098765))),
       DecimalRow("08-Small overflow", Option(zero), Option(bd(1000)), Seq(
-        StandardizationErrorMessage.stdCastErr("small", "1000"))),
+        StandardizationErrorMessage.stdCastErr("small", "1000", "string", "decimal(5,2)", None))),
       DecimalRow("09-Loss of precision", Option(bd(123.46)), Option(bd(123.456)))
     )
 
@@ -132,16 +132,16 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
       DecimalRow("02-Null", Option(zero), None, Seq(
         StandardizationErrorMessage.stdNullErr("small"))),
       DecimalRow("03-Long", Option(zero), Option(-9223372036854776000.0), Seq(  // rounding in doubles for large integers
-        StandardizationErrorMessage.stdCastErr("small", "9.223372036854776E18"))),
+        StandardizationErrorMessage.stdCastErr("small", "9.223372036854776E18", "double", "decimal(5,2)", None))),
       DecimalRow("04-Infinity", Option(zero), None,  Seq(
-        StandardizationErrorMessage.stdCastErr("small", "-Infinity"),
-        StandardizationErrorMessage.stdCastErr("big", "Infinity"))),
+        StandardizationErrorMessage.stdCastErr("small", "-Infinity", "double", "decimal(5,2)", None),
+        StandardizationErrorMessage.stdCastErr("big", "Infinity", "double", "decimal(38,18)", None))),
       DecimalRow("05-Really big", Option(zero), None, Seq(
-        StandardizationErrorMessage.stdCastErr("small", reallyBig.toString),
-      StandardizationErrorMessage.stdCastErr("big", reallyBig.toString))),
+        StandardizationErrorMessage.stdCastErr("small", reallyBig.toString, "double", "decimal(5,2)", None),
+      StandardizationErrorMessage.stdCastErr("big", reallyBig.toString, "double", "decimal(38,18)", None))),
       DecimalRow("06-NaN", Option(zero), None, Seq(
-        StandardizationErrorMessage.stdCastErr("small", "NaN"),
-        StandardizationErrorMessage.stdCastErr("big", "NaN")))
+        StandardizationErrorMessage.stdCastErr("small", "NaN", "double", "decimal(5,2)", None),
+        StandardizationErrorMessage.stdCastErr("big", "NaN", "double", "decimal(38,18)", None)))
     )
 
     val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
@@ -187,9 +187,9 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
     val exp = List(
       ("01-Normal", "123:456", BigDecimal("123.460000000000000000"), BigDecimal("123.456000000000000000"), Seq.empty), //NB the rounding in the small
       ("02-Null", null,  BigDecimal("0E-18"), null, Seq(StandardizationErrorMessage.stdNullErr(srcField))),
-      ("03-Far negative", "N100000000:999",  BigDecimal("0E-18"), BigDecimal("-100000000.999000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"N100000000:999"))),
-      ("04-Wrong", "hello",  BigDecimal("0E-18"), BigDecimal("-1.100000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"hello"), StandardizationErrorMessage.stdCastErr(srcField,"hello"))),
-      ("05-Not adhering to pattern", "123456.789",  BigDecimal("0E-18"), BigDecimal("-1.100000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"123456.789"), StandardizationErrorMessage.stdCastErr(srcField,"123456.789")))
+      ("03-Far negative", "N100000000:999",  BigDecimal("0E-18"), BigDecimal("-100000000.999000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"N100000000:999", "string", "decimal(5,2)", None))),
+      ("04-Wrong", "hello",  BigDecimal("0E-18"), BigDecimal("-1.100000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"hello", "string", "decimal(5,2)", None), StandardizationErrorMessage.stdCastErr(srcField,"hello", "string", "decimal(38,18)", None))),
+      ("05-Not adhering to pattern", "123456.789",  BigDecimal("0E-18"), BigDecimal("-1.100000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"123456.789", "string", "decimal(5,2)", None), StandardizationErrorMessage.stdCastErr(srcField,"123456.789", "string", "decimal(38,18)", None)))
     )
 
     assertResult(exp)(std.as[(String, String, BigDecimal, BigDecimal, Seq[ErrorMessage])].collect().toList)
@@ -229,9 +229,9 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
     val exp = List(
       ("01-Normal", "123.4‰", BigDecimal("0.120000000000000000"), BigDecimal("0.123400000000000000"), Seq.empty),
       ("02-Null", null,  BigDecimal("0E-18"), null, Seq(StandardizationErrorMessage.stdNullErr(srcField))),
-      ("03-Big", "100,000,000.999‰",  BigDecimal("0E-18"), BigDecimal("100000.000999000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"100,000,000.999‰"))),
-      ("04-Wrong", "hello",  BigDecimal("0E-18"), BigDecimal("1.000000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"hello"), StandardizationErrorMessage.stdCastErr(srcField,"hello"))),
-      ("05-Not adhering to pattern", "123456.789",  BigDecimal("0E-18"), BigDecimal("1.000000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"123456.789"), StandardizationErrorMessage.stdCastErr(srcField,"123456.789")))
+      ("03-Big", "100,000,000.999‰",  BigDecimal("0E-18"), BigDecimal("100000.000999000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"100,000,000.999‰", "string", "decimal(5,2)", None))),
+      ("04-Wrong", "hello",  BigDecimal("0E-18"), BigDecimal("1.000000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"hello", "string", "decimal(5,2)", None), StandardizationErrorMessage.stdCastErr(srcField,"hello", "string", "decimal(38,18)", None))),
+      ("05-Not adhering to pattern", "123456.789",  BigDecimal("0E-18"), BigDecimal("1.000000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"123456.789", "string", "decimal(5,2)", None), StandardizationErrorMessage.stdCastErr(srcField,"123456.789", "string", "decimal(38,18)", None)))
     )
 
     assertResult(exp)(std.as[(String, String, BigDecimal, BigDecimal, Seq[ErrorMessage])].collect().toList)
@@ -281,9 +281,9 @@ class StandardizationInterpreter_DecimalSuite extends AnyFunSuite with SparkTest
     val exp = List(
       ("01-Normal", "9 123,4", BigDecimal("9123.400000000000000000"), BigDecimal("9123.400000000000000000"), Seq.empty),
       ("02-Null", null,  BigDecimal("0E-18"), null, Seq(StandardizationErrorMessage.stdNullErr(srcField))),
-      ("03-Big", "100 000 000,999",  BigDecimal("0E-18"), BigDecimal("100000000.999000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"100 000 000,999"))),
-      ("04-Wrong", "hello",  BigDecimal("0E-18"), BigDecimal("1.000000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"hello"), StandardizationErrorMessage.stdCastErr(srcField,"hello"))),
-      ("05-Not adhering to pattern", "123456.789",  BigDecimal("0E-18"), BigDecimal("1.000000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"123456.789"), StandardizationErrorMessage.stdCastErr(srcField,"123456.789"))),
+      ("03-Big", "100 000 000,999",  BigDecimal("0E-18"), BigDecimal("100000000.999000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"100 000 000,999", "string", "decimal(7,2)", None))),
+      ("04-Wrong", "hello",  BigDecimal("0E-18"), BigDecimal("1.000000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"hello", "string", "decimal(7,2)", None), StandardizationErrorMessage.stdCastErr(srcField,"hello", "string", "decimal(38,18)", None))),
+      ("05-Not adhering to pattern", "123456.789",  BigDecimal("0E-18"), BigDecimal("1.000000000000000000"), Seq(StandardizationErrorMessage.stdCastErr(srcField,"123456.789", "string", "decimal(7,2)", None), StandardizationErrorMessage.stdCastErr(srcField,"123456.789", "string", "decimal(38,18)", None))),
       ("06-Negative", "~54 123,789", BigDecimal("-54123.790000000000000000"), BigDecimal("-54123.789000000000000000"), Seq.empty)
     )
 
