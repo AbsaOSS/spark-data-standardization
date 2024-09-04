@@ -80,7 +80,7 @@ class StandardizationInterpreter_BinarySuite extends AnyFunSuite with SparkTestB
       BinaryRow(Array(49, 50, 51).map(_.toByte)), // "123"
       BinaryRow(Array(97, 98, 99, 100).map(_.toByte)), // "abcd"
       BinaryRow(Array.emptyByteArray, // default value on error
-        Seq(ErrorMessage("stdCastError", "E00000", "Standardization Error - Type cast", "binaryField",
+        Seq(ErrorMessage("stdCastError", "E00000", "Type cast from 'string' to 'binary'", "binaryField",
           rawValues = Seq("bogus#$%^"), mappings = Seq()))
       )
     )

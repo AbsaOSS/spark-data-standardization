@@ -19,7 +19,6 @@ package za.co.absa.standardization.interpreter.stages
 import java.security.InvalidParameterException
 import java.sql.{Date, Timestamp}
 import java.text.SimpleDateFormat
-
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types._
@@ -30,8 +29,10 @@ import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStand
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate._
 import za.co.absa.standardization.stages.TypeParser
 import za.co.absa.standardization.time.DateTimePattern
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, ParseOutput, TypedStructField}
+import za.co.absa.standardization.types.{CommonTypeDefaults, ParseOutput, TypeDefaults, TypedStructField}
 import za.co.absa.standardization.udf.UDFLibrary
+
+import scala.annotation.tailrec
 
 trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
 
@@ -100,7 +101,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     testTemplate(booleanField, schema, path)
   }
 
-  protected def doTestIntoDateFieldNoPattern(input: Input): Unit = {
+  protected def doTestIntoDateFieldNoPattern(input: Input, actualPattern: String = ""): Unit = {
     import input._
     val dateField = StructField("dateField", DateType, nullable = false,
       new MetadataBuilder().putString("sourcecolumn", sourceFieldName).build)
@@ -113,7 +114,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
       }
       assert(caughtErr.getMessage == errMessage)
     } else {
-      testTemplate(dateField, schema, path)
+      testTemplate(dateField, schema, path, actualPattern)
     }
   }
 
@@ -210,9 +211,21 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     }
   }
 
+  @tailrec
+  private def getFieldByFullName(schema: StructType, fullName: String): StructField = {
+    val path = fullName.split('.')
+    val field = schema.fields.find(_.name == path.head).get
+    if (path.length > 1) {
+      getFieldByFullName(field.dataType.asInstanceOf[StructType], path.tail.mkString("."))
+    } else {
+      field
+    }
+  }
+
   private def testTemplate(target: StructField, schema: StructType, path: String, pattern: String = "", timezone: Option[String] = None): Unit = {
+
     val srcField = fullName(path, sourceFieldName)
-    val srcType = schema.fields.head.dataType.asInstanceOf[StructType].fields.find(_.name == sourceFieldName).get.dataType
+    val srcType = getFieldByFullName(schema, srcField).dataType
     val castString = createCastTemplate(target.dataType, pattern, timezone).format(srcField, srcField)
     val errColumnExpression = assembleErrorExpression(srcField, target, applyRecasting(castString), srcType.typeName, target.dataType.typeName, pattern)
     val stdCastExpression = assembleCastExpression(srcField, target, applyRecasting(castString), errColumnExpression)
