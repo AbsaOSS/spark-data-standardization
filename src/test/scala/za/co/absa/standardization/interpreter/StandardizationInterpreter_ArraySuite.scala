@@ -78,14 +78,14 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
 
     val expectedData = Seq(
       Row(Seq(null, null, null), Seq(
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:00:00 01.12.2018"), Seq()),
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:10:00 02.12.2018"), Seq()),
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:20:00 03.12.2018"), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:00:00 01.12.2018"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:10:00 02.12.2018"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:20:00 03.12.2018"), Seq())
       )),
       Row(Seq(null, null, null), Seq(
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:00:00 01.12.2019"), Seq()),
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:10:00 02.12.2019"), Seq()),
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:20:00 03.12.2019"), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:00:00 01.12.2019"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:10:00 02.12.2019"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:20:00 03.12.2019"), Seq())
       )),
       Row(Seq(Timestamp.valueOf("2020-01-12 00:00:00"), Timestamp.valueOf("2020-12-02 00:10:00"), Timestamp.valueOf("2020-12-03 00:20:00")), Seq())
     )

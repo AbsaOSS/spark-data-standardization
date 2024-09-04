@@ -236,7 +236,7 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59.999")),
       TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43.123")),
       TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "1970 02 02 00 00 00 112", "string", "timestamp", Some("yyyy MM dd HH mm ss SSS XXX")))),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope", "string", "bb", Some("yyyy MM dd HH mm ss SSS XXX"))))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope", "string", "timestamp", Some("yyyy MM dd HH mm ss SSS XXX"))))
     )
 
     val src = seq.toDF(fieldName)

@@ -85,7 +85,7 @@ object TestSamples {
   val resData = List(
      StdEmployee(name = "John0", surname = "Unknown Surname", hoursWorked = Some(List(8, 7, 8, 9, 12, 0)),
         employeeNumbers = List(EmployeeNumberStd("SAP", List(456, 123)), EmployeeNumberStd("WD", List(5))), startDate =  new java.sql.Date(startDate), errCol = List(StandardizationErrorMessage.stdNullErr("surname"), StandardizationErrorMessage.stdNullErr("hoursWorked[*]"))),
-     StdEmployee(name = "John1", surname = "Doe1", hoursWorked = Some(List(99, 99, 76, 12, 12, 24)), startDate = new java.sql.Date(0), errCol = List(StandardizationErrorMessage.stdCastErr("startDate", "Two Thousand Something", "aa", "bb", None))),
+     StdEmployee(name = "John1", surname = "Doe1", hoursWorked = Some(List(99, 99, 76, 12, 12, 24)), startDate = new java.sql.Date(0), errCol = List(StandardizationErrorMessage.stdCastErr("startDate", "Two Thousand Something", "string", "date", Some("yyyy-MM-dd")))),
      StdEmployee(name = "John2", surname = "Unknown Surname", hoursWorked = None, startDate = new java.sql.Date(startDate), updated = Some(Timestamp.valueOf("2015-07-16 13:32:24")), errCol = List(StandardizationErrorMessage.stdNullErr("surname"), StandardizationErrorMessage.stdNullErr("hoursWorked"))),
      StdEmployee(name = "John3", surname = "Unknown Surname", hoursWorked = Some(List()), startDate = new java.sql.Date(startDate), updated = Some(Timestamp.valueOf("2015-07-16 10:32:24")), errCol = List(StandardizationErrorMessage.stdNullErr("surname"))))
 
