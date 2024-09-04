@@ -16,22 +16,19 @@
 
 package za.co.absa.standardization.interpreter
 
-import org.apache.spark.sql.SparkSession
-
-import java.sql.Timestamp
 import org.apache.spark.sql.types.{MetadataBuilder, StructField, StructType, TimestampType}
-import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{LoggerTestBase, Standardization, StandardizationErrorMessage}
-import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
-import za.co.absa.standardization.base.StdSparkTestBase
 
-class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with StdSparkTestBase with LoggerTestBase {
+import java.sql.Timestamp
+
+class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
 
   private val stdConfig = BasicStandardizationConfig
