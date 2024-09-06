@@ -279,8 +279,13 @@ object TypedStructField {
         val decimalSymbols = patternForParser.map(_.decimalSymbols).getOrElse(defaults.getDecimalSymbols)
         Try(IntegralParser.ofRadix(origType.typeName, structField.dataType.typeName, radix, decimalSymbols, Option(typeMin), Option(typeMax)))
       } else {
-        Success(IntegralParser(origType.typeName, structField.dataType.typeName,
-          patternForParser.getOrElse(NumericPattern(defaults.getDecimalSymbols)), Option(typeMin), Option(typeMax)))
+        Success(IntegralParser(
+          origType.typeName, 
+          structField.dataType.typeName,
+          patternForParser.getOrElse(NumericPattern(defaults.getDecimalSymbols)), 
+          Option(typeMin), 
+          Option(typeMax)
+        ))
       }}
     }
 
@@ -357,7 +362,7 @@ object TypedStructField {
       val maxScale = if(strictParsing) Some(scale) else None
       pattern.map { patternOpt =>
         val pattern: NumericPattern = patternOpt.getOrElse(NumericPattern(defaults.getDecimalSymbols))
-        val decimalTypeStr = if (scale > 0) s"decimal($precision,$scale)" else s"decimal($precision"
+        val decimalTypeStr = if (scale > 0) s"decimal($precision,$scale)" else s"decimal($precision)"
         DecimalParser(origType.typeName, decimalTypeStr, pattern, Option(typeMin), Option(typeMax), maxScale)
       }
     }
