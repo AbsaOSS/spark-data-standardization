@@ -22,7 +22,7 @@ import java.util.Date
 import java.util.regex.Pattern
 import org.apache.spark.sql.Column
 import org.apache.spark.sql.expressions.UserDefinedFunction
-import org.apache.spark.sql.functions.{lit, _}
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.slf4j.{Logger, LoggerFactory}
 import za.co.absa.standardization.ErrorMessage
@@ -266,12 +266,11 @@ object TypeParser {
       val castedCol: Column = assemblePrimitiveCastLogic
       val castHasError: Column = assemblePrimitiveCastErrorLogic(castedCol)
       val patternOpt = field.pattern.toOption.flatten.map(_.pattern)
-      val pattern = patternOpt match {
+      val patternColumn = patternOpt match {
         case Some(s) if field.structField.metadata.contains("pattern") => lit(s)
         case _ => lit(null: String)
       }
 
-      val f = field
       val err: Column  = if (field.nullable) {
         when(column.isNotNull and castHasError, // cast failed
           array(callUDF(UDFNames.stdCastErr,
@@ -279,7 +278,7 @@ object TypeParser {
             column.cast(StringType),
             lit(origType.typeName),
             lit(field.dataType.typeName),
-            lit(pattern)))
+            patternColumn))
         ).otherwise( // everything is OK
           typedLit(Seq.empty[ErrorMessage])
         )
@@ -292,7 +291,7 @@ object TypeParser {
             column.cast(StringType),
             lit(origType.typeName),
             lit(field.dataType.typeName),
-            lit(pattern)))
+            patternColumn))
         ).otherwise( // everything is OK
           typedLit(Seq.empty[ErrorMessage])
         ))
