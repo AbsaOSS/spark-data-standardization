@@ -70,10 +70,10 @@ sealed trait TypeParser[T] {
   }
 
   protected val failOnInputNotPerSchema: Boolean
-  val field: TypedStructField
+  protected val field: TypedStructField
   protected val metadata: Metadata = field.structField.metadata
   protected val path: String
-  val origType: DataType
+  protected val origType: DataType
   protected val fieldInputName: String = field.structField.sourceName
   protected val fieldOutputName: String = field.name
   protected val inputFullPathName: String = SchemaUtils.appendPath(path, fieldInputName)
@@ -315,12 +315,10 @@ object TypeParser {
   }
 
   private abstract class ScalarParser[T](implicit defaults: TypeDefaults) extends PrimitiveParser[T] {
-    override val origType: DataType
     override def assemblePrimitiveCastLogic: Column = column.cast(field.dataType)
   }
 
-  private abstract class NumericParser[N: TypeTag](override val origType: DataType,
-                                                   override val field: NumericTypeStructField[N])
+  private abstract class NumericParser[N: TypeTag](override val field: NumericTypeStructField[N])
                                                   (implicit defaults: TypeDefaults) extends ScalarParser[N] {
     override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       if (field.needsUdfParsing) {
@@ -377,11 +375,11 @@ object TypeParser {
   private final case class IntegralParser[N: LongLike: TypeTag](override val field: NumericTypeStructField[N],
                                                                 path: String,
                                                                 column: Column,
-                                                                override val origType: DataType,
+                                                                origType: DataType,
                                                                 failOnInputNotPerSchema: Boolean,
                                                                 isArrayElement: Boolean,
                                                                 overflowableTypes: Set[DataType])
-                                                               (implicit defaults: TypeDefaults) extends NumericParser[N](origType, field) {
+                                                               (implicit defaults: TypeDefaults) extends NumericParser[N](field) {
     override protected def assemblePrimitiveCastErrorLogic(castedCol: Column): Column = {
       val basicLogic: Column = super.assemblePrimitiveCastErrorLogic(castedCol)
 
@@ -408,22 +406,22 @@ object TypeParser {
   private final case class DecimalParser(override val field: NumericTypeStructField[BigDecimal],
                                          path: String,
                                          column: Column,
-                                         override val origType: DataType,
+                                         origType: DataType,
                                          failOnInputNotPerSchema: Boolean,
                                          isArrayElement: Boolean)
                                         (implicit defaults: TypeDefaults)
-    extends NumericParser[BigDecimal](origType, field)
+    extends NumericParser[BigDecimal](field)
     // NB! loss of precision is not addressed for any DecimalType
     // e.g. 3.141592 will be Standardized to Decimal(10,2) as 3.14
 
   private final case class FractionalParser[N: DoubleLike: TypeTag](override val field: NumericTypeStructField[N],
                                                                     path: String,
                                                                     column: Column,
-                                                                    override val origType: DataType,
+                                                                    origType: DataType,
                                                                     failOnInputNotPerSchema: Boolean,
                                                                     isArrayElement: Boolean)
                                                                    (implicit defaults: TypeDefaults)
-    extends NumericParser[N](origType, field) {
+    extends NumericParser[N](field) {
     override protected def assemblePrimitiveCastErrorLogic(castedCol: Column): Column = {
       //NB! loss of precision is not addressed for any fractional type
       if (field.allowInfinity) {
