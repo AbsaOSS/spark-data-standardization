@@ -22,12 +22,10 @@ import java.text.DecimalFormat
 import za.co.absa.standardization.numeric.NumericPattern
 import za.co.absa.standardization.typeClasses.DoubleLike
 
-class FractionalParser[D: DoubleLike] private(override val sourceTypeStr: String,
-                                              override val targetTypeStr: String,
-                                              override val pattern: NumericPattern,
+class FractionalParser[D: DoubleLike] private(override val pattern: NumericPattern,
                                               override val min: Option[D],
                                               override val max: Option[D])
-  extends NumericParser(sourceTypeStr, targetTypeStr, pattern, min, max) with ParseViaDecimalFormat[D] {
+  extends NumericParser(pattern, min, max) with ParseViaDecimalFormat[D] {
 
   private val ev = implicitly[DoubleLike[D]]
 
@@ -50,27 +48,22 @@ class FractionalParser[D: DoubleLike] private(override val sourceTypeStr: String
 }
 
 object FractionalParser {
-  def apply(sourceTypeStr: String,
-            pattern: NumericPattern,
+  def apply(pattern: NumericPattern,
             min: Double = Double.MinValue,
             max: Double = Double.MaxValue): FractionalParser[Double] = {
-    new FractionalParser(sourceTypeStr, DoubleType.typeName, pattern, Option(min), Option(max))
+    new FractionalParser(pattern, Option(min), Option(max))
   }
 
-  def apply[D: DoubleLike](sourceType: String,
-                           targetType: String,
-                           pattern: NumericPattern,
+  def apply[D: DoubleLike](pattern: NumericPattern,
                            min: D,
                            max: D): FractionalParser[D] = {
-    new FractionalParser[D](sourceType, targetType, pattern, Option(min), Option(max))
+    new FractionalParser[D](pattern, Option(min), Option(max))
   }
 
-  def withInfinity[D: DoubleLike](sourceType: String,
-                                  targetType: String,
-                                  pattern: NumericPattern): FractionalParser[D] = {
+  def withInfinity[D: DoubleLike](pattern: NumericPattern): FractionalParser[D] = {
     val ev = implicitly[DoubleLike[D]]
     val negativeInfinity = ev.toT(Double.NegativeInfinity)
     val positiveInfinity = ev.toT(Double.PositiveInfinity)
-    new FractionalParser(sourceType, targetType, pattern, Option(negativeInfinity), Option(positiveInfinity))
+    new FractionalParser(pattern, Option(negativeInfinity), Option(positiveInfinity))
   }
 }

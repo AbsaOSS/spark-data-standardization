@@ -25,8 +25,8 @@ import za.co.absa.standardization.{ValidationError, ValidationIssue}
 object NumericFieldValidator extends NumericFieldValidator
 
 class NumericFieldValidator  extends ScalarFieldValidator {
-  private def validateNumericTypeStructField(origType: DataType, field: NumericTypeStructField[_]): Seq[ValidationIssue] = {
-    tryToValidationIssues(field.parser(origType))
+  private def validateNumericTypeStructField(field: NumericTypeStructField[_]): Seq[ValidationIssue] = {
+    tryToValidationIssues(field.parser)
   }
 
   override def validate(field: TypedStructField): Seq[ValidationIssue] = {
@@ -36,7 +36,7 @@ class NumericFieldValidator  extends ScalarFieldValidator {
       checkMetadataKey[Char](field, MetadataKeys.MinusSign) ++
       checkMetadataKey[Char](field, MetadataKeys.GroupingSeparator) ++ (
       field match {
-        case numericField: NumericTypeStructField[_] => validateNumericTypeStructField(StringType, numericField)
+        case numericField: NumericTypeStructField[_] => validateNumericTypeStructField(numericField)
         case _ => Seq(ValidationError("NumericFieldValidator can validate only fields of numeric types"))
       })
   }

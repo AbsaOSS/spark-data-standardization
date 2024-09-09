@@ -32,8 +32,8 @@ class FractionalParserSuite extends AnyFunSuite {
   test("No pattern") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern(decimalSymbols)
-    val parserFloat = FractionalParser[Float]("string", "float", pattern, Float.MinValue, Float.MaxValue)
-    val parserDouble = FractionalParser("string", pattern, Double.MinValue, Double.MaxValue)
+    val parserFloat = FractionalParser[Float](pattern, Float.MinValue, Float.MaxValue)
+    val parserDouble = FractionalParser(pattern, Double.MinValue, Double.MaxValue)
     assert(parserFloat.parse("3.14") == Success(3.14F))
     assert(parserDouble.parse("3.14") == Success(3.14D))
     assert(parserFloat.parse("+1.") == Success(1F))
@@ -52,8 +52,8 @@ class FractionalParserSuite extends AnyFunSuite {
   test("Simple pattern, some limitations") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("0.#", decimalSymbols)
-    val parserFloat = FractionalParser[Float]("string", "float", pattern, Float.MinValue, Float.MaxValue)
-    val parserDouble = FractionalParser("string", pattern, Double.MinValue, Double.MaxValue)
+    val parserFloat = FractionalParser[Float](pattern, Float.MinValue, Float.MaxValue)
+    val parserDouble = FractionalParser(pattern, Double.MinValue, Double.MaxValue)
     assert(parserFloat.parse("3.14") == Success(3.14F))
     assert(parserDouble.parse("3.14") == Success(3.14D))
     assert(parserFloat.parse("1.") == Success(1F))
@@ -72,8 +72,8 @@ class FractionalParserSuite extends AnyFunSuite {
   test("plus doesn't work if pattern is specified") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("0", decimalSymbols)
-    val parserFloat = FractionalParser[Float]("string", "float", pattern, Float.MinValue, Float.MaxValue)
-    val parserDouble = FractionalParser("string", pattern, Double.MinValue, Double.MaxValue)
+    val parserFloat = FractionalParser[Float](pattern, Float.MinValue, Float.MaxValue)
+    val parserDouble = FractionalParser(pattern, Double.MinValue, Double.MaxValue)
     assert(parserFloat.parse("+2.71").isFailure)
     assert(parserDouble.parse("+2.71").isFailure)
   }
@@ -82,10 +82,10 @@ class FractionalParserSuite extends AnyFunSuite {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern1 = NumericPattern(decimalSymbols)
     val pattern2 = NumericPattern("0.#", decimalSymbols)
-    val parserFloatStd1 = FractionalParser.withInfinity[Float]("string", "float", pattern1)
-    val parserDoubleStd1 = FractionalParser.withInfinity[Double]("string", "double", pattern1)
-    val parserFloatStd2 = FractionalParser.withInfinity[Float]("string", "float", pattern2)
-    val parserDoubleStd2 = FractionalParser.withInfinity[Double]("string", "double", pattern2)
+    val parserFloatStd1 = FractionalParser.withInfinity[Float](pattern1)
+    val parserDoubleStd1 = FractionalParser.withInfinity[Double](pattern1)
+    val parserFloatStd2 = FractionalParser.withInfinity[Float](pattern2)
+    val parserDoubleStd2 = FractionalParser.withInfinity[Double](pattern2)
     assert(parserFloatStd1.parse("∞") == Success(Float.PositiveInfinity))
     assert(parserFloatStd1.parse("-∞") == Success(Float.NegativeInfinity))
     assert(parserDoubleStd1.parse("∞") == Success(Double.PositiveInfinity))
@@ -113,9 +113,9 @@ class FractionalParserSuite extends AnyFunSuite {
     val pattern1 = NumericPattern(decimalSymbols)
     val pattern2 = NumericPattern("#", decimalSymbols)
     val pattern3 = NumericPattern("#;Negative#", decimalSymbols)
-    val parser1 = FractionalParser.withInfinity[Double]("string", "double", pattern1)
-    val parser2 = FractionalParser.withInfinity[Float]("string", "float", pattern2)
-    val parser3 = FractionalParser.withInfinity[Double]("string", "double", pattern3)
+    val parser1 = FractionalParser.withInfinity[Double](pattern1)
+    val parser2 = FractionalParser.withInfinity[Float](pattern2)
+    val parser3 = FractionalParser.withInfinity[Double](pattern3)
     assert(parser1.parse("Infinity") == Success(Double.PositiveInfinity))
     assert(parser1.parse("&Infinity") == Success(Double.NegativeInfinity))
     assert(parser2.parse("Infinity") == Success(Float.PositiveInfinity))
@@ -128,7 +128,7 @@ class FractionalParserSuite extends AnyFunSuite {
   test("No pattern, no limitations, minus sign and decimal separator altered") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols.copy(minusSign = 'N', decimalSeparator = ',')
     val pattern = NumericPattern(decimalSymbols)
-    val parser = FractionalParser("string", pattern)
+    val parser = FractionalParser(pattern)
     assert(parser.parse("6,28") == Success(6.28D))
     assert(parser.parse("10000,") == Success(10000D))
     assert(parser.parse("N7") == Success(-7D))
@@ -144,7 +144,7 @@ class FractionalParserSuite extends AnyFunSuite {
       minusSign = '@'
     )
     val pattern = NumericPattern("#,##0",decimalSymbols) //NB! that the standard grouping separator is used
-    val parser = FractionalParser("string", pattern)
+    val parser = FractionalParser(pattern)
 
     assert(parser.parse("100") == Success(100))
     assert(parser.parse("@,1") == Success(-0.1D))
@@ -161,7 +161,7 @@ class FractionalParserSuite extends AnyFunSuite {
   test("Prefix, suffix and different negative pattern") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("Temperature #,##0C;Freezing -0",decimalSymbols)
-    val parser = FractionalParser("string", pattern)
+    val parser = FractionalParser(pattern)
 
     assert(parser.parse("Temperature 100C") == Success(100D))
     assert(parser.parse("Temperature 36.8C") == Success(36.8D))
@@ -174,7 +174,7 @@ class FractionalParserSuite extends AnyFunSuite {
   test("Percent") {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("#,##0.#%",decimalSymbols)
-    val parser = FractionalParser("string", pattern)
+    val parser = FractionalParser(pattern)
 
     assert(parser.parse("113.8%") == Success(1.138D))
     assert(parser.parse("-5,000.1%") == Success(-5000.1D / 100)) // -5000.1D / 100 = -50.001000000000005

@@ -224,7 +224,7 @@ object TypedStructField {
                                                  (implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[N](structField) {
     val allowInfinity: Boolean = false
-    def parser(origType: DataType): Try[NumericParser[N]]
+    val parser: Try[NumericParser[N]]
 
     override def pattern: Try[Option[NumericPattern]] = Success(readNumericPatternFromMetadata)
 
@@ -234,7 +234,7 @@ object TypedStructField {
 
     override protected def convertString(string: String): Try[N] = {
       for {
-        parserToUse <- parser(StringType)
+        parserToUse <- parser
         parsed <- parserToUse.parse(string)
       } yield parsed
     }
@@ -273,17 +273,15 @@ object TypedStructField {
 
     private val radix: Radix = readRadixFromMetadata
 
-    override def parser(origType: DataType): Try[IntegralParser[L]] = {
+    override val parser: Try[IntegralParser[L]] = {
       pattern.flatMap { patternForParser =>
       if (radix != Radix.DefaultRadix) {
         val decimalSymbols = patternForParser.map(_.decimalSymbols).getOrElse(defaults.getDecimalSymbols)
-        Try(IntegralParser.ofRadix(origType.typeName, structField.dataType.typeName, radix, decimalSymbols, Option(typeMin), Option(typeMax)))
+        Try(IntegralParser.ofRadix(radix, decimalSymbols, Option(typeMin), Option(typeMax)))
       } else {
         Success(IntegralParser(
-          origType.typeName, 
-          structField.dataType.typeName,
-          patternForParser.getOrElse(NumericPattern(defaults.getDecimalSymbols)), 
-          Option(typeMin), 
+          patternForParser.getOrElse(NumericPattern(defaults.getDecimalSymbols)),
+          Option(typeMin),
           Option(typeMax)
         ))
       }}
@@ -323,13 +321,13 @@ object TypedStructField {
 
     override val allowInfinity: Boolean = structField.metadata.getOptStringAsBoolean(MetadataKeys.AllowInfinity).getOrElse(false)
 
-    override def parser(origType: DataType): Try[NumericParser[D]] = {
+    override val parser: Try[NumericParser[D]] = {
       pattern.map {patternOpt =>
         val patternForParser = patternOpt.getOrElse(NumericPattern(defaults.getDecimalSymbols))
         if (allowInfinity) {
-          FractionalParser.withInfinity(origType.typeName, structField.dataType.typeName, patternForParser)
+          FractionalParser.withInfinity(patternForParser)
         } else {
-          FractionalParser(origType.typeName, structField.dataType.typeName, patternForParser, typeMin, typeMax)
+          FractionalParser(patternForParser, typeMin, typeMax)
         }
       }
     }
@@ -358,12 +356,12 @@ object TypedStructField {
     ){
     val strictParsing: Boolean = structField.metadata.getOptStringAsBoolean(MetadataKeys.StrictParsing).getOrElse(false)
 
-    override def parser(origType: DataType): Try[DecimalParser] = {
+    override val parser: Try[DecimalParser] = {
       val maxScale = if(strictParsing) Some(scale) else None
       pattern.map { patternOpt =>
         val pattern: NumericPattern = patternOpt.getOrElse(NumericPattern(defaults.getDecimalSymbols))
         val decimalTypeStr = if (scale > 0) s"decimal($precision,$scale)" else s"decimal($precision)"
-        DecimalParser(origType.typeName, decimalTypeStr, pattern, Option(typeMin), Option(typeMax), maxScale)
+        DecimalParser(pattern, Option(typeMin), Option(typeMax), maxScale)
       }
     }
 

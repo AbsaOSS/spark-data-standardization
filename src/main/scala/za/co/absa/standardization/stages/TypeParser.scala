@@ -361,7 +361,15 @@ object TypeParser {
     }
 
     private def standardizeUsingUdf(stdConfig: StandardizationConfig): ParseOutput = {
-      val udfFnc: UserDefinedFunction = UDFBuilder.stringUdfViaNumericParser(field.parser(StringType).get, field.nullable, columnIdForUdf, stdConfig, defaultValue)
+      val udfFnc: UserDefinedFunction = UDFBuilder.stringUdfViaNumericParser(
+        origType,
+        field.dataType,
+        field.parser.get,
+        field.nullable,
+        columnIdForUdf,
+        stdConfig,
+        defaultValue
+      )
       ParseOutput(udfFnc(column)("result").cast(field.dataType).as(fieldOutputName), udfFnc(column)("error"))
     }
   }

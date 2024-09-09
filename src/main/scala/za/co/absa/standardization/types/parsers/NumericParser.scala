@@ -24,9 +24,7 @@ import za.co.absa.standardization.types.parsers.NumericParser.NumericParserExcep
 
 import scala.util.{Failure, Success, Try}
 
-abstract class NumericParser[N: Ordering](val sourceTypeStr: String,
-                                          val targetTypeStr: String,
-                                          val pattern: NumericPattern,
+abstract class NumericParser[N: Ordering](val pattern: NumericPattern,
                                           val min: Option[N],
                                           val max: Option[N])
   extends Serializable {
