@@ -16,9 +16,6 @@
 
 package za.co.absa.standardization.types
 
-import java.sql.{Date, Timestamp}
-import java.util.Base64
-
 import org.apache.spark.sql.types._
 import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.standardization.ValidationIssue
@@ -28,6 +25,9 @@ import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.parsers._
 import za.co.absa.standardization.validation.field._
+
+import java.sql.{Date, Timestamp}
+import java.util.Base64
 import scala.util.{Failure, Success, Try}
 
 sealed abstract class TypedStructField(val structField: StructField)(implicit defaults: TypeDefaults)
@@ -360,7 +360,6 @@ object TypedStructField {
       val maxScale = if(strictParsing) Some(scale) else None
       pattern.map { patternOpt =>
         val pattern: NumericPattern = patternOpt.getOrElse(NumericPattern(defaults.getDecimalSymbols))
-        val decimalTypeStr = if (scale > 0) s"decimal($precision,$scale)" else s"decimal($precision)"
         DecimalParser(pattern, Option(typeMin), Option(typeMax), maxScale)
       }
     }
