@@ -16,7 +16,6 @@
 
 package za.co.absa.standardization.validation.field
 
-import org.apache.spark.sql.types.{DataType, StringType}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField
 import za.co.absa.standardization.types.TypedStructField.NumericTypeStructField
