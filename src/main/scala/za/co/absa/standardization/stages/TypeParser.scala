@@ -16,31 +16,30 @@
 
 package za.co.absa.standardization.stages
 
-import java.security.InvalidParameterException
-import java.sql.Timestamp
-import java.util.Date
-import java.util.regex.Pattern
 import org.apache.spark.sql.Column
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.slf4j.{Logger, LoggerFactory}
-import za.co.absa.standardization.ErrorMessage
 import za.co.absa.spark.commons.implicits.ColumnImplicits.ColumnEnhancements
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.spark.commons.utils.SchemaUtils
 import za.co.absa.spark.hofs.transform
-import za.co.absa.standardization.StandardizationErrorMessage
+import za.co.absa.standardization.{ErrorMessage, StandardizationErrorMessage}
 import za.co.absa.standardization.config.StandardizationConfig
 import za.co.absa.standardization.implicits.StdColumnImplicits.StdColumnEnhancements
-import za.co.absa.standardization.schema.{MetadataValues, StdSchemaUtils}
 import za.co.absa.standardization.schema.StdSchemaUtils.FieldWithSource
+import za.co.absa.standardization.schema.{MetadataValues, StdSchemaUtils}
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.TypedStructField._
 import za.co.absa.standardization.types.{ParseOutput, TypeDefaults, TypedStructField}
 import za.co.absa.standardization.udf.{UDFBuilder, UDFNames}
 
+import java.security.InvalidParameterException
+import java.sql.Timestamp
+import java.util.Date
+import java.util.regex.Pattern
 import scala.reflect.runtime.universe._
 import scala.util.{Random, Try}
 
@@ -266,10 +265,7 @@ object TypeParser {
       val castedCol: Column = assemblePrimitiveCastLogic
       val castHasError: Column = assemblePrimitiveCastErrorLogic(castedCol)
       val patternOpt = field.pattern.toOption.flatten.map(_.pattern)
-      val patternColumn = patternOpt match {
-        case Some(s) if field.structField.metadata.contains("pattern") => lit(s)
-        case _ => lit(null: String)
-      }
+      val patternColumn = lit(patternOpt.orNull)
 
       val err: Column  = if (field.nullable) {
         when(column.isNotNull and castHasError, // cast failed

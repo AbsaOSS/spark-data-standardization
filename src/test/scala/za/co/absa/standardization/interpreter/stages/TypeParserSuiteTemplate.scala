@@ -16,22 +16,22 @@
 
 package za.co.absa.standardization.interpreter.stages
 
-import java.security.InvalidParameterException
-import java.sql.{Date, Timestamp}
-import java.text.SimpleDateFormat
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate._
 import za.co.absa.standardization.stages.TypeParser
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.types.{CommonTypeDefaults, ParseOutput, TypeDefaults, TypedStructField}
 import za.co.absa.standardization.udf.UDFLibrary
 
+import java.security.InvalidParameterException
+import java.sql.{Date, Timestamp}
+import java.text.SimpleDateFormat
 import scala.annotation.tailrec
 
 trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
@@ -53,20 +53,20 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
 
   protected val log: Logger = LogManager.getLogger(this.getClass)
 
-  protected def doTestWithinColumnNullable(input: Input): Unit = {
+  protected def doTestWithinColumnNullable(input: Input, pattern: String = ""): Unit = {
     import input._
     val nullable = true
     val field = sourceField(baseType, nullable)
     val schema = buildSchema(Array(field), path)
-    testTemplate(field, schema, path)
+    testTemplate(field, schema, path, pattern)
   }
 
-  protected def doTestWithinColumnNotNullable(input: Input): Unit = {
+  protected def doTestWithinColumnNotNullable(input: Input, pattern: String = ""): Unit = {
     import input._
     val nullable = false
     val field = sourceField(baseType, nullable)
     val schema = buildSchema(Array(field), path)
-    testTemplate(field, schema, path)
+    testTemplate(field, schema, path, pattern)
   }
 
   protected def doTestIntoStringField(input: Input): Unit = {
@@ -101,7 +101,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     testTemplate(booleanField, schema, path)
   }
 
-  protected def doTestIntoDateFieldNoPattern(input: Input, actualPattern: String = ""): Unit = {
+  protected def doTestIntoDateFieldNoPattern(input: Input): Unit = {
     import input._
     val dateField = StructField("dateField", DateType, nullable = false,
       new MetadataBuilder().putString("sourcecolumn", sourceFieldName).build)
@@ -114,7 +114,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
       }
       assert(caughtErr.getMessage == errMessage)
     } else {
-      testTemplate(dateField, schema, path, actualPattern)
+      testTemplate(dateField, schema, path, "yyyy-MM-dd")
     }
   }
 
@@ -131,7 +131,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
       }
       assert(caughtErr.getMessage == errMessage)
     } else {
-      testTemplate(timestampField, schema, path)
+      testTemplate(timestampField, schema, path, "yyyy-MM-dd HH:mm:ss")
     }
   }
 

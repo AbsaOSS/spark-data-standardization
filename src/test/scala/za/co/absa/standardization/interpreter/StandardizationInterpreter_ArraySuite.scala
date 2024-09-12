@@ -16,22 +16,23 @@
 
 package za.co.absa.standardization.interpreter
 
-import java.sql.Timestamp
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
-import za.co.absa.spark.commons.utils.JsonUtils
+import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.spark.commons.utils.JsonUtils
 import za.co.absa.standardization.DataFrameTestUtils.RowSeqToDf
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
 import za.co.absa.standardization.schema.MetadataKeys
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
+import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{ErrorMessageFactory, LoggerTestBase, Standardization, ValidationException}
-import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
+
+import java.sql.Timestamp
 
 class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBase with LoggerTestBase with Matchers with DatasetComparer {
   import spark.implicits._
@@ -78,14 +79,14 @@ class StandardizationInterpreter_ArraySuite extends AnyFunSuite with SparkTestBa
 
     val expectedData = Seq(
       Row(Seq(null, null, null), Seq(
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:00:00 01.12.2018"), Seq()),
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:10:00 02.12.2018"), Seq()),
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:20:00 03.12.2018"), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:00:00 01.12.2018"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:10:00 02.12.2018"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:20:00 03.12.2018"), Seq())
       )),
       Row(Seq(null, null, null), Seq(
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:00:00 01.12.2019"), Seq()),
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:10:00 02.12.2019"), Seq()),
-        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp'", "arrayField[*]", Seq("00:20:00 03.12.2019"), Seq())
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:00:00 01.12.2019"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:10:00 02.12.2019"), Seq()),
+        Row("stdCastError", "E00000", "Type cast from 'string' to 'timestamp' (yyyy-MM-dd HH:mm:ss)", "arrayField[*]", Seq("00:20:00 03.12.2019"), Seq())
       )),
       Row(Seq(Timestamp.valueOf("2020-01-12 00:00:00"), Timestamp.valueOf("2020-12-02 00:10:00"), Timestamp.valueOf("2020-12-03 00:20:00")), Seq())
     )

@@ -54,11 +54,11 @@ class TypeParser_FromDateTypeSuite extends TypeParserSuiteTemplate  {
   }
 
   test("Within the column - type stays, nullable") {
-    doTestWithinColumnNullable(input)
+    doTestWithinColumnNullable(input, "yyyy-MM-dd")
   }
 
   test("Within the column - type stays, not nullable") {
-    doTestWithinColumnNotNullable(input)
+    doTestWithinColumnNotNullable(input, "yyyy-MM-dd")
   }
 
   test("Into string field") {

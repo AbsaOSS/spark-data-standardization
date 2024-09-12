@@ -16,20 +16,19 @@
 
 package za.co.absa.standardization.interpreter
 
-import java.sql.{Date, Timestamp}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
-import za.co.absa.standardization.ErrorMessage
-import za.co.absa.spark.commons.utils.JsonUtils
-import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
+import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.spark.commons.utils.JsonUtils
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization.{FileReader, LoggerTestBase, Standardization, StandardizationErrorMessage}
+import za.co.absa.standardization._
 
+import java.sql.{Date, Timestamp}
 import java.util.TimeZone
 
 object StandardizationInterpreterSuite {
@@ -264,7 +263,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
 
     val expected = List (
       StdTime(1, new Date(1507075200000L), new Timestamp(1507115471000L), List()),
-      StdTime(2, new Date(1735689600000L), new Timestamp(1735741586000L), List(StandardizationErrorMessage.stdCastErr("date", "", "string", "date", None), StandardizationErrorMessage.stdCastErr("timestamp", "", "string", "timestamp", None)))
+      StdTime(2, new Date(1735689600000L), new Timestamp(1735741586000L), List(StandardizationErrorMessage.stdCastErr("date", "", "string", "date", Some("yyyy-MM-dd")), StandardizationErrorMessage.stdCastErr("timestamp", "", "string", "timestamp", Some("yyyy-MM-dd HH:mm:ss"))))
     )
 
     val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
@@ -312,7 +311,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
 
     val expected = List (
       StdTime(1, new Date(1507075200000L), new Timestamp(1507115471000L), List()),
-      StdTime(2, new Date(0L), null, List(StandardizationErrorMessage.stdCastErr("date", "", "string", "date", None), StandardizationErrorMessage.stdCastErr("timestamp", "", "string", "timestamp", None)))
+      StdTime(2, new Date(0L), null, List(StandardizationErrorMessage.stdCastErr("date", "", "string", "date", Some("yyyy-MM-dd")), StandardizationErrorMessage.stdCastErr("timestamp", "", "string", "timestamp", Some("yyyy-MM-dd HH:mm:ss"))))
     )
 
     val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
