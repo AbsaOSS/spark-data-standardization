@@ -302,8 +302,8 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     if (actualExpression != expectedExpression) {
       // the expressions tend to be rather long, the assert most often cuts the beginning and/or end of the string
       // showing just the vicinity of the difference, so we log the output of the whole strings
-      println(s"Expected: $expectedExpression")
-      println(s"Actual  : $actualExpression")
+      log.error(s"Expected: $expectedExpression")
+      log.error(s"Actual  : $actualExpression")
       assert(actualExpression == expectedExpression)
     }
   }
