@@ -42,8 +42,8 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
-  private def err(value: String, cnt: Int): Seq[ErrorMessage] = {
-    val item = StandardizationErrorMessage.stdCastErr("src",value)
+  private def err(value: String, cnt: Int, from: String, to: String): Seq[ErrorMessage] = {
+    val item = StandardizationErrorMessage.stdCastErr("src",value, from, to, None)
     val array = Array.fill(cnt) (item)
     array.toList
   }
@@ -88,18 +88,18 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
         StandardizationErrorMessage.stdNullErr("floatField"))),
       FractionalRow("03-Long", Option(9.223372E18F), Option(-9.223372036854776E18)),
       FractionalRow("04-infinity", Option(0), None, Seq(
-        StandardizationErrorMessage.stdCastErr("floatField", "-Infinity"),
-        StandardizationErrorMessage.stdCastErr("doubleField", "Infinity"))),
+        StandardizationErrorMessage.stdCastErr("floatField", "-Infinity", "string", "float", None),
+        StandardizationErrorMessage.stdCastErr("doubleField", "Infinity", "string", "double", None))),
       FractionalRow("05-Really big", Option(0), None, Seq(
-        StandardizationErrorMessage.stdCastErr("floatField", "123456789123456791245678912324789123456789123456789.12"),
+        StandardizationErrorMessage.stdCastErr("floatField", "123456789123456791245678912324789123456789123456789.12", "string", "float", None),
         StandardizationErrorMessage.stdCastErr("doubleField", "12345678912345679124567891232478912345678912345678912"
           + "3456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789"
           + "1234567891234567891234567891234567891234567891234678912345678912345678912345678912345679124567891232478912"
           + "3456789123456789123456789123456789123456791245678912324789123456789123456789123456789123456789123456789123"
-          + "456789123456789.1"))),
+          + "456789123456789.1", "string", "double", None))),
       FractionalRow("06-Text", Option(0), None, Seq(
-        StandardizationErrorMessage.stdCastErr("floatField", "foo"),
-        StandardizationErrorMessage.stdCastErr("doubleField", "bar"))),
+        StandardizationErrorMessage.stdCastErr("floatField", "foo", "string", "float", None),
+        StandardizationErrorMessage.stdCastErr("doubleField", "bar", "string", "double", None))),
       FractionalRow("07-Exponential notation", Option(-12300.0f), Option(0.0098765))
     )
 
@@ -148,13 +148,13 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
         StandardizationErrorMessage.stdNullErr("floatField"))),
       FractionalRow("03-Long", Option(9.223372E18F), Option(-9.223372036854776E18)),
       FractionalRow("04-Infinity", Option(0), None, Seq(
-        StandardizationErrorMessage.stdCastErr("floatField", "-Infinity"),
-        StandardizationErrorMessage.stdCastErr("doubleField", "Infinity"))),
+        StandardizationErrorMessage.stdCastErr("floatField", "-Infinity", "double", "float", None),
+        StandardizationErrorMessage.stdCastErr("doubleField", "Infinity", "double", "double", None))),
       FractionalRow("05-Really big", Option(0), Option(reallyBig), Seq(
-        StandardizationErrorMessage.stdCastErr("floatField", reallyBig.toString))),
+        StandardizationErrorMessage.stdCastErr("floatField", reallyBig.toString, "double", "float", None))),
       FractionalRow("06-NaN", Option(0), None, Seq(
-        StandardizationErrorMessage.stdCastErr("floatField", "NaN"),
-        StandardizationErrorMessage.stdCastErr("doubleField", "NaN")))
+        StandardizationErrorMessage.stdCastErr("floatField", "NaN", "double", "float", None),
+        StandardizationErrorMessage.stdCastErr("doubleField", "NaN", "double", "double", None)))
     )
 
     val std = Standardization.standardize(src, desiredSchema, stdConfig).cacheIfNotCachedYet()
@@ -191,8 +191,8 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
       FractionalRow("04-infinity", Some(Float.NegativeInfinity), Option(Double.PositiveInfinity)),
       FractionalRow("05-Really big", Option(Float.PositiveInfinity), Option(Double.NegativeInfinity)),
       FractionalRow("06-Text", Option(0), None, Seq(
-        StandardizationErrorMessage.stdCastErr("floatField", "foo"),
-        StandardizationErrorMessage.stdCastErr("doubleField", "bar"))),
+        StandardizationErrorMessage.stdCastErr("floatField", "foo", "string", "float", None),
+        StandardizationErrorMessage.stdCastErr("doubleField", "bar", "string", "double", None))),
       FractionalRow("07-Exponential notation", Option(-12300.0f), Option(0.0098765))
     )
 
@@ -220,8 +220,8 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
       FractionalRow("04-Infinity", Option(Float.NegativeInfinity), Option(Double.PositiveInfinity)),
       FractionalRow("05-Really big", Option(Float.PositiveInfinity), Option(reallyBig)),
       FractionalRow("06-NaN", Option(0), None, Seq(
-        StandardizationErrorMessage.stdCastErr("floatField", "NaN"),
-        StandardizationErrorMessage.stdCastErr("doubleField", "NaN")))
+        StandardizationErrorMessage.stdCastErr("floatField", "NaN", "double", "float", None),
+        StandardizationErrorMessage.stdCastErr("doubleField", "NaN", "double", "double", None)))
     )
 
     val std = Standardization.standardize(src, desiredSchemaWithInfinity, stdConfig).cacheIfNotCachedYet()
@@ -292,22 +292,23 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
       ("02-Negative", "~8123,4", -8123.4F, Some(-8123.4D), Some(-8123.4F), -8123.4D, Seq.empty),
       ("03-Null", null, 0F, None, None, 0D, Array.fill(2)(StandardizationErrorMessage.stdNullErr("src")).toList),
       ("04-Big", "7899012345678901234567890123456789012346789,123456789", 0F, Some(7.899012345678901E42D), Some(Float.PositiveInfinity), 7.899012345678901E42,
-        err("7899012345678901234567890123456789012346789,123456789", 1)
+        err("7899012345678901234567890123456789012346789,123456789", 1, "string", "float")
       ),
-      ("05-Big II", "+1E40", 0F, Some(1.0E40D), Some(Float.PositiveInfinity), 1.0E40D, err("+1E40", 1)),
-      ("06-Big III", "2E308", 0F, Some(1000.001D), Some(Float.PositiveInfinity), Double.PositiveInfinity, err("2E308", 2)),
+      ("05-Big II", "+1E40", 0F, Some(1.0E40D), Some(Float.PositiveInfinity), 1.0E40D, err("+1E40", 1, "string", "float")),
+      ("06-Big III", "2E308", 0F, Some(1000.001D), Some(Float.PositiveInfinity), Double.PositiveInfinity, err("2E308", 1, "string", "float") ++ err("2E308", 1, "string", "double")),
       ("07-Small", "~7899012345678901234567890123456789012346789,123456789", 0F, Some(-7.899012345678901E42D), Some(Float.NegativeInfinity), -7.899012345678901E42,
-        err("~7899012345678901234567890123456789012346789,123456789", 1)
+        err("~7899012345678901234567890123456789012346789,123456789", 1, "string", "float")
       ),
-      ("08-Small II", "~1,1E40", 0F, Some(-1.1E40D), Some(Float.NegativeInfinity), -1.1E40D, err("~1,1E40", 1)),
-      ("09-Small III", "~3E308", 0F, Some(1000.001D), Some(Float.NegativeInfinity), Double.NegativeInfinity, err("~3E308", 2)),
-      ("10-Wrong", "hello", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("hello", 4)),
-      ("11-Infinity", "+∞", 0F, Some(1000.001D), Some(Float.PositiveInfinity), Double.PositiveInfinity, err("+∞", 2)),
-      ("12-Negative Infinity", "~∞", 0F, Some(1000.001D), Some(Float.NegativeInfinity), Double.NegativeInfinity, err("~∞", 2)),
-      ("13-Old decimal", "5.5", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("5.5", 4)),
-      ("14-Old minus", "-10", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("-10", 4)),
-      ("15-Infinity as word", "Infinity", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("Infinity", 4))
+      ("08-Small II", "~1,1E40", 0F, Some(-1.1E40D), Some(Float.NegativeInfinity), -1.1E40D, err("~1,1E40", 1, "string", "float")),
+      ("09-Small III", "~3E308", 0F, Some(1000.001D), Some(Float.NegativeInfinity), Double.NegativeInfinity, err("~3E308", 1, "string", "float") ++ err("~3E308", 1, "string", "double")),
+      ("10-Wrong", "hello", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("hello", 1, "string", "float") ++ err("hello", 1, "string", "double") ++ err("hello", 1, "string", "float") ++ err("hello", 1, "string", "double")),
+      ("11-Infinity", "+∞", 0F, Some(1000.001D), Some(Float.PositiveInfinity), Double.PositiveInfinity, err("+∞", 1, "string", "float") ++ err("+∞", 1, "string", "double")),
+      ("12-Negative Infinity", "~∞", 0F, Some(1000.001D), Some(Float.NegativeInfinity), Double.NegativeInfinity, err("~∞", 1, "string", "float") ++ err("~∞", 1, "string", "double")),
+      ("13-Old decimal", "5.5", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("5.5", 1, "string", "float") ++ err("5.5", 1, "string", "double") ++ err("5.5", 1, "string", "float") ++ err("5.5", 1, "string", "double")),
+      ("14-Old minus", "-10", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("-10", 1, "string", "float") ++ err("-10", 1, "string", "double") ++ err("-10", 1, "string", "float") ++ err("-10", 1, "string", "double")),
+      ("15-Infinity as word", "Infinity", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("Infinity", 1, "string", "float") ++ err("Infinity", 1, "string", "double") ++ err("Infinity", 1, "string", "float") ++ err("Infinity", 1, "string", "double"))
     )
+
     assertResult(exp)(std.as[(String, String, Float, Option[Double], Option[Float], Double, Seq[ErrorMessage])].collect().toList)
   }
 
@@ -377,20 +378,20 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
       ("02-Negative", "(8 123,4°)", -8123.4F, Some(-8123.4D), Some(-8123.4F), -8123.4D, Seq.empty),
       ("03-Null", null, 0F, None, None, 0D, Array.fill(2)(StandardizationErrorMessage.stdNullErr("src")).toList),
       ("04-Big", "+789 9012 345 678 901 234 567 890 123 456 789 012 346 789,123456789°", 0F, Some(7.899012345678901E42D), Some(Float.PositiveInfinity), 7.899012345678901E42,
-        err("+789 9012 345 678 901 234 567 890 123 456 789 012 346 789,123456789°", 1)
+        err("+789 9012 345 678 901 234 567 890 123 456 789 012 346 789,123456789°", 1, "string", "float")
       ),
-      ("05-Big II", "+1E40°", 0F, Some(1.0E40D), Some(Float.PositiveInfinity), 1.0E40D, err("+1E40°", 1)),
-      ("06-Big III", "+2E308°", 0F, Some(1000.001D), Some(Float.PositiveInfinity), Double.PositiveInfinity, err("+2E308°", 2)),
+      ("05-Big II", "+1E40°", 0F, Some(1.0E40D), Some(Float.PositiveInfinity), 1.0E40D, err("+1E40°", 1, "string", "float")),
+      ("06-Big III", "+2E308°", 0F, Some(1000.001D), Some(Float.PositiveInfinity), Double.PositiveInfinity, err("+2E308°", 1, "string", "float") ++ err("+2E308°", 1, "string", "double")),
       ("07-Small", "(789 9012 345 678 901 234 567 890 123 456 789 012 346 789,123456789°)", 0F, Some(-7.899012345678901E42D), Some(Float.NegativeInfinity), -7.899012345678901E42,
-        err("(789 9012 345 678 901 234 567 890 123 456 789 012 346 789,123456789°)", 1)
+        err("(789 9012 345 678 901 234 567 890 123 456 789 012 346 789,123456789°)", 1, "string", "float")
       ),
-      ("08-Small II", "(1,1E40°)", 0F, Some(-1.1E40D), Some(Float.NegativeInfinity), -1.1E40D, err("(1,1E40°)", 1)),
-      ("09-Small III", "(3E308°)", 0F, Some(1000.001D), Some(Float.NegativeInfinity), Double.NegativeInfinity, err("(3E308°)", 2)),
-      ("10-Wrong", "hello", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("hello", 4)),
-      ("11-Not adhering to pattern", "(1 234,56)", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("(1 234,56)", 4)),
-      ("12-Not adhering to pattern II","+1,234.56°", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("+1,234.56°", 4)),
-      ("13-Infinity", "+∞°", 0F, Some(1000.001D), Some(Float.PositiveInfinity), Double.PositiveInfinity, err("+∞°", 2)),
-      ("14-Negative Infinity", "(∞°)", 0F, Some(1000.001D), Some(Float.NegativeInfinity), Double.NegativeInfinity, err("(∞°)", 2))
+      ("08-Small II", "(1,1E40°)", 0F, Some(-1.1E40D), Some(Float.NegativeInfinity), -1.1E40D, err("(1,1E40°)", 1, "string", "float")),
+      ("09-Small III", "(3E308°)", 0F, Some(1000.001D), Some(Float.NegativeInfinity), Double.NegativeInfinity, err("(3E308°)", 1, "string", "float") ++ err("(3E308°)", 1, "string", "double")),
+      ("10-Wrong", "hello", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("hello", 1, "string", "float") ++ err("hello", 1, "string", "double") ++ err("hello", 1, "string", "float") ++ err("hello", 1, "string", "double")),
+      ("11-Not adhering to pattern", "(1 234,56)", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("(1 234,56)", 1, "string", "float") ++ err("(1 234,56)", 1, "string", "double") ++ err("(1 234,56)", 1, "string", "float") ++ err("(1 234,56)", 1, "string", "double")),
+      ("12-Not adhering to pattern II","+1,234.56°", 0F, Some(1000.001D), Some(-1000000.0F), 0D, err("+1,234.56°", 1, "string", "float") ++ err("+1,234.56°", 1, "string", "double") ++ err("+1,234.56°", 1, "string", "float") ++ err("+1,234.56°", 1, "string", "double")),
+      ("13-Infinity", "+∞°", 0F, Some(1000.001D), Some(Float.PositiveInfinity), Double.PositiveInfinity, err("+∞°", 1, "string", "float") ++ err("+∞°", 1, "string", "double")),
+      ("14-Negative Infinity", "(∞°)", 0F, Some(1000.001D), Some(Float.NegativeInfinity), Double.NegativeInfinity, err("(∞°)", 1, "string", "float") ++ err("(∞°)", 1, "string", "double"))
     )
 
     assertResult(exp)(std.as[(String, String, Float, Option[Double], Option[Float], Double, Seq[ErrorMessage])].collect().toList)

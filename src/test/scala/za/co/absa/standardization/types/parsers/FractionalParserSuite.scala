@@ -33,7 +33,7 @@ class FractionalParserSuite extends AnyFunSuite {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern(decimalSymbols)
     val parserFloat = FractionalParser[Float](pattern, Float.MinValue, Float.MaxValue)
-    val parserDouble = FractionalParser[Double](pattern, Double.MinValue, Double.MaxValue)
+    val parserDouble = FractionalParser(pattern, Double.MinValue, Double.MaxValue)
     assert(parserFloat.parse("3.14") == Success(3.14F))
     assert(parserDouble.parse("3.14") == Success(3.14D))
     assert(parserFloat.parse("+1.") == Success(1F))
@@ -53,7 +53,7 @@ class FractionalParserSuite extends AnyFunSuite {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("0.#", decimalSymbols)
     val parserFloat = FractionalParser[Float](pattern, Float.MinValue, Float.MaxValue)
-    val parserDouble = FractionalParser[Double](pattern, Double.MinValue, Double.MaxValue)
+    val parserDouble = FractionalParser(pattern, Double.MinValue, Double.MaxValue)
     assert(parserFloat.parse("3.14") == Success(3.14F))
     assert(parserDouble.parse("3.14") == Success(3.14D))
     assert(parserFloat.parse("1.") == Success(1F))
@@ -73,7 +73,7 @@ class FractionalParserSuite extends AnyFunSuite {
     val decimalSymbols: DecimalSymbols = CommonTypeDefaults.getDecimalSymbols
     val pattern = NumericPattern("0", decimalSymbols)
     val parserFloat = FractionalParser[Float](pattern, Float.MinValue, Float.MaxValue)
-    val parserDouble = FractionalParser[Double](pattern, Double.MinValue, Double.MaxValue)
+    val parserDouble = FractionalParser(pattern, Double.MinValue, Double.MaxValue)
     assert(parserFloat.parse("+2.71").isFailure)
     assert(parserDouble.parse("+2.71").isFailure)
   }

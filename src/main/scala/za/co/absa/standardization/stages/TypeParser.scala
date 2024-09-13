@@ -16,31 +16,30 @@
 
 package za.co.absa.standardization.stages
 
-import java.security.InvalidParameterException
-import java.sql.Timestamp
-import java.util.Date
-import java.util.regex.Pattern
 import org.apache.spark.sql.Column
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.slf4j.{Logger, LoggerFactory}
-import za.co.absa.standardization.ErrorMessage
 import za.co.absa.spark.commons.implicits.ColumnImplicits.ColumnEnhancements
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.spark.commons.utils.SchemaUtils
 import za.co.absa.spark.hofs.transform
-import za.co.absa.standardization.StandardizationErrorMessage
+import za.co.absa.standardization.{ErrorMessage, StandardizationErrorMessage}
 import za.co.absa.standardization.config.StandardizationConfig
 import za.co.absa.standardization.implicits.StdColumnImplicits.StdColumnEnhancements
-import za.co.absa.standardization.schema.{MetadataValues, StdSchemaUtils}
 import za.co.absa.standardization.schema.StdSchemaUtils.FieldWithSource
+import za.co.absa.standardization.schema.{MetadataValues, StdSchemaUtils}
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.TypedStructField._
 import za.co.absa.standardization.types.{ParseOutput, TypeDefaults, TypedStructField}
 import za.co.absa.standardization.udf.{UDFBuilder, UDFNames}
 
+import java.security.InvalidParameterException
+import java.sql.Timestamp
+import java.util.Date
+import java.util.regex.Pattern
 import scala.reflect.runtime.universe._
 import scala.util.{Random, Try}
 
@@ -265,10 +264,17 @@ object TypeParser {
     override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       val castedCol: Column = assemblePrimitiveCastLogic
       val castHasError: Column = assemblePrimitiveCastErrorLogic(castedCol)
+      val patternOpt = field.pattern.toOption.flatten.map(_.pattern)
+      val patternColumn = lit(patternOpt.orNull)
 
       val err: Column  = if (field.nullable) {
         when(column.isNotNull and castHasError, // cast failed
-          array(callUDF(UDFNames.stdCastErr, lit(columnIdForUdf), column.cast(StringType)))
+          array(callUDF(UDFNames.stdCastErr,
+            lit(columnIdForUdf),
+            column.cast(StringType),
+            lit(origType.typeName),
+            lit(field.dataType.typeName),
+            patternColumn))
         ).otherwise( // everything is OK
           typedLit(Seq.empty[ErrorMessage])
         )
@@ -276,7 +282,12 @@ object TypeParser {
         when(column.isNull, // NULL not allowed
           array(callUDF(UDFNames.stdNullErr, lit(columnIdForUdf)))
         ).otherwise( when(castHasError, // cast failed
-          array(callUDF(UDFNames.stdCastErr, lit(columnIdForUdf), column.cast(StringType)))
+          array(callUDF(UDFNames.stdCastErr,
+            lit(columnIdForUdf),
+            column.cast(StringType),
+            lit(origType.typeName),
+            lit(field.dataType.typeName),
+            patternColumn))
         ).otherwise( // everything is OK
           typedLit(Seq.empty[ErrorMessage])
         ))
@@ -344,7 +355,15 @@ object TypeParser {
     }
 
     private def standardizeUsingUdf(stdConfig: StandardizationConfig): ParseOutput = {
-      val udfFnc: UserDefinedFunction = UDFBuilder.stringUdfViaNumericParser(field.parser.get, field.nullable, columnIdForUdf, stdConfig, defaultValue)
+      val udfFnc: UserDefinedFunction = UDFBuilder.stringUdfViaNumericParser(
+        origType,
+        field.dataType,
+        field.parser.get,
+        field.nullable,
+        columnIdForUdf,
+        stdConfig,
+        defaultValue
+      )
       ParseOutput(udfFnc(column)("result").cast(field.dataType).as(fieldOutputName), udfFnc(column)("error"))
     }
   }

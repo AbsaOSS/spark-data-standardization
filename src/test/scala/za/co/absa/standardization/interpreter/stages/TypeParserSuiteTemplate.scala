@@ -16,22 +16,23 @@
 
 package za.co.absa.standardization.interpreter.stages
 
-import java.security.InvalidParameterException
-import java.sql.{Date, Timestamp}
-import java.text.SimpleDateFormat
-
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate._
 import za.co.absa.standardization.stages.TypeParser
 import za.co.absa.standardization.time.DateTimePattern
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, ParseOutput, TypedStructField}
+import za.co.absa.standardization.types.{CommonTypeDefaults, ParseOutput, TypeDefaults, TypedStructField}
 import za.co.absa.standardization.udf.UDFLibrary
+
+import java.security.InvalidParameterException
+import java.sql.{Date, Timestamp}
+import java.text.SimpleDateFormat
+import scala.annotation.tailrec
 
 trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
 
@@ -52,20 +53,20 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
 
   protected val log: Logger = LogManager.getLogger(this.getClass)
 
-  protected def doTestWithinColumnNullable(input: Input): Unit = {
+  protected def doTestWithinColumnNullable(input: Input, pattern: String = ""): Unit = {
     import input._
     val nullable = true
     val field = sourceField(baseType, nullable)
     val schema = buildSchema(Array(field), path)
-    testTemplate(field, schema, path)
+    testTemplate(field, schema, path, pattern)
   }
 
-  protected def doTestWithinColumnNotNullable(input: Input): Unit = {
+  protected def doTestWithinColumnNotNullable(input: Input, pattern: String = ""): Unit = {
     import input._
     val nullable = false
     val field = sourceField(baseType, nullable)
     val schema = buildSchema(Array(field), path)
-    testTemplate(field, schema, path)
+    testTemplate(field, schema, path, pattern)
   }
 
   protected def doTestIntoStringField(input: Input): Unit = {
@@ -210,10 +211,23 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     }
   }
 
+  @tailrec
+  private def getFieldByFullName(schema: StructType, fullName: String): StructField = {
+    val path = fullName.split('.')
+    val field = schema.fields.find(_.name == path.head).get
+    if (path.length > 1) {
+      getFieldByFullName(field.dataType.asInstanceOf[StructType], path.tail.mkString("."))
+    } else {
+      field
+    }
+  }
+
   private def testTemplate(target: StructField, schema: StructType, path: String, pattern: String = "", timezone: Option[String] = None): Unit = {
+
     val srcField = fullName(path, sourceFieldName)
+    val srcType = getFieldByFullName(schema, srcField).dataType
     val castString = createCastTemplate(target.dataType, pattern, timezone).format(srcField, srcField)
-    val errColumnExpression = assembleErrorExpression(srcField, target, applyRecasting(castString))
+    val errColumnExpression = assembleErrorExpression(srcField, target, applyRecasting(castString), srcType.typeName, target.dataType.typeName, pattern)
     val stdCastExpression = assembleCastExpression(srcField, target, applyRecasting(castString), errColumnExpression)
     val output: ParseOutput = TypeParser.standardize(target, path, schema, stdConfig)
 
@@ -272,14 +286,15 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     if (SPARK_VERSION.startsWith("2.")) expresionWithQuotes else expresionWithQuotes.replaceAll("`", "")
   }
 
-  private def assembleErrorExpression(srcField: String, target: StructField, castS: String): String = {
+  private def assembleErrorExpression(srcField: String, target: StructField, castS: String, fromType: String, toType: String, pattern: String): String = {
     val errCond = createErrorCondition(srcField, target, castS)
+    val patternExpr = if (pattern.isEmpty) "NULL" else pattern
 
     if (target.nullable) {
-      s"CASE WHEN (($srcField IS NOT NULL) AND ($errCond)) THEN array(stdCastErr($srcField, CAST($srcField AS STRING))) ELSE [] END"
+      s"CASE WHEN (($srcField IS NOT NULL) AND ($errCond)) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), $fromType, $toType, $patternExpr)) ELSE [] END"
     } else {
       s"CASE WHEN ($srcField IS NULL) THEN array(stdNullErr($srcField)) ELSE " +
-        s"CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING))) ELSE [] END END"
+        s"CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), $fromType, $toType, $patternExpr)) ELSE [] END END"
     }
   }
 

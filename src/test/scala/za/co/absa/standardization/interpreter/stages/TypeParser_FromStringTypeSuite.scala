@@ -33,15 +33,17 @@ class TypeParser_FromStringTypeSuite extends TypeParserSuiteTemplate {
     datetimeNeedsPattern = false
   )
 
-  override protected def createCastTemplate(toType: DataType, pattern: String, timezone: Option[String]): String = {
-    val isEpoch = DateTimePattern.isEpoch(pattern)
+  override protected def createCastTemplate(toType: DataType, customPattern: String, timezone: Option[String]): String = {
+    val datePattern = if (customPattern.isEmpty) "yyyy-MM-dd" else customPattern
+    val dateTimePattern = if (customPattern.isEmpty) "yyyy-MM-dd HH:mm:ss" else customPattern
+    val isEpoch = DateTimePattern.isEpoch(customPattern)
     (toType, isEpoch, timezone) match {
-      case (DateType, true, _)          => s"to_date(CAST((CAST(`%s` AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(pattern)}L) AS TIMESTAMP))"
-      case (TimestampType, true, _)     => s"CAST((CAST(%s AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(pattern)}) AS TIMESTAMP)"
-      case (DateType, _, Some(tz))      => s"to_date(to_utc_timestamp(to_timestamp(`%s`, '$pattern'), '$tz'))"
-      case (TimestampType, _, Some(tz)) => s"to_utc_timestamp(to_timestamp(`%s`, '$pattern'), $tz)"
-      case (DateType, _, _)             => s"to_date(`%s`, '$pattern')"
-      case (TimestampType, _, _)        => s"to_timestamp(`%s`, '$pattern')"
+      case (DateType, true, _)          => s"to_date(CAST((CAST(`%s` AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(customPattern)}L) AS TIMESTAMP))"
+      case (TimestampType, true, _)     => s"CAST((CAST(%s AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(customPattern)}) AS TIMESTAMP)"
+      case (DateType, _, Some(tz))      => s"to_date(to_utc_timestamp(to_timestamp(`%s`, '$dateTimePattern'), '$tz'))"
+      case (TimestampType, _, Some(tz)) => s"to_utc_timestamp(to_timestamp(`%s`, '$dateTimePattern'), $tz)"
+      case (DateType, _, _)             => s"to_date(`%s`, '$datePattern')"
+      case (TimestampType, _, _)        => s"to_timestamp(`%s`, '$dateTimePattern')"
       case _                            => s"CAST(%s AS ${toType.sql})"
     }
   }

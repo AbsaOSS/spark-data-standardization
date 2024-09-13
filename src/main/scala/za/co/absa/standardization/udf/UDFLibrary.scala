@@ -35,8 +35,8 @@ class UDFLibrary(stdConfig: StandardizationConfig) extends OncePerSparkSession w
 
   override protected def registerBody(spark: SparkSession): Unit = {
 
-    spark.udf.register(stdCastErr, { (errCol: String, rawValue: String) =>
-      StandardizationErrorMessage.stdCastErr(errCol, rawValue)
+    spark.udf.register(stdCastErr, { (errCol: String, rawValue: String, sourceType: String, targetType: String, pattern: String) =>
+      StandardizationErrorMessage.stdCastErr(errCol, rawValue, sourceType, targetType, Option(pattern))
     })
 
     spark.udf.register(stdNullErr, { errCol: String => StandardizationErrorMessage.stdNullErr(errCol) })

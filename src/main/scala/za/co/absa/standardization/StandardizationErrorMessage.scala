@@ -16,17 +16,24 @@
 
 package za.co.absa.standardization
 
-import za.co.absa.standardization.ErrorMessage
-import za.co.absa.standardization.config.{ErrorCodesConfig}
+import za.co.absa.standardization.config.ErrorCodesConfig
 
 object StandardizationErrorMessage {
 
-  def stdCastErr(errCol: String, rawValue: String)(implicit errorCodes: ErrorCodesConfig): ErrorMessage = ErrorMessage(
-    "stdCastError",
-    errorCodes.castError,
-    "Standardization Error - Type cast",
-    errCol,
-    Seq(rawValue))
+  def stdCastErr(errCol: String, rawValue: String, sourceType: String, targetType: String, pattern: Option[String])(implicit errorCodes: ErrorCodesConfig): ErrorMessage = {
+    val sourceTypeFull = pattern match {
+      case Some(pattern) if pattern.nonEmpty => s"'$sourceType' ($pattern)"
+      case _                                 => s"'$sourceType'"
+    }
+
+    ErrorMessage(
+      "stdCastError",
+      errorCodes.castError,
+      s"Cast from $sourceTypeFull to '$targetType'",
+      errCol,
+      Seq(rawValue))
+  }
+
   def stdNullErr(errCol: String)(implicit errorCodes: ErrorCodesConfig): ErrorMessage = ErrorMessage(
     "stdNullError",
     errorCodes.nullError,
