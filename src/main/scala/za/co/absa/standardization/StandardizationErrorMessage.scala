@@ -21,14 +21,15 @@ import za.co.absa.standardization.config.ErrorCodesConfig
 object StandardizationErrorMessage {
 
   def stdCastErr(errCol: String, rawValue: String, sourceType: String, targetType: String, pattern: Option[String])(implicit errorCodes: ErrorCodesConfig): ErrorMessage = {
-    val targetTypeFull = pattern match {
-      case Some(pattern) if pattern.nonEmpty => s"'$targetType' ($pattern)"
-      case _                                 => s"'$targetType'"
+    val sourceTypeFull = pattern match {
+      case Some(pattern) if pattern.nonEmpty => s"'$sourceType' ($pattern)"
+      case _                                 => s"'$sourceType'"
     }
+
     ErrorMessage(
       "stdCastError",
       errorCodes.castError,
-      s"Type cast from '$sourceType' to $targetTypeFull",
+      s"Cast from $sourceTypeFull to '$targetType'",
       errCol,
       Seq(rawValue))
   }
