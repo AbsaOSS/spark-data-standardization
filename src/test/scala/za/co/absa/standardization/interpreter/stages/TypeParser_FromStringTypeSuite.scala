@@ -17,7 +17,9 @@
 package za.co.absa.standardization.interpreter.stages
 
 import org.apache.spark.sql.types._
+import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate.Input
+import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.time.DateTimePattern
 
 class TypeParser_FromStringTypeSuite extends TypeParserSuiteTemplate {
@@ -33,18 +35,38 @@ class TypeParser_FromStringTypeSuite extends TypeParserSuiteTemplate {
     datetimeNeedsPattern = false
   )
 
-  override protected def createCastTemplate(toType: DataType, customPattern: String, timezone: Option[String]): String = {
+  override protected def createCastTemplate(srcStructField: StructField, target: StructField, customPattern: String, timezone: Option[String]): String = {
+    val (infMinusValue, infMinusSymbol, infPlusValue, infPlusSymbol): (Option[String], Option[String], Option[String], Option[String]) = {
+      val infMinusValue = target.metadata.getOptString(MetadataKeys.MinusInfinityValue)
+      val infMinusSymbol = target.metadata.getOptString(MetadataKeys.MinusInfinitySymbol)
+      val infPlusValue = target.metadata.getOptString(MetadataKeys.PlusInfinityValue)
+      val infPlusSymbol = target.metadata.getOptString(MetadataKeys.PlusInfinitySymbol)
+      (infMinusValue, infMinusSymbol, infPlusValue, infPlusSymbol)
+    }
+    val infDefined = infMinusValue.isDefined && infMinusSymbol.isDefined && infPlusValue.isDefined && infPlusSymbol.isDefined
+    val srcType = srcStructField.dataType.sql
+
     val datePattern = if (customPattern.isEmpty) "yyyy-MM-dd" else customPattern
     val dateTimePattern = if (customPattern.isEmpty) "yyyy-MM-dd HH:mm:ss" else customPattern
     val isEpoch = DateTimePattern.isEpoch(customPattern)
-    (toType, isEpoch, timezone) match {
+    val basInfCasting = s"CASE WHEN (CASE WHEN (`%s` = CAST('${infMinusSymbol.getOrElse("")}' AS $srcType)) THEN CAST('${infMinusValue.getOrElse("")}' AS $srcType) " +
+      s"ELSE `%s` END = CAST('${infPlusSymbol.getOrElse("")}' AS $srcType)) THEN CAST('${infPlusValue.getOrElse("")}' AS $srcType) ELSE CASE WHEN " +
+      s"(`%s` = CAST('${infMinusSymbol.getOrElse("")}' AS $srcType)) THEN CAST('${infMinusValue.getOrElse("")}' AS $srcType) ELSE `%s` END END"
+    (target.dataType, isEpoch, timezone) match {
       case (DateType, true, _)          => s"to_date(CAST((CAST(`%s` AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(customPattern)}L) AS TIMESTAMP))"
       case (TimestampType, true, _)     => s"CAST((CAST(%s AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(customPattern)}) AS TIMESTAMP)"
       case (DateType, _, Some(tz))      => s"to_date(to_utc_timestamp(to_timestamp(`%s`, '$dateTimePattern'), '$tz'))"
       case (TimestampType, _, Some(tz)) => s"to_utc_timestamp(to_timestamp(`%s`, '$dateTimePattern'), $tz)"
-      case (DateType, _, _)             => s"to_date(`%s`, '$datePattern')"
-      case (TimestampType, _, _)        => s"to_timestamp(`%s`, '$dateTimePattern')"
-      case _                            => s"CAST(%s AS ${toType.sql})"
+      case (DateType, _, _) if !infDefined             => s"to_date(`%s`, '$datePattern')"
+      case (DateType, _, _) if infDefined              => s"to_date($basInfCasting, '$datePattern')"
+      case (TimestampType, _, _) if !infDefined => s"to_timestamp(`%s`, '$dateTimePattern')"
+      case (TimestampType, _, _) if infDefined  => s"to_timestamp($basInfCasting, '$dateTimePattern')"
+      case (ByteType | ShortType | IntegerType | LongType | FloatType | DoubleType | _: DecimalType, _, _) if infDefined =>
+        s"CAST(CASE WHEN (CASE WHEN (%s = CAST(${infMinusSymbol.get} AS $srcType)) THEN CAST(${infMinusValue.get} AS $srcType) " +
+          s"ELSE %s END = CAST(${infPlusSymbol.get} AS $srcType)) THEN CAST(${infPlusValue.get} AS $srcType) ELSE CASE WHEN " +
+          s"(%s = CAST(${infMinusSymbol.get} AS $srcType)) THEN CAST(${infMinusValue.get} AS $srcType) ELSE %s END END " +
+          s"AS ${target.dataType.sql})"
+      case _                            => s"CAST(%s AS ${target.dataType.sql})"
     }
   }
 
@@ -120,4 +142,15 @@ class TypeParser_FromStringTypeSuite extends TypeParserSuiteTemplate {
     doTestIntoTimestampFieldWithEpochPattern(input)
   }
 
+  test("Into float field with inf"){
+    doTestIntoFloatWithInf(input)
+  }
+
+  test("Into timestamp field with inf") {
+    doTestIntoTimestampWithPlusInfinity(input)
+  }
+
+  test("Into date field with inf"){
+    doTestIntoDateFieldWithInf(input)
+  }
 }
