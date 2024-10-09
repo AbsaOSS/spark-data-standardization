@@ -107,7 +107,7 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
       FractionalRow("06-Text", Option(0), None, Seq(
         StandardizationErrorMessage.stdCastErr("floatField", "foo", "string", "float", None),
         StandardizationErrorMessage.stdCastErr("doubleField", "bar", "string", "double", None))),
-      FractionalRow("07-Exponential notation", Option(-12300.0f), Option(0.0098765)),
+      FractionalRow("07-Exponential notation", Option(-12300.0f), Option(0.0098765))
     )
 
     assertResult(exp)(std.as[FractionalRow].collect().sortBy(_.description).toList)
