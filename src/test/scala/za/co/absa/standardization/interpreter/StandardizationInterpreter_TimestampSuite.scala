@@ -22,6 +22,7 @@ import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancemen
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
+import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{LoggerTestBase, Standardization, StandardizationErrorMessage}
@@ -49,17 +50,27 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       0,
       86400,
       978307199,
-      1563288103
+      1563288103,
+      -1,
+      -2
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, TimestampType, nullable = false,
-        new MetadataBuilder().putString("pattern", "epoch").build)
+        new MetadataBuilder()
+          .putString(MetadataKeys.Pattern, "epoch")
+          .putString(MetadataKeys.PlusInfinitySymbol, "-1")
+          .putString(MetadataKeys.PlusInfinityValue, "1563288103")
+          .putString(MetadataKeys.MinusInfinitySymbol, "-2")
+          .putString(MetadataKeys.MinusInfinityValue, "0")
+          .build)
     ))
     val exp = Seq(
       TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00")),
       TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00")),
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59")),
-      TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43"))
+      TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43")),
+      TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43")),
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"))
     )
 
     val src = seq.toDF(fieldName)
@@ -131,17 +142,23 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       0,
       86400000000000L,
       978307199999999999L,
-      1563288103123456789L
+      1563288103123456789L,
+      -1
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, TimestampType, nullable = false,
-        new MetadataBuilder().putString("pattern", "epochnano").build)
+        new MetadataBuilder()
+          .putString("pattern", "epochnano")
+          .putString(MetadataKeys.PlusInfinitySymbol, "-1")
+          .putString(MetadataKeys.PlusInfinityValue, "325035936000000000")
+          .build)
     ))
     val exp = Seq(
       TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00")),
       TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00")),
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59.999999000")),
-      TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43.123456000"))
+      TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43.123456000")),
+      TimestampRow(Timestamp.valueOf("1980-04-19 23:45:36.0"))
     )
 
     val src = seq.toDF(fieldName)
@@ -159,11 +176,16 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       "31.12.2000 23-59-59",
       "16.07.2019 14-41-43",
       "02.02.1970_00-00-00",
-      "nope"
+      "nope",
+      "-inf"
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, TimestampType, nullable = false,
-        new MetadataBuilder().putString("pattern", "dd.MM.yyyy HH-mm-ss").build)
+        new MetadataBuilder()
+          .putString("pattern", "dd.MM.yyyy HH-mm-ss")
+          .putString(MetadataKeys.MinusInfinitySymbol, "-inf")
+          .putString(MetadataKeys.MinusInfinityValue, "01.01.2000 00-00-00")
+          .build)
     ))
     val exp = Seq(
       TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00")),
@@ -171,7 +193,8 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59")),
       TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43")),
       TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "02.02.1970_00-00-00", "string", "timestamp", Some("dd.MM.yyyy HH-mm-ss")))),
-      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope", "string", "timestamp", Some("dd.MM.yyyy HH-mm-ss"))))
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "nope", "string", "timestamp", Some("dd.MM.yyyy HH-mm-ss")))),
+      TimestampRow(Timestamp.valueOf("2000-01-01 00:00:00"))
     )
 
     val src = seq.toDF(fieldName)

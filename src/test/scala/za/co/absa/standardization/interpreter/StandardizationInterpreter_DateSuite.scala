@@ -26,6 +26,7 @@ import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{LoggerTestBase, Standardization, StandardizationErrorMessage}
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
+import za.co.absa.standardization.schema.MetadataKeys
 
 class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
@@ -53,7 +54,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
-        new MetadataBuilder().putString("pattern", "epoch").build)
+        new MetadataBuilder().putString(MetadataKeys.Pattern, "epoch").build)
     ))
     val exp = Seq(
       DateRow(Date.valueOf("1970-01-01")),
@@ -75,18 +76,28 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     val seq  = Seq(
       0L,
       86400000,
+      -1,
       978307199999L,
-      1563288103123L
+      1563288103123L,
+      -2
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
-        new MetadataBuilder().putString("pattern", "epochmilli").build)
+        new MetadataBuilder()
+          .putString(MetadataKeys.Pattern, "epochmilli")
+          .putString(MetadataKeys.PlusInfinitySymbol, "-1")
+          .putString(MetadataKeys.PlusInfinityValue, "1563278222094")
+          .putString(MetadataKeys.MinusInfinitySymbol, "-2")
+          .putString(MetadataKeys.MinusInfinityValue, "0")
+          .build)
     ))
     val exp = Seq(
       DateRow(Date.valueOf("1970-01-01")),
       DateRow(Date.valueOf("1970-01-02")),
+      DateRow(Date.valueOf("2019-07-16")),
       DateRow(Date.valueOf("2000-12-31")),
-      DateRow(Date.valueOf("2019-07-16"))
+      DateRow(Date.valueOf("2019-07-16")),
+      DateRow(Date.valueOf("1970-01-01"))
     )
 
     val src = seq.toDF(fieldName)
@@ -106,7 +117,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
-        new MetadataBuilder().putString("pattern", "epochmicro").build)
+        new MetadataBuilder().putString(MetadataKeys.Pattern, "epochmicro").build)
     ))
     val exp = Seq(
       DateRow(Date.valueOf("1970-01-01")),
@@ -132,7 +143,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
-        new MetadataBuilder().putString("pattern", "epochnano").build)
+        new MetadataBuilder().putString(MetadataKeys.Pattern, "epochnano").build)
     ))
     val exp = Seq(
       DateRow(Date.valueOf("1970-01-01")),
@@ -150,25 +161,31 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
   }
 
   test("simple date pattern") {
-    val seq  = Seq(
+    val seq: Seq[String] = Seq(
       "1970/01/01",
       "1970/02/01",
       "2000/31/12",
       "2019/16/07",
       "1970-02-02",
-      "crash"
+      "crash",
+      "Alfa"
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
-        new MetadataBuilder().putString("pattern", "yyyy/dd/MM").build)
+        new MetadataBuilder()
+          .putString(MetadataKeys.Pattern, "yyyy/dd/MM")
+          .putString(MetadataKeys.PlusInfinitySymbol, "Alfa")
+          .putString(MetadataKeys.PlusInfinityValue, "1970/02/01")
+          .build)
     ))
-    val exp = Seq(
+    val exp: Seq[DateRow] = Seq(
       DateRow(Date.valueOf("1970-01-01")),
       DateRow(Date.valueOf("1970-01-02")),
       DateRow(Date.valueOf("2000-12-31")),
       DateRow(Date.valueOf("2019-07-16")),
       DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "1970-02-02", "string", "date", Some("yyyy/dd/MM")))),
-      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash", "string", "date", Some("yyyy/dd/MM"))))
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash", "string", "date", Some("yyyy/dd/MM")))),
+      DateRow(Date.valueOf("1970-01-02"))
     )
 
     val src = seq.toDF(fieldName)
@@ -190,7 +207,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
-        new MetadataBuilder().putString("pattern", "HH-mm-ss dd.MM.yyyy ZZZ").build)
+        new MetadataBuilder().putString(MetadataKeys.Pattern, "HH-mm-ss dd.MM.yyyy ZZZ").build)
     ))
     val exp = Seq(
       DateRow(Date.valueOf("1970-01-01")),
@@ -221,7 +238,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
-        new MetadataBuilder().putString("pattern", "HH:mm:ss(SSSnnnnnn) dd+MM+yyyy XXX").build)
+        new MetadataBuilder().putString(MetadataKeys.Pattern, "HH:mm:ss(SSSnnnnnn) dd+MM+yyyy XXX").build)
     ))
     val exp = Seq(
       DateRow(Date.valueOf("1970-01-01")),
@@ -252,7 +269,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
         new MetadataBuilder()
-          .putString("pattern", "yyyy/dd/MM")
+          .putString(MetadataKeys.Pattern, "yyyy/dd/MM")
           .putString("timezone", "EST")
           .build)
     ))
@@ -286,7 +303,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
         new MetadataBuilder()
-          .putString("pattern", "yyyy/dd/MM")
+          .putString(MetadataKeys.Pattern, "yyyy/dd/MM")
           .putString("timezone", "Africa/Johannesburg")
           .build)
     ))
@@ -319,7 +336,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     )
     val desiredSchema = StructType(Seq(
       StructField(fieldName, DateType, nullable = false,
-        new MetadataBuilder().putString("pattern", "MMMM d 'of' yyyy").build)
+        new MetadataBuilder().putString(MetadataKeys.Pattern, "MMMM d 'of' yyyy").build)
     ))
     val exp = Seq(
       DateRow(Date.valueOf("1970-01-01")),
@@ -351,7 +368,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
   )
   val desiredSchema = StructType(Seq(
     StructField(fieldName, DateType, nullable = false,
-      new MetadataBuilder().putString("pattern", "yyyy/MM/dd 'insignificant' iiiiii").build)
+      new MetadataBuilder().putString(MetadataKeys.Pattern, "yyyy/MM/dd 'insignificant' iiiiii").build)
   ))
   val exp = Seq(
     DateRow(Date.valueOf("1970-01-01")),
