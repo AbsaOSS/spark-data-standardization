@@ -81,7 +81,8 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
         + "789123456789123456789123456791245678912324789123456789123456789123456789123456789123456791245678912324789123"
         + "456789123456789123456789123456789123456789123456789123456789.1"),
       ("06-Text", "foo", "bar"),
-      ("07-Exponential notation", "-1.23E4", "+9.8765E-3")
+      ("07-Exponential notation", "-1.23E4", "+9.8765E-3"),
+      ("08-Infinity", "FRRR", "MAXVALUE")
     )
     val src = seq.toDF("description","floatField", "doubleField")
     logDataFrameContent(src)
@@ -107,7 +108,8 @@ class StandardizationInterpreter_FractionalSuite extends AnyFunSuite with SparkT
       FractionalRow("06-Text", Option(0), None, Seq(
         StandardizationErrorMessage.stdCastErr("floatField", "foo", "string", "float", None),
         StandardizationErrorMessage.stdCastErr("doubleField", "bar", "string", "double", None))),
-      FractionalRow("07-Exponential notation", Option(-12300.0f), Option(0.0098765))
+      FractionalRow("07-Exponential notation", Option(-12300.0f), Option(0.0098765)),
+      FractionalRow("08-Infinity", Option(0f), Option(Double.PositiveInfinity))
     )
 
     assertResult(exp)(std.as[FractionalRow].collect().sortBy(_.description).toList)
