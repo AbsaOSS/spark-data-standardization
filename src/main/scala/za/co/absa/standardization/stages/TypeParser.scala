@@ -29,7 +29,6 @@ import za.co.absa.spark.hofs.transform
 import za.co.absa.standardization.{ErrorMessage, StandardizationErrorMessage}
 import za.co.absa.standardization.config.StandardizationConfig
 import za.co.absa.standardization.implicits.StdColumnImplicits.StdColumnEnhancements
-import za.co.absa.standardization.numeric.DecimalSymbols
 import za.co.absa.standardization.schema.StdSchemaUtils.FieldWithSource
 import za.co.absa.standardization.schema.{MetadataKeys, MetadataValues, StdSchemaUtils}
 import za.co.absa.standardization.time.DateTimePattern
@@ -692,29 +691,6 @@ object TypeParser {
         timestampColumn
       )
     }
-  }
-}
-
-sealed trait InfinitySupport {
-  protected def infMinusSymbol: Option[String]
-  protected def infMinusValue: Option[String]
-  protected def infPlusSymbol: Option[String]
-  protected def infPlusValue: Option[String]
-  protected val origType: DataType
-
-  def replaceInfinitySymbols(column: Column): Column = {
-    val columnWithNegativeInf: Column = infMinusSymbol.flatMap { minusSymbol =>
-      infMinusValue.map { minusValue =>
-        when(column === lit(minusSymbol).cast(origType), lit(minusValue).cast(origType)).otherwise(column)
-      }
-    }.getOrElse(column)
-
-    infPlusSymbol.flatMap { plusSymbol =>
-      infPlusValue.map { plusValue =>
-        when(columnWithNegativeInf === lit(plusSymbol).cast(origType), lit(plusValue).cast(origType))
-          .otherwise(columnWithNegativeInf)
-      }
-    }.getOrElse(columnWithNegativeInf)
   }
 }
 
