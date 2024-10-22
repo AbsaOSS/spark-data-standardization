@@ -196,6 +196,62 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     assertResult(exp)(std.as[DateRow].collect().toList)
   }
 
+  test("date pattern with century from string") {
+    val seq: Seq[String] = Seq(
+      "170/01/01",
+      "170/02/01",
+      "000/31/12",
+      "019/16/07"
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, DateType, nullable = false,
+        new MetadataBuilder()
+          .putString(MetadataKeys.Pattern, "cyy/dd/MM")
+          .build)
+    ))
+    val exp: Seq[DateRow] = Seq(
+      DateRow(Date.valueOf("2070-01-01")),
+      DateRow(Date.valueOf("2070-01-02")),
+      DateRow(Date.valueOf("1900-12-31")),
+      DateRow(Date.valueOf("1919-07-16"))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[DateRow].collect().toList)
+  }
+
+  test("date pattern with century from int") {
+    val seq: Seq[Int] = Seq(
+      1700101,
+      1700201,
+      3112,
+      191607
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, DateType, nullable = false,
+        new MetadataBuilder()
+          .putString(MetadataKeys.Pattern, "cyyddMM")
+          .build)
+    ))
+    val exp: Seq[DateRow] = Seq(
+      DateRow(Date.valueOf("2070-01-01")),
+      DateRow(Date.valueOf("2070-01-02")),
+      DateRow(Date.valueOf("1900-12-31")),
+      DateRow(Date.valueOf("1919-07-16"))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[DateRow].collect().toList)
+  }
+
   test("date + time pattern and named time zone") {
     val seq  = Seq(
       "01-00-00 01.01.1970 CET",
