@@ -171,7 +171,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         ArrayType(
           ErrorMessage.errorColSchema, containsNull = false)))
 
-    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema)
+    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema, stdConfig)
 
     logger.debug(standardizedDF.schema.treeString)
     logger.debug(expectedSchema.treeString)
