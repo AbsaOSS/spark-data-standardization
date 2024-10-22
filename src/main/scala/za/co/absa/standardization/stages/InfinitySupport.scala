@@ -22,13 +22,9 @@ import org.apache.spark.sql.types.DataType
 
 trait InfinitySupport {
   protected def infMinusSymbol: Option[String]
-
   protected def infMinusValue: Option[String]
-
   protected def infPlusSymbol: Option[String]
-
   protected def infPlusValue: Option[String]
-
   protected val origType: DataType
 
   def replaceInfinitySymbols(column: Column): Column = {
