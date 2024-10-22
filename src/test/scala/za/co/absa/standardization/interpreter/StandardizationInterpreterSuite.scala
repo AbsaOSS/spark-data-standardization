@@ -133,7 +133,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         Seq(
           StructField("yourRef", StringType, nullable = false))), nullable = false)))
 
-    val standardizedDF = Standardization.standardize(orig, schema, stdConfig)
+    val standardizedDF = Standardization.standardize(orig, schema)
 
     assertResult(exp)(standardizedDF.as[MyWrapperStd].collect().toList)
   }
@@ -171,7 +171,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         ArrayType(
           ErrorMessage.errorColSchema, containsNull = false)))
 
-    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema, stdConfig)
+    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema)
 
     logger.debug(standardizedDF.schema.treeString)
     logger.debug(expectedSchema.treeString)
