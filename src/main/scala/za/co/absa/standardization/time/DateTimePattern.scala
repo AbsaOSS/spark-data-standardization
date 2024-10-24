@@ -167,38 +167,6 @@ object DateTimePattern {
     override val isCentury: Boolean = true
   }
 
-//  private final case class StandardDTPattern(override val pattern: String,
-//                                             assignedDefaultTimeZone: Option[String] = None,
-//                                             override val isDefault: Boolean = false)
-//    extends DateTimePattern(pattern, isDefault) {
-//
-//    override val isEpoch: Boolean = false
-//    override val epochFactor: Long = 0
-//
-//    override val timeZoneInPattern: Boolean = DateTimePattern.timeZoneInPattern(pattern)
-//    override val defaultTimeZone: Option[String] = assignedDefaultTimeZone.filterNot(_ => timeZoneInPattern)
-//    override val isTimeZoned: Boolean = timeZoneInPattern || defaultTimeZone.nonEmpty
-//
-//    val (millisecondsPosition, microsecondsPosition, nanosecondsPosition) = analyzeSecondFractionsPositions(pattern)
-//    override val secondFractionsSections: Seq[Section] = Section.mergeTouchingSectionsAndSort(Seq(millisecondsPosition, microsecondsPosition, nanosecondsPosition).flatten)
-//    override val patternWithoutSecondFractions: String = Section.removeMultipleFrom(pattern, secondFractionsSections)
-//
-//    private def scanForPlaceholder(withinString: String, placeHolder: Char): Option[Section] = {
-//      val start = withinString.findFirstUnquoted(Set(placeHolder), Set('\''))
-//      start.map(index => Section.ofSameChars(withinString, index))
-//    }
-//
-//    private def analyzeSecondFractionsPositions(withinString: String): (Option[Section], Option[Section], Option[Section]) = {
-//      val clearedPattern = withinString
-//
-//      // TODO as part of #7 fix (originally Enceladus#677)
-//      val milliSP = scanForPlaceholder(clearedPattern, patternMilliSecondChar)
-//      val microSP = scanForPlaceholder(clearedPattern, patternMicroSecondChar)
-//      val nanoSP = scanForPlaceholder(clearedPattern, patternNanoSecondChat)
-//      (milliSP, microSP, nanoSP)
-//    }
-//  }
-
   private def create(pattern: String, assignedDefaultTimeZone: Option[String], isDefault: Boolean): DateTimePattern = {
     if (isEpoch(pattern)) {
       EpochDTPattern(pattern, isDefault)
