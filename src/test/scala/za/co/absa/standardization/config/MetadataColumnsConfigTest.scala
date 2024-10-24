@@ -43,8 +43,6 @@ class MetadataColumnsConfigTest extends AnyFunSuiteLike {
     assert(conf.metadataColumns.recordId == "standardization_record_id")
 
     assert(conf.typeDefaults == CommonTypeDefaults)
-
-
   }
 
 }
