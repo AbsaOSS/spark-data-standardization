@@ -23,7 +23,7 @@ import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancemen
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.spark.commons.utils.JsonUtils
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization._
@@ -133,8 +133,9 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         Seq(
           StructField("yourRef", StringType, nullable = false))), nullable = false)))
 
-    val standardizedDF = Standardization.standardize(orig, schema, stdConfig)
+    val standardizedDF = Standardization.standardize(orig, schema)
 
+    assert(standardizedDF.schema.treeString.contains("standardization_record_id"))
     assertResult(exp)(standardizedDF.as[MyWrapperStd].collect().toList)
   }
 
@@ -170,8 +171,9 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
       StructField("errCol",
         ArrayType(
           ErrorMessage.errorColSchema, containsNull = false)))
+      .add(StructField("standardization_record_id", StringType, nullable = false))
 
-    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema, stdConfig)
+    val standardizedDF = Standardization.standardize(sourceDF, stdExpectedSchema)
 
     logger.debug(standardizedDF.schema.treeString)
     logger.debug(expectedSchema.treeString)

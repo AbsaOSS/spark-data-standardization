@@ -19,13 +19,14 @@ package za.co.absa.standardization.config
 import za.co.absa.standardization.RecordIdGeneration
 
 trait MetadataColumnsConfig {
-  val addColumns: Boolean
-  val prefix: String
-  val recordIdStrategy: RecordIdGeneration.IdType
+  def addColumns: Boolean
+  def prefix: String
+  def recordIdStrategy: RecordIdGeneration.IdType
 
-  val infoDateColumn = prefix + "_info_date"
-  val infoDateColumnString = s"${infoDateColumn}_string"
-  val reportDateFormat = "yyyy-MM-dd"
-  val infoVersionColumn = prefix + "_info_version"
-  val recordId = prefix + "_record_id"
+  def reportDateFormat = "yyyy-MM-dd"
+
+  def infoDateColumn = prefix + "_info_date"
+  def infoDateColumnString = s"${infoDateColumn}_string"
+  def infoVersionColumn = prefix + "_info_version"
+  def recordId = prefix + "_record_id"
 }
