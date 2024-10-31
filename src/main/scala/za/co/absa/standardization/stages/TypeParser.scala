@@ -22,6 +22,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.slf4j.{Logger, LoggerFactory}
 import za.co.absa.spark.commons.implicits.ColumnImplicits.ColumnEnhancements
+import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.spark.commons.utils.SchemaUtils
 import za.co.absa.spark.hofs.transform
@@ -29,7 +30,7 @@ import za.co.absa.standardization.{ErrorMessage, StandardizationErrorMessage}
 import za.co.absa.standardization.config.StandardizationConfig
 import za.co.absa.standardization.implicits.StdColumnImplicits.StdColumnEnhancements
 import za.co.absa.standardization.schema.StdSchemaUtils.FieldWithSource
-import za.co.absa.standardization.schema.{MetadataValues, StdSchemaUtils}
+import za.co.absa.standardization.schema.{MetadataKeys, MetadataValues, StdSchemaUtils}
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.TypedStructField._
@@ -127,6 +128,7 @@ object TypeParser {
   private val MicrosecondsPerSecond = 1000000
   private val NanosecondsPerSecond  = 1000000000
   private val InfinityStr = "Infinity"
+  private val MinusInfinityStr = "-Infinity"
   private val nullColumn = lit(null) //scalastyle:ignore null
 
 
@@ -315,7 +317,13 @@ object TypeParser {
   }
 
   private abstract class NumericParser[N: TypeTag](override val field: NumericTypeStructField[N])
-                                                  (implicit defaults: TypeDefaults) extends ScalarParser[N] {
+                                                  (implicit defaults: TypeDefaults) extends ScalarParser[N] with InfinitySupport {
+    override protected val infMinusSymbol: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinitySymbol)
+    override protected val infMinusValue: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinityValue)
+    override protected val infPlusSymbol: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinitySymbol)
+    override protected val infPlusValue: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinityValue)
+    private val columnWithInfinityReplaced = replaceInfinitySymbols(column)
+
     override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       if (field.needsUdfParsing) {
         standardizeUsingUdf(stdConfig)
@@ -335,9 +343,9 @@ object TypeParser {
         val columnWithProperDecimalSymbols: Column = if (replacements.nonEmpty) {
           val from = replacements.keys.mkString
           val to = replacements.values.mkString
-          translate(column, from, to)
+          translate(columnWithInfinityReplaced, from, to)
         } else {
-          column
+          columnWithInfinityReplaced
         }
 
         val columnToCast = if (field.allowInfinity && (decimalSymbols.infinityValue != InfinityStr)) {
@@ -494,9 +502,14 @@ object TypeParser {
     * Date          | O                               | ->to_utc_timestamp->to_date
     * Other         | ->String->to_date               | ->String->to_timestamp->to_utc_timestamp->to_date
     */
-  private abstract class DateTimeParser[T](implicit defaults: TypeDefaults) extends PrimitiveParser[T] {
+  private abstract class DateTimeParser[T](implicit defaults: TypeDefaults) extends PrimitiveParser[T] with InfinitySupport {
     override val field: DateTimeTypeStructField[T]
     protected val pattern: DateTimePattern = field.pattern.get.get
+    override protected val infMinusSymbol: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinitySymbol)
+    override protected val infMinusValue: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinityValue)
+    override protected val infPlusSymbol: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinitySymbol)
+    override protected val infPlusValue: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinityValue)
+    private val columnWithInfinityReplaced: Column = replaceInfinitySymbols(column)
 
     override protected def assemblePrimitiveCastLogic: Column = {
       if (pattern.isEpoch) {
@@ -516,23 +529,23 @@ object TypeParser {
 
     private def castWithPattern(): Column = {
       // sadly with parquet support, incoming might not be all `plain`
-//      underlyingType match {
+      // underlyingType match {
       origType match {
         case _: NullType                  => nullColumn
-        case _: DateType                  => castDateColumn(column)
-        case _: TimestampType             => castTimestampColumn(column)
-        case _: StringType                => castStringColumn(column)
+        case _: DateType                  => castDateColumn(columnWithInfinityReplaced)
+        case _: TimestampType             => castTimestampColumn(columnWithInfinityReplaced)
+        case _: StringType                => castStringColumn(columnWithInfinityReplaced)
         case ot: DoubleType               =>
           // this case covers some IBM date format where it's represented as a double ddmmyyyy.hhmmss
           patternNeeded(ot)
-          castFractionalColumn(column, ot)
+          castFractionalColumn(columnWithInfinityReplaced, ot)
         case ot: FloatType                =>
           // this case covers some IBM date format where it's represented as a double ddmmyyyy.hhmmss
           patternNeeded(ot)
-          castFractionalColumn(column, ot)
+          castFractionalColumn(columnWithInfinityReplaced, ot)
         case ot                           =>
           patternNeeded(ot)
-          castNonStringColumn(column, ot)
+          castNonStringColumn(columnWithInfinityReplaced, ot)
       }
     }
 
@@ -554,7 +567,7 @@ object TypeParser {
     }
 
     protected def castEpoch(): Column = {
-      (column.cast(decimalType) / pattern.epochFactor).cast(TimestampType)
+      (columnWithInfinityReplaced.cast(decimalType) / pattern.epochFactor).cast(TimestampType)
     }
 
     protected def castStringColumn(stringColumn: Column): Column

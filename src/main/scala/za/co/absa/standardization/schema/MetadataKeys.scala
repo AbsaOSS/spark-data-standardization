@@ -22,6 +22,10 @@ object MetadataKeys {
   val DefaultValue = "default"
   // date & timestamp
   val DefaultTimeZone = "timezone"
+  val MinusInfinitySymbol = "minus_infinity_symbol"
+  val MinusInfinityValue = "minus_infinity_value"
+  val PlusInfinitySymbol = "plus_infinity_symbol"
+  val PlusInfinityValue = "plus_infinity_value"
   // date & timestamp & all numeric
   val Pattern = "pattern"
   // all numeric

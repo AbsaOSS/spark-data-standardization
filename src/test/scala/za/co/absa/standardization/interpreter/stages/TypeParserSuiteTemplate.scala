@@ -24,6 +24,7 @@ import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
 import za.co.absa.standardization.interpreter.stages.TypeParserSuiteTemplate._
+import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.stages.TypeParser
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.types.{CommonTypeDefaults, ParseOutput, TypeDefaults, TypedStructField}
@@ -46,7 +47,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   private implicit val udfLib: UDFLibrary = new UDFLibrary(stdConfig)
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
-  protected def createCastTemplate(toType: DataType, pattern: String, timezone: Option[String]): String
+  protected def createCastTemplate(srcType: StructField, target: StructField, pattern: String, timezone: Option[String]): String
   protected def createErrorCondition(srcField: String, target: StructField, castS: String):String
 
   private val sourceFieldName = "sourceField"
@@ -81,6 +82,20 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     import input._
     val floatField = StructField("floatField", FloatType, nullable = false,
       new MetadataBuilder().putString("sourcecolumn", sourceFieldName).build)
+    val schema = buildSchema(Array(sourceField(baseType), floatField), path)
+    testTemplate(floatField, schema, path)
+  }
+
+  protected def doTestIntoFloatWithInf(input: Input): Unit = {
+    import input._
+    val floatField = StructField("floatField", FloatType, nullable = false,
+      new MetadataBuilder()
+        .putString("sourcecolumn", sourceFieldName)
+        .putString(MetadataKeys.PlusInfinityValue, Float.PositiveInfinity.toString)
+        .putString(MetadataKeys.PlusInfinitySymbol, "inf")
+        .putString(MetadataKeys.MinusInfinityValue, Float.NegativeInfinity.toString)
+        .putString(MetadataKeys.MinusInfinitySymbol, "-inf")
+        .build)
     val schema = buildSchema(Array(sourceField(baseType), floatField), path)
     testTemplate(floatField, schema, path)
   }
@@ -183,6 +198,35 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     testTemplate(timestampField, schema, path, timestampPattern, Option(fixedTimezone))
   }
 
+  protected def doTestIntoTimestampWithPlusInfinity(input: Input): Unit = {
+    import input._
+    val timestampField = StructField("timestampField", TimestampType, nullable = false,
+      new MetadataBuilder()
+        .putString("sourcecolumn", sourceFieldName)
+        .putString("pattern", timestampPattern)
+        .putString(MetadataKeys.PlusInfinityValue, "99991231")
+        .putString(MetadataKeys.PlusInfinitySymbol, "inf")
+        .putString(MetadataKeys.MinusInfinityValue, "00010101")
+        .putString(MetadataKeys.MinusInfinitySymbol, "-inf")
+        .build)
+    val schema = buildSchema(Array(sourceField(baseType), timestampField), path)
+    testTemplate(timestampField, schema, path, timestampPattern)
+  }
+
+  protected def doTestIntoDateFieldWithInf(input: Input): Unit = {
+    import input._
+    val timestampField = StructField("dateField", DateType, nullable = false,
+      new MetadataBuilder()
+        .putString("sourcecolumn", sourceFieldName)
+        .putString(MetadataKeys.PlusInfinityValue, "99991231")
+        .putString(MetadataKeys.PlusInfinitySymbol, "inf")
+        .putString(MetadataKeys.MinusInfinityValue, "00010101")
+        .putString(MetadataKeys.MinusInfinitySymbol, "-inf")
+        .build)
+    val schema = buildSchema(Array(sourceField(baseType), timestampField), path)
+    testTemplate(timestampField, schema, path, "yyyy-MM-dd")
+  }
+
   protected def doTestIntoDateFieldWithEpochPattern(input: Input): Unit = {
     import input._
     val dateField = StructField("dateField", DateType, nullable = false,
@@ -225,14 +269,15 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   private def testTemplate(target: StructField, schema: StructType, path: String, pattern: String = "", timezone: Option[String] = None): Unit = {
 
     val srcField = fullName(path, sourceFieldName)
-    val srcType = getFieldByFullName(schema, srcField).dataType
-    val castString = createCastTemplate(target.dataType, pattern, timezone).format(srcField, srcField)
-    val errColumnExpression = assembleErrorExpression(srcField, target, applyRecasting(castString), srcType.typeName, target.dataType.typeName, pattern)
+    val srcStructField = getFieldByFullName(schema, srcField)
+    val srcType = srcStructField.dataType
+    val castString = createCastTemplate(srcStructField, target, pattern, timezone).replace("%s", "%1$s").format(srcField)
+    val errColumnExpression = assembleErrorExpression(srcField, target, applyRecasting(castString), srcType, target.dataType.typeName, pattern)
     val stdCastExpression = assembleCastExpression(srcField, target, applyRecasting(castString), errColumnExpression)
     val output: ParseOutput = TypeParser.standardize(target, path, schema, stdConfig)
 
-    doAssert(errColumnExpression, output.errors.toString())
-    doAssert(stdCastExpression, output.stdCol.toString())
+    doAssert(errColumnExpression, output.errors.toString(), "assembleErrorExpression")
+    doAssert(stdCastExpression, output.stdCol.toString(), "assembleCastExpression")
   }
 
   def applyRecasting(expr: String): String = {
@@ -286,22 +331,23 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     if (SPARK_VERSION.startsWith("2.")) expresionWithQuotes else expresionWithQuotes.replaceAll("`", "")
   }
 
-  private def assembleErrorExpression(srcField: String, target: StructField, castS: String, fromType: String, toType: String, pattern: String): String = {
+  private def assembleErrorExpression(srcField: String, target: StructField, castS: String, fromType: DataType, toType: String, pattern: String): String = {
     val errCond = createErrorCondition(srcField, target, castS)
     val patternExpr = if (pattern.isEmpty) "NULL" else pattern
 
     if (target.nullable) {
-      s"CASE WHEN (($srcField IS NOT NULL) AND ($errCond)) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), $fromType, $toType, $patternExpr)) ELSE [] END"
+      s"CASE WHEN (($srcField IS NOT NULL) AND ($errCond)) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), ${fromType.typeName}, $toType, $patternExpr)) ELSE [] END"
     } else {
       s"CASE WHEN ($srcField IS NULL) THEN array(stdNullErr($srcField)) ELSE " +
-        s"CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), $fromType, $toType, $patternExpr)) ELSE [] END END"
+        s"CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), ${fromType.typeName}, $toType, $patternExpr)) ELSE [] END END"
     }
   }
 
-  private def doAssert(expectedExpression: String, actualExpression: String): Unit = {
+  private def doAssert(expectedExpression: String, actualExpression: String, method: String): Unit = {
     if (actualExpression != expectedExpression) {
       // the expressions tend to be rather long, the assert most often cuts the beginning and/or end of the string
       // showing just the vicinity of the difference, so we log the output of the whole strings
+      log.error(s"Method: $method")
       log.error(s"Expected: $expectedExpression")
       log.error(s"Actual  : $actualExpression")
       assert(actualExpression == expectedExpression)
