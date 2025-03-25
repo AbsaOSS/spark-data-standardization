@@ -216,6 +216,7 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       StructField(fieldName, TimestampType, nullable = false,
         new MetadataBuilder()
           .putString("pattern", "dd.MM.cyy HH-mm-ss")
+          .putString("is_century_pattern", "true")
           .build)
     ))
     val exp = Seq(
@@ -244,6 +245,7 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
       StructField(fieldName, TimestampType, nullable = false,
         new MetadataBuilder()
           .putString("pattern", "ddMMcyyHHmmss")
+          .putString("is_century_pattern", "true")
           .build)
     ))
     val exp = Seq(

@@ -616,9 +616,10 @@ object TypeParser {
     }
 
     override protected def castStringColumn(stringColumn: Column): Column = {
-      val columWithCenturyReplaced: Column = if (pattern.isCentury) {
-        replaceCenturyUDF(stringColumn, lit(pattern.originalPattern.get))
-      } else { stringColumn }
+      val columWithCenturyReplaced: Column =
+        if (pattern.isCentury && metadata.getOptStringAsBoolean(MetadataKeys.IsCenturyPatter).getOrElse(false)) {
+          replaceCenturyUDF(stringColumn, lit(pattern.originalPattern.get))
+        } else { stringColumn }
 
       if (pattern.containsSecondFractions) {
         // date doesn't need to care about second fractions
@@ -667,7 +668,8 @@ object TypeParser {
     }
 
     override protected def castStringColumn(stringColumn: Column): Column = {
-      val columWithCenturyReplaced: Column = if (pattern.isCentury) {
+      val columWithCenturyReplaced: Column =
+        if (pattern.isCentury && metadata.getOptStringAsBoolean(MetadataKeys.IsCenturyPatter).getOrElse(false)) {
         replaceCenturyUDF(stringColumn, lit(pattern.originalPattern.get))
       } else { stringColumn }
 

@@ -118,8 +118,8 @@ object DateTimePattern {
   }
 
   private abstract class StandardDTPatternBase(override val pattern: String,
-                                                      assignedDefaultTimeZone: Option[String],
-                                                      override val isDefault: Boolean = false)
+                                               assignedDefaultTimeZone: Option[String],
+                                               override val isDefault: Boolean = false)
     extends DateTimePattern(pattern, isDefault) {
 
     override val isEpoch: Boolean = false
@@ -167,10 +167,13 @@ object DateTimePattern {
     override val isCentury: Boolean = true
   }
 
-  private def create(pattern: String, assignedDefaultTimeZone: Option[String], isDefault: Boolean): DateTimePattern = {
+  private def create(pattern: String,
+                     assignedDefaultTimeZone: Option[String],
+                     isCenturyPattern: Boolean,
+                     isDefault: Boolean): DateTimePattern = {
     if (isEpoch(pattern)) {
       EpochDTPattern(pattern, isDefault)
-    } else if (isCentury(pattern)) {
+    } else if (isCenturyPattern && isCentury(pattern)) {
       val patternWithoutCentury = pattern.replaceAll(patternCenturyChar, "yy")
       CenturyDTPattern(patternWithoutCentury, Some(pattern), assignedDefaultTimeZone, isDefault)
     } else {
@@ -179,13 +182,14 @@ object DateTimePattern {
   }
 
   def apply(pattern: String,
-            assignedDefaultTimeZone: Option[String] = None): DateTimePattern = {
-    create(pattern, assignedDefaultTimeZone, isDefault = false)
+            assignedDefaultTimeZone: Option[String] = None,
+            isCenturyPattern: Boolean = false): DateTimePattern = {
+    create(pattern, assignedDefaultTimeZone, isCenturyPattern, isDefault = false)
   }
 
   def asDefault(pattern: String,
                 assignedDefaultTimeZone: Option[String] = None): DateTimePattern = {
-    create(pattern, assignedDefaultTimeZone, isDefault = true)
+    create(pattern, assignedDefaultTimeZone, isCenturyPattern = false, isDefault = true)
   }
 
   def isEpoch(pattern: String): Boolean = {

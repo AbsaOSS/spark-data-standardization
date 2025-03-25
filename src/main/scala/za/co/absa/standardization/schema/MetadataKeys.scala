@@ -26,6 +26,7 @@ object MetadataKeys {
   val MinusInfinityValue = "minus_infinity_value"
   val PlusInfinitySymbol = "plus_infinity_symbol"
   val PlusInfinityValue = "plus_infinity_value"
+  val IsCenturyPatter = "is_century_pattern"
   // date & timestamp & all numeric
   val Pattern = "pattern"
   // all numeric
