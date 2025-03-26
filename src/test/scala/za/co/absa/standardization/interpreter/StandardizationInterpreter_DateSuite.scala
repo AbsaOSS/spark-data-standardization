@@ -207,7 +207,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
       StructField(fieldName, DateType, nullable = false,
         new MetadataBuilder()
           .putString(MetadataKeys.Pattern, "cyy/dd/MM")
-          .putString("is_century_pattern", "true")
+          .putString(MetadataKeys.IsNonStandard, "true")
           .build)
     ))
     val exp: Seq[DateRow] = Seq(
@@ -236,7 +236,7 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
       StructField(fieldName, DateType, nullable = false,
         new MetadataBuilder()
           .putString(MetadataKeys.Pattern, "cyyddMM")
-          .putString("is_century_pattern", "true")
+          .putString(MetadataKeys.IsNonStandard, "true")
           .build)
     ))
     val exp: Seq[DateRow] = Seq(

@@ -617,7 +617,7 @@ object TypeParser {
 
     override protected def castStringColumn(stringColumn: Column): Column = {
       val columWithCenturyReplaced: Column =
-        if (pattern.isCentury && metadata.getOptStringAsBoolean(MetadataKeys.IsCenturyPatter).getOrElse(false)) {
+        if (pattern.isCentury && metadata.getOptStringAsBoolean(MetadataKeys.IsNonStandard).getOrElse(false)) {
           replaceCenturyUDF(stringColumn, lit(pattern.originalPattern.get))
         } else { stringColumn }
 
@@ -669,7 +669,7 @@ object TypeParser {
 
     override protected def castStringColumn(stringColumn: Column): Column = {
       val columWithCenturyReplaced: Column =
-        if (pattern.isCentury && metadata.getOptStringAsBoolean(MetadataKeys.IsCenturyPatter).getOrElse(false)) {
+        if (pattern.isCentury && metadata.getOptStringAsBoolean(MetadataKeys.IsNonStandard).getOrElse(false)) {
         replaceCenturyUDF(stringColumn, lit(pattern.originalPattern.get))
       } else { stringColumn }
 

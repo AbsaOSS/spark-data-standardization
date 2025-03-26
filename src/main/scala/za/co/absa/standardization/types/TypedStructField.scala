@@ -415,7 +415,7 @@ object TypedStructField {
     private def readDateTimePattern: DateTimePattern = {
       structField.metadata.getOptString(MetadataKeys.Pattern).map { pattern =>
         val timeZoneOpt = structField.metadata.getOptString(MetadataKeys.DefaultTimeZone)
-        val isCenturyPattern = structField.metadata.getOptStringAsBoolean(MetadataKeys.IsCenturyPatter).getOrElse(false)
+        val isCenturyPattern = structField.metadata.getOptStringAsBoolean(MetadataKeys.IsNonStandard).getOrElse(false)
         DateTimePattern(pattern, timeZoneOpt, isCenturyPattern)
       }.getOrElse(
         DateTimePattern.asDefault(defaults.getStringPattern(structField.dataType), None)
