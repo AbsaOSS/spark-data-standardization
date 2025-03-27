@@ -34,6 +34,7 @@ import za.co.absa.standardization.schema.{MetadataKeys, MetadataValues, StdSchem
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.TypedStructField._
+import za.co.absa.standardization.types.parsers.DateTimeParser
 import za.co.absa.standardization.types.{ParseOutput, TypeDefaults, TypedStructField}
 import za.co.absa.standardization.udf.{UDFBuilder, UDFNames}
 
@@ -511,6 +512,17 @@ object TypeParser {
     override protected val infPlusValue: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinityValue)
     private val columnWithInfinityReplaced: Column = replaceInfinitySymbols(column)
 
+    protected val replaceCenturyUDF: UserDefinedFunction = udf((inputDate: String, centuryPattern: String) => {
+      val centuryIndex = centuryPattern.indexOf(DateTimePattern.patternCenturyChar)
+      val padding = centuryPattern.length - inputDate.length
+      val leftPadding = "0" * padding
+      val pendedInput = leftPadding + inputDate
+
+      val charAtPos = pendedInput.charAt(centuryIndex).asDigit
+      val modifiedChar = (charAtPos + 19).toString // Add 19 and convert back to string
+      pendedInput.substring(0, centuryIndex) + modifiedChar + pendedInput.substring(centuryIndex + 1)
+    })
+
     override protected def assemblePrimitiveCastLogic: Column = {
       if (pattern.isEpoch) {
         castEpoch()
@@ -604,14 +616,19 @@ object TypeParser {
     }
 
     override protected def castStringColumn(stringColumn: Column): Column = {
+      val columWithCenturyReplaced: Column =
+        if (pattern.isCentury && metadata.getOptStringAsBoolean(MetadataKeys.IsNonStandard).getOrElse(false)) {
+          replaceCenturyUDF(stringColumn, lit(pattern.originalPattern.get))
+        } else { stringColumn }
+
       if (pattern.containsSecondFractions) {
         // date doesn't need to care about second fractions
         applyPatternToStringColumn(
-          stringColumn.removeSections(
+          columWithCenturyReplaced.removeSections(
             Seq(pattern.millisecondsPosition, pattern.microsecondsPosition, pattern.nanosecondsPosition).flatten
           ), pattern.patternWithoutSecondFractions)
       } else {
-        applyPatternToStringColumn(stringColumn, pattern)
+        applyPatternToStringColumn(columWithCenturyReplaced, pattern)
       }
     }
 
@@ -651,28 +668,33 @@ object TypeParser {
     }
 
     override protected def castStringColumn(stringColumn: Column): Column = {
+      val columWithCenturyReplaced: Column =
+        if (pattern.isCentury && metadata.getOptStringAsBoolean(MetadataKeys.IsNonStandard).getOrElse(false)) {
+        replaceCenturyUDF(stringColumn, lit(pattern.originalPattern.get))
+      } else { stringColumn }
+
       if (pattern.containsSecondFractions) {
         //this is a trick how to enforce fractions of seconds into the timestamp
         // - turn into timestamp up to seconds precision and that into unix_timestamp,
         // - the second fractions turn into numeric fractions
         // - add both together and convert to timestamp
         val colSeconds = unix_timestamp(applyPatternToStringColumn(
-          stringColumn.removeSections(
+          columWithCenturyReplaced.removeSections(
             Seq(pattern.millisecondsPosition, pattern.microsecondsPosition, pattern.nanosecondsPosition).flatten
           ), pattern.patternWithoutSecondFractions))
 
         val colMilliseconds: Option[Column] =
-          pattern.millisecondsPosition.map(stringColumn.zeroBasedSubstr(_).cast(decimalType) / MillisecondsPerSecond)
+          pattern.millisecondsPosition.map(columWithCenturyReplaced.zeroBasedSubstr(_).cast(decimalType) / MillisecondsPerSecond)
         val colMicroseconds: Option[Column] =
-          pattern.microsecondsPosition.map(stringColumn.zeroBasedSubstr(_).cast(decimalType) / MicrosecondsPerSecond)
+          pattern.microsecondsPosition.map(columWithCenturyReplaced.zeroBasedSubstr(_).cast(decimalType) / MicrosecondsPerSecond)
         val colNanoseconds: Option[Column] =
-          pattern.nanosecondsPosition.map(stringColumn.zeroBasedSubstr(_).cast(decimalType) / NanosecondsPerSecond)
+          pattern.nanosecondsPosition.map(columWithCenturyReplaced.zeroBasedSubstr(_).cast(decimalType) / NanosecondsPerSecond)
         val colFractions: Column =
           (colMilliseconds ++ colMicroseconds ++ colNanoseconds).reduceOption(_ + _).getOrElse(lit(0))
 
         (colSeconds + colFractions).cast(TimestampType)
       } else {
-        applyPatternToStringColumn(stringColumn, pattern)
+        applyPatternToStringColumn(columWithCenturyReplaced, pattern)
       }
     }
 

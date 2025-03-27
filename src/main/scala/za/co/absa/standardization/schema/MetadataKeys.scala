@@ -40,6 +40,8 @@ object MetadataKeys {
   val Encoding = "encoding"
   //decimal
   val StrictParsing = "strict_parsing"
+  // For nonstandard data inputs like the Mainframe's century pattern
+  val IsNonStandard = "is_non_standard"
 }
 
 object MetadataValues {

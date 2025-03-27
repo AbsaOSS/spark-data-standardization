@@ -205,6 +205,64 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
     assertResult(exp)(std.as[TimestampRow].collect().toList)
   }
 
+  test("pattern up to seconds precision with century pattern from string") {
+    val seq  = Seq(
+      "01.01.070 00-00-00",
+      "02.01.070 00-00-00",
+      "31.12.100 23-59-59",
+      "16.07.119 14-41-43"
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, TimestampType, nullable = false,
+        new MetadataBuilder()
+          .putString("pattern", "dd.MM.cyy HH-mm-ss")
+          .putString(MetadataKeys.IsNonStandard, "true")
+          .build)
+    ))
+    val exp = Seq(
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00")),
+      TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00")),
+      TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59")),
+      TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43"))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[TimestampRow].collect().toList)
+  }
+
+  test("pattern up to seconds precision with century pattern fron int") {
+    val seq: Seq[Long] = Seq(
+      101070000000L,
+      201070000000L,
+      3112100235959L,
+      1607119144143L
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, TimestampType, nullable = false,
+        new MetadataBuilder()
+          .putString("pattern", "ddMMcyyHHmmss")
+          .putString(MetadataKeys.IsNonStandard, "true")
+          .build)
+    ))
+    val exp = Seq(
+      TimestampRow(Timestamp.valueOf("1970-01-01 00:00:00")),
+      TimestampRow(Timestamp.valueOf("1970-01-02 00:00:00")),
+      TimestampRow(Timestamp.valueOf("2000-12-31 23:59:59")),
+      TimestampRow(Timestamp.valueOf("2019-07-16 14:41:43"))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[TimestampRow].collect().toList)
+  }
+
   test("pattern up to seconds precision with default time zone") {
     val seq  = Seq(
       "31.12.1969 19-00-00",

@@ -17,6 +17,7 @@
 package za.co.absa.standardization.time
 
 import za.co.absa.standardization.implicits.StringImplicits.StringEnhancements
+import za.co.absa.standardization.time.DateTimePattern.{patternMicroSecondChar, patternMilliSecondChar, patternNanoSecondChat}
 import za.co.absa.standardization.types.{Section, TypePattern}
 
 /**
@@ -29,10 +30,12 @@ abstract sealed class DateTimePattern(pattern: String, isDefault: Boolean = fals
   extends TypePattern(pattern, isDefault){
 
   val isEpoch: Boolean
+  val isCentury: Boolean
   val epochFactor: Long
 
   val timeZoneInPattern: Boolean
   val defaultTimeZone: Option[String]
+  val originalPattern: Option[String]
   val isTimeZoned: Boolean
 
   val millisecondsPosition: Option[Section]
@@ -47,7 +50,6 @@ abstract sealed class DateTimePattern(pattern: String, isDefault: Boolean = fals
     val q = "\""
     s"pattern: $q$pattern$q" + defaultTimeZone.map(x => s" (default time zone: $q$x$q)").getOrElse("")
   }
-
 }
 
 object DateTimePattern {
@@ -56,6 +58,8 @@ object DateTimePattern {
   val EpochMilliKeyword = "epochmilli"
   val EpochMicroKeyword = "epochmicro"
   val EpochNanoKeyword = "epochnano"
+
+  val patternCenturyChar = "c"
 
   private val epochUnitFactor = 1
   private val epoch1kFactor = 1000
@@ -81,10 +85,12 @@ object DateTimePattern {
     extends DateTimePattern(pattern, isDefault) {
 
     override val isEpoch: Boolean = true
+    override val isCentury: Boolean = false
     override val epochFactor: Long = DateTimePattern.epochFactor(pattern)
 
     override val timeZoneInPattern: Boolean = true
     override val defaultTimeZone: Option[String] = None
+    override val originalPattern: Option[String] = None
     override val isTimeZoned: Boolean = true
 
     override val millisecondsPosition: Option[Section] = pattern match {
@@ -111,9 +117,9 @@ object DateTimePattern {
     override val patternWithoutSecondFractions: String = EpochKeyword
   }
 
-  private final case class StandardDTPattern(override val pattern: String,
-                                             assignedDefaultTimeZone: Option[String] = None,
-                                             override val isDefault: Boolean = false)
+  private abstract class StandardDTPatternBase(override val pattern: String,
+                                               assignedDefaultTimeZone: Option[String],
+                                               override val isDefault: Boolean = false)
     extends DateTimePattern(pattern, isDefault) {
 
     override val isEpoch: Boolean = false
@@ -143,22 +149,47 @@ object DateTimePattern {
     }
   }
 
-  private def create(pattern: String, assignedDefaultTimeZone: Option[String], isDefault: Boolean): DateTimePattern = {
+  private final case class StandardDTPattern(override val pattern: String,
+                                             assignedDefaultTimeZone: Option[String] = None,
+                                             override val isDefault: Boolean = false)
+    extends StandardDTPatternBase(pattern, assignedDefaultTimeZone, isDefault) {
+
+    override val isCentury: Boolean = false
+    override val originalPattern: Option[String] = None
+  }
+
+  private final case class CenturyDTPattern(override val pattern: String,
+                                            override val originalPattern: Option[String],
+                                            assignedDefaultTimeZone: Option[String] = None,
+                                            override val isDefault: Boolean = false)
+    extends StandardDTPatternBase(pattern, assignedDefaultTimeZone, isDefault) {
+
+    override val isCentury: Boolean = true
+  }
+
+  private def create(pattern: String,
+                     assignedDefaultTimeZone: Option[String],
+                     isCenturyPattern: Boolean,
+                     isDefault: Boolean): DateTimePattern = {
     if (isEpoch(pattern)) {
       EpochDTPattern(pattern, isDefault)
+    } else if (isCenturyPattern && isCentury(pattern)) {
+      val patternWithoutCentury = pattern.replaceAll(patternCenturyChar, "yy")
+      CenturyDTPattern(patternWithoutCentury, Some(pattern), assignedDefaultTimeZone, isDefault)
     } else {
       StandardDTPattern(pattern, assignedDefaultTimeZone, isDefault)
     }
   }
 
   def apply(pattern: String,
-            assignedDefaultTimeZone: Option[String] = None): DateTimePattern = {
-    create(pattern, assignedDefaultTimeZone, isDefault = false)
+            assignedDefaultTimeZone: Option[String] = None,
+            isCenturyPattern: Boolean = false): DateTimePattern = {
+    create(pattern, assignedDefaultTimeZone, isCenturyPattern, isDefault = false)
   }
 
   def asDefault(pattern: String,
                 assignedDefaultTimeZone: Option[String] = None): DateTimePattern = {
-    create(pattern, assignedDefaultTimeZone, isDefault = true)
+    create(pattern, assignedDefaultTimeZone, isCenturyPattern = false, isDefault = true)
   }
 
   def isEpoch(pattern: String): Boolean = {
@@ -166,6 +197,10 @@ object DateTimePattern {
       case EpochKeyword | EpochMilliKeyword | EpochMicroKeyword | EpochNanoKeyword => true
       case _ => false
     }
+  }
+
+  def isCentury(pattern: String): Boolean = {
+    pattern.contains(s"${patternCenturyChar}yy")
   }
 
   def epochFactor(pattern: String): Long = {
