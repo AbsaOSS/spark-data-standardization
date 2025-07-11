@@ -16,9 +16,18 @@
 
 package za.co.absa.standardization.stages
 
-import org.apache.spark.sql.Column
-import org.apache.spark.sql.functions.{lit, when}
-import org.apache.spark.sql.types.DataType
+import org.apache.spark.sql.{Column, SparkSession, Row, functions => F}
+import org.apache.spark.sql.types.{DataType, DateType, StringType, TimestampType, StructType, StructField}
+import za.co.absa.standardization.types.{TypeDefaults, TypedStructField}
+import za.co.absa.standardization.types.parsers.DateTimeParser
+import za.co.absa.standardization.time.DateTimePattern
+import za.co.absa.standardization.types.TypedStructField.DateTimeTypeStructField
+import java.sql.Timestamp
+import scala.collection.JavaConverters._
+import java.text.SimpleDateFormat
+import java.util.Date
+
+
 
 trait InfinitySupport {
   protected def infMinusSymbol: Option[String]
@@ -26,19 +35,118 @@ trait InfinitySupport {
   protected def infPlusSymbol: Option[String]
   protected def infPlusValue: Option[String]
   protected val origType: DataType
+  protected def defaults: TypeDefaults
+  protected def field: TypedStructField
+  protected def spark: SparkSession
+
+
+  private def sanitizeInput(s: String): String = {
+    if (s.matches("[a-zA-Z0-9:.-]+")) s
+    else {
+      throw new IllegalArgumentException(s"Invalid input '$s': must be alphanumeric , colon, dot or hyphen")
+    }
+  }
+
+  private def getPattern(dataType: DataType): Option[String] = {
+    dataType match {
+      case DateType | TimestampType =>
+        field match {
+          case dateField: DateTimeTypeStructField[_] =>
+            dateField.pattern.toOption.flatten.map(_.pattern)
+          case _ => None
+        }
+      case _ => None
+    }
+  }
+
+  private def validateAndConvertInfinityValue(value: String, dataType: DataType, patternOpt: Option[String]): String = {
+    val sanitizedValue = sanitizeInput(value)
+    val schema = StructType(Seq(StructField("value", StringType, nullable = false)))
+    val df = spark.createDataFrame(spark.sparkContext.parallelize(Seq(Row(sanitizedValue))), schema)
+
+    val parsedWithPattern = patternOpt.flatMap { pattern =>
+      val parsedCol = dataType match {
+        case TimestampType => F.to_timestamp(F.col("value"), pattern)
+        case DateType => F.to_date(F.col("value"), pattern)
+        case _ => F.col("value").cast(dataType)
+      }
+      val result = df.select(parsedCol.alias("parsed")).first().get(0)
+      if (result != null) Some(sanitizedValue) else None
+    }
+
+    if (parsedWithPattern.isDefined) {
+      parsedWithPattern.get
+    } else {
+      val isoPattern = dataType match {
+        case TimestampType => "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        case DateType => "yyyy-MM-dd"
+        case _ => ""
+      }
+      val parsedWithISO = dataType match {
+        case TimestampType => df.select(F.to_timestamp(F.col("value"), isoPattern)).alias("parsed").first().getAs[Timestamp](0)
+        case DateType => df.select(F.to_date(F.col("value"), isoPattern)).alias("parsed").first().getAs[Date](0)
+        case _ => null
+      }
+      if (parsedWithISO != null) {
+        patternOpt.getOrElse(isoPattern) match {
+          case pattern =>
+            val dateFormat = new SimpleDateFormat(pattern)
+            dateFormat.format(parsedWithISO)
+        }
+      } else{
+        throw new IllegalArgumentException(s"Invalid infinity value: '$value' for type: $dataType with pattern ${patternOpt.getOrElse("none")} and ISO fallback ($isoPattern")
+      }
+    }
+  }
+
+  protected val validatedInfMinusValue: Option[String] = if (origType == DateType || origType == TimestampType) {
+    infMinusValue.map { v =>
+      validateAndConvertInfinityValue(v, origType,getPattern(origType))
+    }
+  } else {
+    infMinusValue.map(sanitizeInput)
+  }
+
+  protected val validatedInfPlusValue: Option[String] = if (origType == DateType || origType == TimestampType) {
+    infPlusValue.map { v =>
+      validateAndConvertInfinityValue(v, origType,getPattern(origType))
+    }
+  } else {
+    infPlusValue.map(sanitizeInput)
+  }
 
   def replaceInfinitySymbols(column: Column): Column = {
-    val columnWithNegativeInf: Column = infMinusSymbol.flatMap { minusSymbol =>
-      infMinusValue.map { minusValue =>
-        when(column === lit(minusSymbol).cast(origType), lit(minusValue).cast(origType)).otherwise(column)
+    var resultCol = column.cast(StringType)
+    validatedInfMinusValue.foreach { v =>
+      infMinusSymbol.foreach { s =>
+        resultCol = F.when(resultCol === F.lit(s), F.lit(v)).otherwise(resultCol)
       }
-    }.getOrElse(column)
+    }
+    validatedInfPlusValue.foreach { v =>
+      infPlusSymbol.foreach { s =>
+        resultCol = F.when(resultCol === F.lit(s), F.lit(v)).otherwise(resultCol)
+      }
+    }
 
-    infPlusSymbol.flatMap { plusSymbol =>
-      infPlusValue.map { plusValue =>
-        when(columnWithNegativeInf === lit(plusSymbol).cast(origType), lit(plusValue).cast(origType))
-          .otherwise(columnWithNegativeInf)
-      }
-    }.getOrElse(columnWithNegativeInf)
+    origType match {
+      case TimestampType =>
+        val pattern = getPattern(origType).getOrElse(
+          defaults.defaultTimestampTimeZone.map(_ => "yyyy-MM-dd'T'HH:mm:ss.SSSSSS").getOrElse("yyyy-MM-dd HH:mm:ss")
+        )
+        F.coalesce(
+          F.to_timestamp(resultCol,pattern),
+          F.to_timestamp(resultCol,"yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+        ).cast(origType)
+      case DateType =>
+        val pattern = getPattern(origType).getOrElse(
+          defaults.defaultDateTimeZone.map(_ => "yyyy-MM-dd").getOrElse("yyyy-MM-dd")
+        )
+        F.coalesce(
+          F.to_date(resultCol,pattern),
+          F.to_date(resultCol, "yyyy-MM-dd")
+        ).cast(origType)
+      case _ =>
+      resultCol.cast(origType)
+    }
   }
 }
