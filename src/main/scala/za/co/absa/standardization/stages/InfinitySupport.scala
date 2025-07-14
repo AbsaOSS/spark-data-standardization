@@ -16,11 +16,10 @@
 
 package za.co.absa.standardization.stages
 
-import org.apache.spark.sql.{Column, SparkSession, Row, functions => F}
-import org.apache.spark.sql.types.{DataType, DateType, StringType, TimestampType, StructType, StructField}
+import org.apache.spark.sql.functions.{to_timestamp,lit, when,coalesce,to_date}
+import org.apache.spark.sql.{Column, Row, SparkSession}
+import org.apache.spark.sql.types.{DataType, DateType, StringType, StructField, StructType, TimestampType}
 import za.co.absa.standardization.types.{TypeDefaults, TypedStructField}
-import za.co.absa.standardization.types.parsers.DateTimeParser
-import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.types.TypedStructField.DateTimeTypeStructField
 import java.sql.Timestamp
 import scala.collection.JavaConverters._
@@ -35,9 +34,7 @@ trait InfinitySupport {
   protected def infPlusSymbol: Option[String]
   protected def infPlusValue: Option[String]
   protected val origType: DataType
-  protected def defaults: TypeDefaults
   protected def field: TypedStructField
-  protected def spark: SparkSession
 
 
   private def sanitizeInput(s: String): String = {
@@ -59,16 +56,16 @@ trait InfinitySupport {
     }
   }
 
-  private def validateAndConvertInfinityValue(value: String, dataType: DataType, patternOpt: Option[String]): String = {
+  private def validateAndConvertInfinityValue(value: String, dataType: DataType, patternOpt: Option[String], spark:SparkSession): String = {
     val sanitizedValue = sanitizeInput(value)
     val schema = StructType(Seq(StructField("value", StringType, nullable = false)))
     val df = spark.createDataFrame(spark.sparkContext.parallelize(Seq(Row(sanitizedValue))), schema)
 
     val parsedWithPattern = patternOpt.flatMap { pattern =>
       val parsedCol = dataType match {
-        case TimestampType => F.to_timestamp(F.col("value"), pattern)
-        case DateType => F.to_date(F.col("value"), pattern)
-        case _ => F.col("value").cast(dataType)
+        case TimestampType =>to_timestamp(df.col("value"), pattern)
+        case DateType => to_date(df.col("value"), pattern)
+        case _ => df.col("value").cast(dataType)
       }
       val result = df.select(parsedCol.alias("parsed")).first().get(0)
       if (result != null) Some(sanitizedValue) else None
@@ -83,8 +80,8 @@ trait InfinitySupport {
         case _ => ""
       }
       val parsedWithISO = dataType match {
-        case TimestampType => df.select(F.to_timestamp(F.col("value"), isoPattern)).alias("parsed").first().getAs[Timestamp](0)
-        case DateType => df.select(F.to_date(F.col("value"), isoPattern)).alias("parsed").first().getAs[Date](0)
+        case TimestampType => df.select(to_timestamp(df.col("value"), isoPattern)).alias("parsed").first().getAs[Timestamp](0)
+        case DateType => df.select(to_date(df.col("value"), isoPattern)).alias("parsed").first().getAs[Date](0)
         case _ => null
       }
       if (parsedWithISO != null) {
@@ -101,7 +98,8 @@ trait InfinitySupport {
 
   protected val validatedInfMinusValue: Option[String] = if (origType == DateType || origType == TimestampType) {
     infMinusValue.map { v =>
-      validateAndConvertInfinityValue(v, origType,getPattern(origType))
+       //validateAndConvertInfinityValue(v, origType,getPattern(origType))
+      v
     }
   } else {
     infMinusValue.map(sanitizeInput)
@@ -109,22 +107,37 @@ trait InfinitySupport {
 
   protected val validatedInfPlusValue: Option[String] = if (origType == DateType || origType == TimestampType) {
     infPlusValue.map { v =>
-      validateAndConvertInfinityValue(v, origType,getPattern(origType))
+      //validateAndConvertInfinityValue(v, origType,getPattern(origType))
+      v
     }
   } else {
     infPlusValue.map(sanitizeInput)
   }
 
-  def replaceInfinitySymbols(column: Column): Column = {
+  def replaceInfinitySymbols(column: Column, spark:SparkSession, defaults: TypeDefaults): Column = {
     var resultCol = column.cast(StringType)
-    validatedInfMinusValue.foreach { v =>
+
+    val validatedMinus = if (origType == DateType || origType == TimestampType) {
+      infMinusValue.map( v => validateAndConvertInfinityValue(v, origType, getPattern(origType),spark))
+    } else {
+      infMinusValue.map(sanitizeInput)
+    }
+
+    val validatedPlus = if (origType == DateType || origType == TimestampType){
+      infPlusValue.map(v => validateAndConvertInfinityValue(v, origType, getPattern(origType),spark))
+    } else{
+      infPlusValue.map(sanitizeInput)
+    }
+
+    validatedMinus.foreach { v =>
       infMinusSymbol.foreach { s =>
-        resultCol = F.when(resultCol === F.lit(s), F.lit(v)).otherwise(resultCol)
+        resultCol = when(resultCol === lit(s), lit(v)).otherwise(resultCol)
       }
     }
-    validatedInfPlusValue.foreach { v =>
+
+    validatedPlus.foreach { v =>
       infPlusSymbol.foreach { s =>
-        resultCol = F.when(resultCol === F.lit(s), F.lit(v)).otherwise(resultCol)
+        resultCol = when(resultCol === lit(s), lit(v)).otherwise(resultCol)
       }
     }
 
@@ -133,17 +146,17 @@ trait InfinitySupport {
         val pattern = getPattern(origType).getOrElse(
           defaults.defaultTimestampTimeZone.map(_ => "yyyy-MM-dd'T'HH:mm:ss.SSSSSS").getOrElse("yyyy-MM-dd HH:mm:ss")
         )
-        F.coalesce(
-          F.to_timestamp(resultCol,pattern),
-          F.to_timestamp(resultCol,"yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+        coalesce(
+          to_timestamp(resultCol,pattern),
+          to_timestamp(resultCol,"yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
         ).cast(origType)
       case DateType =>
         val pattern = getPattern(origType).getOrElse(
           defaults.defaultDateTimeZone.map(_ => "yyyy-MM-dd").getOrElse("yyyy-MM-dd")
         )
-        F.coalesce(
-          F.to_date(resultCol,pattern),
-          F.to_date(resultCol, "yyyy-MM-dd")
+        coalesce(
+          to_date(resultCol,pattern),
+          to_date(resultCol, "yyyy-MM-dd")
         ).cast(origType)
       case _ =>
       resultCol.cast(origType)
