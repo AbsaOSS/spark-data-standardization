@@ -16,7 +16,7 @@
 
 package za.co.absa.standardization.stages
 
-import org.apache.spark.sql.Column
+import org.apache.spark.sql.{Column, SparkSession}
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
@@ -138,7 +138,7 @@ object TypeParser {
                   origSchema: StructType,
                   stdConfig: StandardizationConfig,
                   failOnInputNotPerSchema: Boolean = true)
-                 (implicit defaults: TypeDefaults): ParseOutput = {
+                 (implicit spark: SparkSession, defaults: TypeDefaults): ParseOutput = {
     // udfLib implicit is present for error column UDF implementation
     val sourceName = SchemaUtils.appendPath(path, field.sourceName)
     val origField = origSchema.getField(sourceName)
@@ -165,7 +165,7 @@ object TypeParser {
                     origType: DataType,
                     failOnInputNotPerSchema: Boolean,
                     isArrayElement: Boolean = false)
-                   (implicit defaults: TypeDefaults): TypeParser[_] = {
+                   (implicit spark:SparkSession, defaults: TypeDefaults): TypeParser[_] = {
     val parserClass: (String, Column, DataType, Boolean, Boolean) => TypeParser[_] = field.dataType match {
       case _: ArrayType     => ArrayParser(TypedStructField.asArrayTypeStructField(field), _, _, _, _, _)
       case _: StructType    => StructParser(TypedStructField.asStructTypeStructField(field), _, _, _, _, _)
@@ -318,7 +318,7 @@ object TypeParser {
   }
 
   private abstract class NumericParser[N: TypeTag](override val field: NumericTypeStructField[N])
-                                                  (implicit defaults: TypeDefaults) extends ScalarParser[N] with InfinitySupport {
+                                                  (implicit spark: SparkSession, defaults: TypeDefaults) extends ScalarParser[N] with InfinitySupport {
     override protected val infMinusSymbol: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinitySymbol)
     override protected val infMinusValue: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinityValue)
     override protected val infPlusSymbol: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinitySymbol)
@@ -384,7 +384,7 @@ object TypeParser {
                                                                 failOnInputNotPerSchema: Boolean,
                                                                 isArrayElement: Boolean,
                                                                 overflowableTypes: Set[DataType])
-                                                               (implicit defaults: TypeDefaults) extends NumericParser[N](field) {
+                                                               (implicit spark:SparkSession, defaults: TypeDefaults) extends NumericParser[N](field) {
     override protected def assemblePrimitiveCastErrorLogic(castedCol: Column): Column = {
       val basicLogic: Column = super.assemblePrimitiveCastErrorLogic(castedCol)
 
