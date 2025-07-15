@@ -91,30 +91,13 @@ trait InfinitySupport {
             dateFormat.format(parsedWithISO)
         }
       } else{
-        throw new IllegalArgumentException(s"Invalid infinity value: '$value' for type: $dataType with pattern ${patternOpt.getOrElse("none")} and ISO fallback ($isoPattern")
+        throw new IllegalArgumentException(s"Invalid infinity value: '$value' for type: $dataType with pattern ${patternOpt.getOrElse("none")} and ISO fallback ($isoPattern)")
       }
     }
   }
 
-  protected val validatedInfMinusValue: Option[String] = if (origType == DateType || origType == TimestampType) {
-    infMinusValue.map { v =>
-       //validateAndConvertInfinityValue(v, origType,getPattern(origType))
-      v
-    }
-  } else {
-    infMinusValue.map(sanitizeInput)
-  }
 
-  protected val validatedInfPlusValue: Option[String] = if (origType == DateType || origType == TimestampType) {
-    infPlusValue.map { v =>
-      //validateAndConvertInfinityValue(v, origType,getPattern(origType))
-      v
-    }
-  } else {
-    infPlusValue.map(sanitizeInput)
-  }
-
-  def replaceInfinitySymbols(column: Column, spark:SparkSession, defaults: TypeDefaults): Column = {
+  def replaceInfinitySymbols(column: Column)(implicit spark:SparkSession, defaults: TypeDefaults): Column = {
     var resultCol = column.cast(StringType)
 
     val validatedMinus = if (origType == DateType || origType == TimestampType) {
