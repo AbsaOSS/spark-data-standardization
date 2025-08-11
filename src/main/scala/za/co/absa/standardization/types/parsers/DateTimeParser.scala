@@ -19,17 +19,17 @@ package za.co.absa.standardization.types.parsers
 import java.sql.{Date, Timestamp}
 import java.text.SimpleDateFormat
 import java.util.Locale
-
-import za.co.absa.standardization.time.DateTimePattern
+import za.co.absa.standardization.time.{DateTimePattern, InfinityConfig}
 import za.co.absa.standardization.types.Section
 import za.co.absa.standardization.types.parsers.DateTimeParser.{MillisecondsInSecond, NanosecondsInMicrosecond, NanosecondsInMillisecond, SecondsPerDay}
-
+import scala.util.Try
 /**
   * Enables to parse string to date and timestamp based on the provided format
   * Unlike SimpleDateFormat it also supports keywords to format epoch related values
   * @param pattern  the formatting string, in case it's an epoch format the values wil need to be convertible to Long
   */
-case class DateTimeParser(pattern: DateTimePattern) {
+case class DateTimeParser(pattern: DateTimePattern,
+                          infinityConfig: Option[InfinityConfig] = None) {
   private val formatter: Option[SimpleDateFormat] = if (pattern.isEpoch) {
     None
   } else {
@@ -39,15 +39,34 @@ case class DateTimeParser(pattern: DateTimePattern) {
     Some(sdf)
   }
 
+  private val defaultDatePattern = "yyyy-MM-dd"
+  private val defaultTimestampPattern = "yyyy-MM-dd HH:mm:ss"
+
   def parseDate(dateValue: String): Date = {
-    val seconds = extractSeconds(dateValue)
-    new Date((seconds - (seconds % SecondsPerDay)) * MillisecondsInSecond)
+    infinityConfig match {
+      case Some(config) if config.plusInfinitySymbol.contains(dateValue) =>
+         parseInfinityValue(config.plusInfinityValue,config.plusInfinityPattern.getOrElse(defaultDatePattern),Long.MaxValue)
+      case Some(config) if config.minusInfinitySymbol.contains(dateValue) =>
+        parseInfinityValue(config.minusInfinityValue,config.minusInfinityPattern.getOrElse(defaultDatePattern), Long.MinValue)
+      case _ =>
+        val seconds = extractSeconds(dateValue)
+        new Date((seconds - (seconds % SecondsPerDay)) * MillisecondsInSecond)
+    }
   }
 
   def parseTimestamp(timestampValue: String): Timestamp = {
-    val seconds = extractSeconds(timestampValue)
-    val nanoseconds = extractNanoseconds(timestampValue)
-    makePreciseTimestamp(seconds, nanoseconds)
+    infinityConfig match {
+      case Some(config) if config.plusInfinitySymbol.contains(timestampValue) =>
+          val date = parseInfinityValue(config.plusInfinityValue, config.minusInfinityPattern.getOrElse(defaultTimestampPattern), Long.MaxValue)
+          new Timestamp(date.getTime)
+      case Some(config) if config.minusInfinitySymbol.contains(timestampValue) =>
+          val date = parseInfinityValue(config.minusInfinityValue,config.minusInfinityPattern.getOrElse(defaultTimestampPattern),Long.MinValue)
+          new Timestamp(date.getTime)
+      case _ =>
+        val seconds = extractSeconds(timestampValue)
+        val nanoseconds = extractNanoseconds(timestampValue)
+        makePreciseTimestamp(seconds, nanoseconds)
+    }
   }
 
   def format(time: java.util.Date): String = {
@@ -111,6 +130,14 @@ case class DateTimeParser(pattern: DateTimePattern) {
     pattern.microsecondsPosition.foreach(result += _.extractFrom(value).toInt * NanosecondsInMicrosecond)
     pattern.nanosecondsPosition.foreach(result += _.extractFrom(value).toInt)
     result
+  }
+
+  private def parseInfinityValue(value: Option[String], pattern: String, default: Long): Date = {
+    value.map { v =>
+      val dateFormatter = new SimpleDateFormat(pattern, Locale.US)
+        dateFormatter.setLenient(false)
+      new Date(dateFormatter.parse(v).getTime)
+    }.getOrElse(new Date(default))
   }
 }
 

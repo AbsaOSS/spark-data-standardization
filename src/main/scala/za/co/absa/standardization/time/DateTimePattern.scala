@@ -26,7 +26,9 @@ import za.co.absa.standardization.types.{Section, TypePattern}
   * @param pattern  actual pattern to format the type conversion
   * @param isDefault  marks if the pattern is actually an assigned value or taken for global defaults
   */
-abstract sealed class DateTimePattern(pattern: String, isDefault: Boolean = false)
+
+abstract sealed class DateTimePattern(pattern: String, isDefault: Boolean = false,
+                                      val infinityConfig:Option[ InfinityConfig] = None)
   extends TypePattern(pattern, isDefault){
 
   val isEpoch: Boolean
@@ -81,8 +83,9 @@ object DateTimePattern {
   // scalastyle:on magic.number
 
   private final case class EpochDTPattern(override val pattern: String,
-                                          override val isDefault: Boolean = false)
-    extends DateTimePattern(pattern, isDefault) {
+                                          override val isDefault: Boolean = false,
+                                          override val infinityConfig: Option[InfinityConfig] = None)
+    extends DateTimePattern(pattern, isDefault, infinityConfig) {
 
     override val isEpoch: Boolean = true
     override val isCentury: Boolean = false
@@ -115,12 +118,15 @@ object DateTimePattern {
       case _                 => Seq.empty
     }
     override val patternWithoutSecondFractions: String = EpochKeyword
+
+
   }
 
   private abstract class StandardDTPatternBase(override val pattern: String,
                                                assignedDefaultTimeZone: Option[String],
-                                               override val isDefault: Boolean = false)
-    extends DateTimePattern(pattern, isDefault) {
+                                               override val isDefault: Boolean = false,
+                                               override val infinityConfig: Option[InfinityConfig] = None)
+    extends DateTimePattern(pattern, isDefault,infinityConfig) {
 
     override val isEpoch: Boolean = false
     override val epochFactor: Long = 0
@@ -151,8 +157,9 @@ object DateTimePattern {
 
   private final case class StandardDTPattern(override val pattern: String,
                                              assignedDefaultTimeZone: Option[String] = None,
-                                             override val isDefault: Boolean = false)
-    extends StandardDTPatternBase(pattern, assignedDefaultTimeZone, isDefault) {
+                                             override val isDefault: Boolean = false,
+                                             override val infinityConfig: Option[InfinityConfig] = None)
+    extends StandardDTPatternBase(pattern, assignedDefaultTimeZone, isDefault, infinityConfig) {
 
     override val isCentury: Boolean = false
     override val originalPattern: Option[String] = None
@@ -161,8 +168,9 @@ object DateTimePattern {
   private final case class CenturyDTPattern(override val pattern: String,
                                             override val originalPattern: Option[String],
                                             assignedDefaultTimeZone: Option[String] = None,
-                                            override val isDefault: Boolean = false)
-    extends StandardDTPatternBase(pattern, assignedDefaultTimeZone, isDefault) {
+                                            override val isDefault: Boolean = false,
+                                            override val infinityConfig: Option[InfinityConfig] = None)
+    extends StandardDTPatternBase(pattern, assignedDefaultTimeZone, isDefault, infinityConfig) {
 
     override val isCentury: Boolean = true
   }
@@ -170,26 +178,29 @@ object DateTimePattern {
   private def create(pattern: String,
                      assignedDefaultTimeZone: Option[String],
                      isCenturyPattern: Boolean,
-                     isDefault: Boolean): DateTimePattern = {
+                     isDefault: Boolean,
+                     infinityConfig: Option[InfinityConfig]): DateTimePattern = {
     if (isEpoch(pattern)) {
-      EpochDTPattern(pattern, isDefault)
+      EpochDTPattern(pattern, isDefault,infinityConfig)
     } else if (isCenturyPattern && isCentury(pattern)) {
       val patternWithoutCentury = pattern.replaceAll(patternCenturyChar, "yy")
-      CenturyDTPattern(patternWithoutCentury, Some(pattern), assignedDefaultTimeZone, isDefault)
+      CenturyDTPattern(patternWithoutCentury, Some(pattern), assignedDefaultTimeZone, isDefault, infinityConfig)
     } else {
-      StandardDTPattern(pattern, assignedDefaultTimeZone, isDefault)
+      StandardDTPattern(pattern, assignedDefaultTimeZone, isDefault, infinityConfig)
     }
   }
 
   def apply(pattern: String,
             assignedDefaultTimeZone: Option[String] = None,
-            isCenturyPattern: Boolean = false): DateTimePattern = {
-    create(pattern, assignedDefaultTimeZone, isCenturyPattern, isDefault = false)
+            isCenturyPattern: Boolean = false,
+            infinityConfig: Option[InfinityConfig] = None): DateTimePattern = {
+    create(pattern, assignedDefaultTimeZone, isCenturyPattern, isDefault = false , infinityConfig)
   }
 
   def asDefault(pattern: String,
-                assignedDefaultTimeZone: Option[String] = None): DateTimePattern = {
-    create(pattern, assignedDefaultTimeZone, isCenturyPattern = false, isDefault = true)
+                assignedDefaultTimeZone: Option[String] = None,
+                infinityConfig: Option[InfinityConfig] = None): DateTimePattern = {
+    create(pattern, assignedDefaultTimeZone, isCenturyPattern = false, isDefault = true, infinityConfig)
   }
 
   def isEpoch(pattern: String): Boolean = {

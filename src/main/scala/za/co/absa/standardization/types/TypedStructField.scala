@@ -21,7 +21,7 @@ import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetada
 import za.co.absa.standardization.ValidationIssue
 import za.co.absa.standardization.numeric.{DecimalSymbols, NumericPattern, Radix}
 import za.co.absa.standardization.schema.{MetadataKeys, MetadataValues}
-import za.co.absa.standardization.time.DateTimePattern
+import za.co.absa.standardization.time.{DateTimePattern, InfinityConfig}
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.parsers._
 import za.co.absa.standardization.validation.field._
@@ -393,6 +393,28 @@ object TypedStructField {
                                                                          (implicit defaults: TypeDefaults)
     extends TypedStructFieldTagged[T](structField) {
 
+    val infinityConfig: Option[InfinityConfig] = {
+      val plusPattern = structField.metadata.getOptString(MetadataKeys.PlusInfinityPattern)
+      val minusPattern = structField.metadata.getOptString(MetadataKeys.MinusInfinityPattern)
+      val plusValue = structField.metadata.getOptString(MetadataKeys.PlusInfinityValue)
+      val minusValue = structField.metadata.getOptString(MetadataKeys.MinusInfinityValue)
+      val plusSymbol = structField.metadata.getOptString(MetadataKeys.PlusInfinitySymbol)
+      val minusSymbol = structField.metadata.getOptString(MetadataKeys.MinusInfinitySymbol)
+
+      if (Seq(plusPattern,minusPattern,plusValue,minusValue,plusSymbol,minusSymbol).exists(_.isDefined)){
+        Some(InfinityConfig (
+          plusInfinityPattern = plusPattern,
+          minusInfinityPattern = minusPattern,
+          plusInfinityValue = plusValue,
+          minusInfinityValue = minusValue,
+          plusInfinitySymbol = plusSymbol,
+          minusInfinitySymbol= minusSymbol
+        ))
+      } else {
+        None
+      }
+    }
+
     override def pattern: Try[Option[DateTimePattern]] = {
       parser.map(x => Some(x.pattern))
     }
@@ -400,7 +422,7 @@ object TypedStructField {
     lazy val parser: Try[DateTimeParser] = {
       val patternToUse = readDateTimePattern
       Try{
-        DateTimeParser(patternToUse)
+        DateTimeParser(patternToUse, infinityConfig)
       }
     }
 
@@ -416,9 +438,9 @@ object TypedStructField {
       structField.metadata.getOptString(MetadataKeys.Pattern).map { pattern =>
         val timeZoneOpt = structField.metadata.getOptString(MetadataKeys.DefaultTimeZone)
         val isCenturyPattern = structField.metadata.getOptStringAsBoolean(MetadataKeys.IsNonStandard).getOrElse(false)
-        DateTimePattern(pattern, timeZoneOpt, isCenturyPattern)
+        DateTimePattern(pattern, timeZoneOpt, isCenturyPattern, infinityConfig)
       }.getOrElse(
-        DateTimePattern.asDefault(defaults.getStringPattern(structField.dataType), None)
+        DateTimePattern.asDefault(defaults.getStringPattern(structField.dataType), None, infinityConfig)
       )
     }
   }
