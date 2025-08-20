@@ -42,10 +42,6 @@ object MetadataKeys {
   val StrictParsing = "strict_parsing"
   // For nonstandard data inputs like the Mainframe's century pattern
   val IsNonStandard = "is_non_standard"
-  // For allowing separate infinity patterns
-  val PlusInfinityPattern = "plus_infinity_pattern"
-  val MinusInfinityPattern = "minus_infinity_pattern"
-
 }
 
 object MetadataValues {
