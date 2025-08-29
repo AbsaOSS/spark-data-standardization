@@ -34,7 +34,7 @@ import za.co.absa.standardization.schema.{MetadataKeys, MetadataValues, StdSchem
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.TypedStructField._
-import za.co.absa.standardization.types.parsers.{DateTimeParser => DateTimeParserImpl}
+import za.co.absa.standardization.types.parsers.DateTimeParser
 import za.co.absa.standardization.types.{ParseOutput, TypeDefaults, TypedStructField}
 import za.co.absa.standardization.udf.{UDFBuilder, UDFNames}
 
@@ -318,13 +318,13 @@ object TypeParser {
   }
 
   private abstract class NumericParser[N: TypeTag](override val field: NumericTypeStructField[N])
-                                                  (implicit defaults: TypeDefaults) extends ScalarParser[N] with InfinitySupport {
-    override protected val infMinusSymbol: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinitySymbol)
-    override protected val infMinusValue: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinityValue)
-    override protected val infPlusSymbol: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinitySymbol)
-    override protected val infPlusValue: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinityValue)
-    override protected def canParseInfValue(value: String): Boolean = false
-    private val columnWithInfinityReplaced = replaceInfinitySymbols(column).cast(origType)
+                                                  (implicit defaults: TypeDefaults) extends ScalarParser[N] {
+    private val infinitySupport = InfinitySupport(
+      metadata.getOptString(MetadataKeys.MinusInfinitySymbol),
+      metadata.getOptString(MetadataKeys.MinusInfinityValue),
+      metadata.getOptString(MetadataKeys.PlusInfinitySymbol),
+      metadata.getOptString(MetadataKeys.PlusInfinityValue),
+      origType)
 
     override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
       if (field.needsUdfParsing) {
@@ -345,9 +345,9 @@ object TypeParser {
         val columnWithProperDecimalSymbols: Column = if (replacements.nonEmpty) {
           val from = replacements.keys.mkString
           val to = replacements.values.mkString
-          translate(columnWithInfinityReplaced, from, to)
+          infinitySupport.replaceInfinitySymbols(column, translate(_, from, to))
         } else {
-          columnWithInfinityReplaced
+          infinitySupport.replaceInfinitySymbols(column)
         }
 
         val columnToCast = if (field.allowInfinity && (decimalSymbols.infinityValue != InfinityStr)) {
@@ -504,28 +504,17 @@ object TypeParser {
     * Date          | O                               | ->to_utc_timestamp->to_date
     * Other         | ->String->to_date               | ->String->to_timestamp->to_utc_timestamp->to_date
     */
-  private abstract class DateTimeParser[T](implicit defaults: TypeDefaults) extends PrimitiveParser[T] with InfinitySupport {
+  private abstract class DateTimeParser[T](implicit defaults: TypeDefaults) extends PrimitiveParser[T] {
     override val field: DateTimeTypeStructField[T]
     protected val pattern: DateTimePattern = field.pattern.get.get
-    override protected val infMinusSymbol: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinitySymbol)
-    override protected val infMinusValue: Option[String] = metadata.getOptString(MetadataKeys.MinusInfinityValue)
-    override protected val infPlusSymbol: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinitySymbol)
-    override protected val infPlusValue: Option[String] = metadata.getOptString(MetadataKeys.PlusInfinityValue)
-
-
-    private val IsoDatePattern = "yyyy-MM-dd"
-    private val IsoTimestampPattern = "yyyy-MM-dd HH:mm:ss"
-
-    private lazy val dateTimeParser: DateTimeParserImpl = field.parser.get
-
-    override protected def canParseInfValue(value: String): Boolean = {
-      Try{
-        field.dataType match{
-          case DateType => dateTimeParser.parseDate(value)
-          case TimestampType => dateTimeParser.parseTimestamp(value)
-        }
-      }.isSuccess
-    }
+    private val infinitySupport = InfinitySupportIso(
+      metadata.getOptString(MetadataKeys.MinusInfinitySymbol),
+      metadata.getOptString(MetadataKeys.MinusInfinityValue),
+      metadata.getOptString(MetadataKeys.PlusInfinitySymbol),
+      metadata.getOptString(MetadataKeys.PlusInfinityValue),
+      origType,
+      field.dataType
+    )
 
     protected val replaceCenturyUDF: UserDefinedFunction = udf((inputDate: String, centuryPattern: String) => {
       val centuryIndex = centuryPattern.indexOf(DateTimePattern.patternCenturyChar)
@@ -537,45 +526,6 @@ object TypeParser {
       val modifiedChar = (charAtPos + 19).toString // Add 19 and convert back to string
       pendedInput.substring(0, centuryIndex) + modifiedChar + pendedInput.substring(centuryIndex + 1)
     })
-
-    private val columnWithInfinityReplaced: Column = {
-      val replaced = replaceInfinitySymbols(column)
-
-      val originalCastFunc: Column => Column = if (pattern.isEpoch) {
-        col => (col.cast(decimalType) / pattern.epochFactor).cast(TimestampType)
-      } else {
-        col => castStringColumn(col)
-      }
-
-      val isoPattern = field.dataType match {
-        case DateType => IsoDatePattern
-        case TimestampType => IsoTimestampPattern
-      }
-      val isoCastFunc: Column => Column = col => field.dataType match{
-        case DateType => to_date(col,isoPattern)
-        case TimestampType => to_timestamp(col, isoPattern)
-      }
-
-      infMinusSymbol.flatMap { minusSymbol =>
-        infMinusValue.map { minusValue =>
-          if (canParseInfValue(minusValue)){
-            originalCastFunc(replaced)
-          } else {
-            when(replaced === lit(minusValue), isoCastFunc(lit(minusValue))).otherwise(originalCastFunc(replaced))
-          }
-        }
-      }.getOrElse{
-        infPlusSymbol.flatMap{ plusSymbol =>
-          infPlusValue.map { plusValue=>
-            if (canParseInfValue(plusValue)){
-              originalCastFunc(replaced)
-            } else{
-              when(replaced === lit(plusValue), isoCastFunc(lit(plusValue))).otherwise(originalCastFunc(replaced))
-            }
-          }
-        }.getOrElse(originalCastFunc(replaced))
-      }
-    }
 
     override protected def assemblePrimitiveCastLogic: Column = {
       if (pattern.isEpoch) {
@@ -598,20 +548,20 @@ object TypeParser {
       // underlyingType match {
       origType match {
         case _: NullType                  => nullColumn
-        case _: DateType                  => castDateColumn(columnWithInfinityReplaced)
-        case _: TimestampType             => castTimestampColumn(columnWithInfinityReplaced)
-        case _: StringType                => castStringColumn(columnWithInfinityReplaced)
+        case _: DateType                  => infinitySupport.replaceInfinitySymbols(column, castDateColumn)
+        case _: TimestampType             => infinitySupport.replaceInfinitySymbols(column, castTimestampColumn)
+        case _: StringType                => infinitySupport.replaceInfinitySymbols(column, castStringColumn)
         case ot: DoubleType               =>
           // this case covers some IBM date format where it's represented as a double ddmmyyyy.hhmmss
           patternNeeded(ot)
-          castFractionalColumn(columnWithInfinityReplaced, ot)
+          infinitySupport.replaceInfinitySymbols(column, castFractionalColumn(_, ot))
         case ot: FloatType                =>
           // this case covers some IBM date format where it's represented as a double ddmmyyyy.hhmmss
           patternNeeded(ot)
-          castFractionalColumn(columnWithInfinityReplaced, ot)
+          infinitySupport.replaceInfinitySymbols(column, castFractionalColumn(_, ot))
         case ot                           =>
           patternNeeded(ot)
-          castNonStringColumn(columnWithInfinityReplaced, ot)
+          infinitySupport.replaceInfinitySymbols(column, castNonStringColumn(_, ot))
       }
     }
 
@@ -633,7 +583,7 @@ object TypeParser {
     }
 
     protected def castEpoch(): Column = {
-      (columnWithInfinityReplaced.cast(decimalType) / pattern.epochFactor).cast(TimestampType)
+      infinitySupport.replaceInfinitySymbols(column, c => (c.cast(decimalType) / pattern.epochFactor).cast(TimestampType))
     }
 
     protected def castStringColumn(stringColumn: Column): Column
