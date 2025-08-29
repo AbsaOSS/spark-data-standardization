@@ -20,26 +20,51 @@ import org.apache.spark.sql.Column
 import org.apache.spark.sql.functions.{lit, when}
 import org.apache.spark.sql.types.DataType
 
-trait InfinitySupport {
-  protected def infMinusSymbol: Option[String]
-  protected def infMinusValue: Option[String]
-  protected def infPlusSymbol: Option[String]
-  protected def infPlusValue: Option[String]
-  protected def canParseInfValue(value: String): Boolean
-  protected val origType: DataType
+class InfinitySupport(
+                       val infMinusSymbol: Option[String],
+                       val infMinusValue: Option[String],
+                       val infPlusSymbol: Option[String],
+                       val infPlusValue: Option[String],
+                       val origType: DataType
+                     ) {
+  private val hasInfinityDefined: Boolean = (infMinusSymbol.isDefined && infMinusValue.isDefined) ||
+                                              (infPlusSymbol.isDefined && infPlusValue.isDefined)
 
-  def replaceInfinitySymbols(column: Column): Column = {
-    val columnWithNegativeInf: Column = infMinusSymbol.flatMap { minusSymbol =>
-      infMinusValue.map { minusValue =>
-        when(column === lit(minusSymbol), lit(minusValue)).otherwise(column)
+  protected def replaceSymbol(column: Column,
+                              possibleSymbol: Option[String],
+                              possibleValue: Option[String],
+                              valueToColumn: String => Column
+                             ): Column = {
+    possibleSymbol.flatMap { symbol =>
+      possibleValue.map { value =>
+        when(column === lit(symbol).cast(origType), valueToColumn(value))
       }
     }.getOrElse(column)
+  }
 
-    infPlusSymbol.flatMap { plusSymbol =>
-      infPlusValue.map { plusValue =>
-        when(columnWithNegativeInf === lit(plusSymbol), lit(plusValue))
-          .otherwise(columnWithNegativeInf)
-      }
-    }.getOrElse(columnWithNegativeInf)
+  protected def defaultInfinityValueInjection(value: String): Column = lit(value).cast(origType)
+
+  protected def executeReplacement(column: Column, conversion: Column => Column): Column = {
+    val columnWithNegativeInf = replaceSymbol(column, infMinusSymbol, infMinusValue, defaultInfinityValueInjection)
+    val columnWithPositiveInf = replaceSymbol(columnWithNegativeInf, infPlusSymbol, infPlusValue, defaultInfinityValueInjection)
+    conversion(columnWithPositiveInf.otherwise(column))
+  }
+
+  def replaceInfinitySymbols(column: Column, conversion: Column => Column = c => c): Column = {
+    if (hasInfinityDefined) {
+      executeReplacement(column, conversion)
+    } else {
+      conversion(column)
+    }
+  }
+}
+
+object InfinitySupport {
+  def apply(infMinusSymbol: Option[String],
+            infMinusValue: Option[String],
+            infPlusSymbol: Option[String],
+            infPlusValue: Option[String],
+            origType: DataType): InfinitySupport = {
+    new InfinitySupport(infMinusSymbol, infMinusValue, infPlusSymbol, infPlusValue, origType)
   }
 }
