@@ -56,17 +56,17 @@ class TypeParserSuite extends AnyFunSuite with SparkTestBase {
 
 
     assert(results(0).getAs[Date](1) == Date.valueOf("2025-08-05"))
-    assert(results(0).getAs[Timestamp](2) == Date.valueOf("2025-08-05 12:34:56"))
+    assert(results(0).getAs[Timestamp](2) == Timestamp.valueOf("2025-08-05 12:34:56"))
     assert(results(0).getAs[Date](3) == Date.valueOf("2025-08-05"))
     assert(results(0).getAs[Seq[ErrorMessage]]("errCol").isEmpty)
 
     assert(results(1).getAs[Date](1) == Date.valueOf("1000-01-01"))
-    assert(results(1).getAs[Timestamp](2) == Date.valueOf("1000-01-01 00:00:00"))
+    assert(results(1).getAs[Timestamp](2) == Timestamp.valueOf("1000-01-01 00:00:00"))
     assert(results(1).getAs[Date](3) == Date.valueOf("1000-01-01"))
     assert(results(1).getAs[Seq[ErrorMessage]]("errCol").isEmpty)
 
     assert(results(2).getAs[Date](1) == Date.valueOf("9999-12-31"))
-    assert(results(2).getAs[Timestamp](2) == Date.valueOf("9999-12-31 23:59:59"))
+    assert(results(2).getAs[Timestamp](2) == Timestamp.valueOf("9999-12-31 23:59:59"))
     assert(results(2).getAs[Date](3) == Date.valueOf("9999-12-31"))
     assert(results(2).getAs[Seq[ErrorMessage]]("errCol").isEmpty)
 
