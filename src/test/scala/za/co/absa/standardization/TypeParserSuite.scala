@@ -36,9 +36,9 @@ class TypeParserSuite extends AnyFunSuite with SparkTestBase {
 
 
   private val testData: DataFrame = spark.createDataFrame(Seq(
-    (1,42.0,"2025-08-05","2025-08-05 12:34:56","250805"),
-    (2,-42.0,"-INF","-INF","-INF"),
-    (3,42.0,"INF","INF","INF")
+    ("1",42.0,"2025-08-05","2025-08-05 12:34:56","250805"),
+    ("2","-INF","-INF","-INF","-INF"),
+    ("3","INF","INF","INF","INF")
   )).toDF("id","numeric_double","date","timestamp","custom_date")
 
   test("Test TypeParser infinity handling for date and timestamp"){
@@ -74,7 +74,7 @@ class TypeParserSuite extends AnyFunSuite with SparkTestBase {
     assert(results(2).getDate(2) == Date.valueOf("9999-12-31"))
     assert(results(2).getTimestamp(3) == Timestamp.valueOf("9999-12-31 23:59:59"))
     assert(results(2).getDate(4) == Date.valueOf("9999-12-31"))
-    assert(results(1).getAs[Seq[ErrorMessage]](5).isEmpty)
+    assert(results(2).getAs[Seq[ErrorMessage]](5).isEmpty)
 
   }
 }
