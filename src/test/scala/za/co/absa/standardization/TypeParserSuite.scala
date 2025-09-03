@@ -44,7 +44,7 @@ class TypeParserSuite extends AnyFunSuite with SparkTestBase {
   test("Test TypeParser infinity handling for date and timestamp"){
     val schema: StructType = StructType(Seq(
       StructField("id",IntegerType, nullable = false),
-      StructField("numeric_double", DoubleType, nullable = true, Metadata.fromJson("""{"allow_infinity":true,"minus_infinity_symbol":"-INF","minus_infinity_value":"-1.7976931348623157E308","plus_infinity_symbol":"INF","plus_infinity_value":"1.7976931348623157E308"}""")),
+      StructField("numeric_double", DoubleType, nullable = true, Metadata.fromJson("""{"allow_infinity":"true","minus_infinity_symbol":"-INF","minus_infinity_value":"-1.7976931348623157E308","plus_infinity_symbol":"INF","plus_infinity_value":"1.7976931348623157E308"}""")),
       StructField("date",DateType, nullable = true, Metadata.fromJson("""{"pattern":"yyyy-MM-dd","minus_infinity_symbol":"-INF","minus_infinity_value":"1000-01-01","plus_infinity_symbol":"INF","plus_infinity_value":"9999-12-31"}""")),
       StructField("timestamp",TimestampType, nullable = true, Metadata.fromJson("""{"pattern":"yyyy-MM-dd HH:mm:ss","minus_infinity_symbol":"-INF","minus_infinity_value":"1000-01-01 00:00:00","plus_infinity_symbol":"INF","plus_infinity_value":"9999-12-31 23:59:59"}""")),
       StructField("custom_date",DateType, nullable = true, Metadata.fromJson("""{"pattern":"yyMMdd","minus_infinity_symbol":"-INF","minus_infinity_value":"1000-01-01","plus_infinity_symbol":"INF","plus_infinity_value":"9999-12-31"}""")),
