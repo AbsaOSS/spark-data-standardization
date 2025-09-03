@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.10")
+addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.9.3")
 
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.7.0")
 
@@ -22,7 +22,7 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.5")
 
 // sbt-jacoco - workaround related dependencies required to download
 lazy val ow2Version = "9.5"
-lazy val jacocoVersion = "0.8.10-absa.1"
+lazy val jacocoVersion = "0.8.11-absa.1"
 
 def jacocoUrl(artifactName: String): String = s"https://github.com/AbsaOSS/jacoco/releases/download/$jacocoVersion/org.jacoco.$artifactName-$jacocoVersion.jar"
 def ow2Url(artifactName: String): String = s"https://repo1.maven.org/maven2/org/ow2/asm/$artifactName/$ow2Version/$artifactName-$ow2Version.jar"
