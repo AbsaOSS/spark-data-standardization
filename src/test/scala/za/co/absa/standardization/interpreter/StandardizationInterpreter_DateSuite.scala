@@ -27,9 +27,11 @@ import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{LoggerTestBase, Standardization, StandardizationErrorMessage}
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.standardization.schema.MetadataKeys
+import za.co.absa.standardization.testing.TimeZoneNormalizer
 
 class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
+  TimeZoneNormalizer.normalizeAll
 
   private val stdConfig = BasicStandardizationConfig
     .fromDefault()

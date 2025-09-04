@@ -23,6 +23,7 @@ import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.schema.MetadataKeys
+import za.co.absa.standardization.testing.TimeZoneNormalizer
 import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 import za.co.absa.standardization.{LoggerTestBase, Standardization, StandardizationErrorMessage}
@@ -31,6 +32,7 @@ import java.sql.Timestamp
 
 class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
+  TimeZoneNormalizer.normalizeAll
 
   private val stdConfig = BasicStandardizationConfig
     .fromDefault()

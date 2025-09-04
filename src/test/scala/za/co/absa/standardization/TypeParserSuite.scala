@@ -47,26 +47,25 @@ class TypeParserSuite extends AnyFunSuite with SparkTestBase {
       StructField("id",IntegerType, nullable = false),
       StructField("date",DateType, nullable = true, Metadata.fromJson("""{"pattern":"yyyy-MM-dd","minus_infinity_symbol":"-INF","minus_infinity_value":"1000-01-01","plus_infinity_symbol":"INF","plus_infinity_value":"9999-12-31"}""")),
       StructField("timestamp",TimestampType, nullable = true, Metadata.fromJson("""{"pattern":"yyyy-MM-dd HH:mm:ss","minus_infinity_symbol":"-INF","minus_infinity_value":"1000-01-01 00:00:00","plus_infinity_symbol":"INF","plus_infinity_value":"9999-12-31 23:59:59"}""")),
-      StructField("custom_date",DateType, nullable = true, Metadata.fromJson("""{"pattern":"yyMMdd","minus_infinity_symbol":"-INF","minus_infinity_value":"1000-01-01","plus_infinity_symbol":"INF","plus_infinity_value":"9999-12-31"}""")),
+      StructField("custom_date",DateType, nullable = true, Metadata.fromJson("""{"pattern":"yyMMdd","minus_infinity_symbol":"-INF","minus_infinity_value":"1000-01-01","plus_infinity_symbol":"INF","plus_infinity_value":"9999-12-31"}"""))
     ))
 
     val stdDF = Standardization.standardize(testData,schema,stdConfig).cache()
 
     val results = stdDF.select("id","date", "timestamp", "custom_date","errCol").collect()
 
-
     assert(results(0).getAs[Date](1) == Date.valueOf("2025-08-05"))
-    assert(results(0).getAs[Timestamp](2) == Date.valueOf("2025-08-05 12:34:56"))
+    assert(results(0).getAs[Timestamp](2) == Timestamp.valueOf("2025-08-05 12:34:56"))
     assert(results(0).getAs[Date](3) == Date.valueOf("2025-08-05"))
     assert(results(0).getAs[Seq[ErrorMessage]]("errCol").isEmpty)
 
     assert(results(1).getAs[Date](1) == Date.valueOf("1000-01-01"))
-    assert(results(1).getAs[Timestamp](2) == Date.valueOf("1000-01-01 00:00:00"))
+    assert(results(1).getAs[Timestamp](2) == Timestamp.valueOf("1000-01-01 00:00:00"))
     assert(results(1).getAs[Date](3) == Date.valueOf("1000-01-01"))
     assert(results(1).getAs[Seq[ErrorMessage]]("errCol").isEmpty)
 
     assert(results(2).getAs[Date](1) == Date.valueOf("9999-12-31"))
-    assert(results(2).getAs[Timestamp](2) == Date.valueOf("9999-12-31 23:59:59"))
+    assert(results(2).getAs[Timestamp](2) == Timestamp.valueOf("9999-12-31 23:59:59"))
     assert(results(2).getAs[Date](3) == Date.valueOf("9999-12-31"))
     assert(results(2).getAs[Seq[ErrorMessage]]("errCol").isEmpty)
 

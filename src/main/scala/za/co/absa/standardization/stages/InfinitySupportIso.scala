@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 ABSA Group Limited
+ * Copyright 2021 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,8 @@ import org.apache.spark.sql.Column
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{DataType, DateType, TimestampType}
 
-import java.text.SimpleDateFormat
 import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter.{ISO_DATE, ISO_DATE_TIME}
+import java.time.format.DateTimeFormatter.ISO_DATE
 import scala.util.Try
 
 abstract class InfinitySupportIso(
@@ -38,21 +37,41 @@ abstract class InfinitySupportIso(
   def useIsoForInfMinus: Boolean
   def useIsoForInfPlus: Boolean
 
-  def chooseInjectionFunction(isIso: Boolean, conversion: Column => Column, value: String): Column = {
-    if (isIso) {
-      isoCast(value)
-    } else {
-      conversion(defaultInfinityValueInjection(value))
+  private def executeIsoReplacement(
+                                  column: Column,
+                                  otherwiseColumn: Column,
+                                  useMinusSymbol: Option[String],
+                                  useMinusValue: Option[String],
+                                  usePlusSymbol: Option[String],
+                                  usePlusValue: Option[String],
+                                ): Column = {
+    (useMinusSymbol, useMinusValue, usePlusSymbol, usePlusValue) match {
+      case (Some(minusSymbol), Some(minusValue), Some(plusSymbol), Some(plusValue)) =>
+        when(column === lit(minusSymbol).cast(origType), isoCast(minusValue))
+          .when(column === lit(plusSymbol).cast(origType), isoCast(plusValue))
+          .otherwise(otherwiseColumn)
+      case (Some(minusSymbol), Some(minusValue), _, _) =>
+        when(column === lit(minusSymbol).cast(origType), isoCast(minusValue))
+          .otherwise(otherwiseColumn)
+      case (_, _, Some(plusSymbol), Some(plusValue)) =>
+        when(column === lit(plusSymbol).cast(origType), isoCast(plusValue))
+          .otherwise(otherwiseColumn)
+      case _ => otherwiseColumn
     }
   }
 
-  override def executeReplacement(column: Column, conversion: Column => Column): Column = {
-    if (useIsoForInfMinus || useIsoForInfPlus) {
-      val columnWithNegativeInf = replaceSymbol(column, infMinusSymbol, infMinusValue, chooseInjectionFunction(useIsoForInfMinus, conversion, _))
-      val columnWithPositiveInf = replaceSymbol(columnWithNegativeInf, infPlusSymbol, infPlusValue, chooseInjectionFunction(useIsoForInfPlus, conversion, _))
-      columnWithPositiveInf.otherwise(conversion(column))
-    } else {
-      super.executeReplacement(column, conversion)
+  override def replaceInfinitySymbols(column: Column, conversion: Column => Column = c => c): Column = {
+    (useIsoForInfMinus, useIsoForInfPlus) match {
+      case (true, true)  =>
+        val otherwise = super.executeReplacement(column, conversion, None, None, None, None) // no replacements, just conversion
+        executeIsoReplacement(column, otherwise, infMinusSymbol, infMinusValue, infPlusSymbol, infPlusValue)
+      case (true, false) =>
+        val otherwise = super.executeReplacement(column, conversion, None, None, infPlusSymbol, infPlusValue) // no minus replacement, just conversion and plus replacement
+        executeIsoReplacement(column, otherwise, infMinusSymbol, infMinusValue, None, None)
+      case (false, true) =>
+        val otherwise = super.executeReplacement(column, conversion, infMinusSymbol, infMinusValue, None, None) // no plus replacement, just conversion and minus replacement
+        executeIsoReplacement(column, otherwise, None, None, infPlusSymbol, infPlusValue)
+      case (false, false) => super.replaceInfinitySymbols(column, conversion)
     }
   }
 }

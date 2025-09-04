@@ -27,35 +27,32 @@ class InfinitySupport(
                        val infPlusValue: Option[String],
                        val origType: DataType
                      ) {
-  private val hasInfinityDefined: Boolean = (infMinusSymbol.isDefined && infMinusValue.isDefined) ||
-                                              (infPlusSymbol.isDefined && infPlusValue.isDefined)
-
-  protected def replaceSymbol(column: Column,
-                              possibleSymbol: Option[String],
-                              possibleValue: Option[String],
-                              valueToColumn: String => Column
-                             ): Column = {
-    possibleSymbol.flatMap { symbol =>
-      possibleValue.map { value =>
-        when(column === lit(symbol).cast(origType), valueToColumn(value))
-      }
-    }.getOrElse(column)
-  }
-
-  protected def defaultInfinityValueInjection(value: String): Column = lit(value).cast(origType)
-
-  protected def executeReplacement(column: Column, conversion: Column => Column): Column = {
-    val columnWithNegativeInf = replaceSymbol(column, infMinusSymbol, infMinusValue, defaultInfinityValueInjection)
-    val columnWithPositiveInf = replaceSymbol(columnWithNegativeInf, infPlusSymbol, infPlusValue, defaultInfinityValueInjection)
-    conversion(columnWithPositiveInf.otherwise(column))
+  protected def executeReplacement(
+                                    column: Column,
+                                    conversion: Column => Column,
+                                    useMinusSymbol: Option[String],
+                                    useMinusValue: Option[String],
+                                    usePlusSymbol: Option[String],
+                                    usePlusValue: Option[String],
+                                  ): Column = {
+    val replacement = (useMinusSymbol, useMinusValue, usePlusSymbol, usePlusValue) match {
+      case (Some(minusSymbol), Some(minusValue), Some(plusSymbol), Some(plusValue)) =>
+        when(column === lit(minusSymbol).cast(origType), lit(minusValue).cast(origType))
+          .when(column === lit(plusSymbol).cast(origType), lit(plusValue).cast(origType))
+          .otherwise(column)
+      case (Some(minusSymbol), Some(minusValue), _, _) =>
+        when(column === lit(minusSymbol).cast(origType), lit(minusValue).cast(origType))
+          .otherwise(column)
+      case (_, _, Some(plusSymbol), Some(plusValue)) =>
+        when(column === lit(plusSymbol).cast(origType), lit(plusValue).cast(origType))
+          .otherwise(column)
+      case _ => column
+    }
+    conversion(replacement)
   }
 
   def replaceInfinitySymbols(column: Column, conversion: Column => Column = c => c): Column = {
-    if (hasInfinityDefined) {
-      executeReplacement(column, conversion)
-    } else {
-      conversion(column)
-    }
+    executeReplacement(column, conversion, infMinusSymbol, infMinusValue, infPlusSymbol, infPlusValue)
   }
 }
 
