@@ -33,7 +33,7 @@ class InfinitySupport(
                                     useMinusSymbol: Option[String],
                                     useMinusValue: Option[String],
                                     usePlusSymbol: Option[String],
-                                    usePlusValue: Option[String],
+                                    usePlusValue: Option[String]
                                   ): Column = {
     val replacement = (useMinusSymbol, useMinusValue, usePlusSymbol, usePlusValue) match {
       case (Some(minusSymbol), Some(minusValue), Some(plusSymbol), Some(plusValue)) =>
