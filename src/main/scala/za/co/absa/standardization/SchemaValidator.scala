@@ -115,7 +115,7 @@ object SchemaValidator {
             fields += prefixedField
         }
       }
-      fields
+      fields.toSeq //has to be here for Scala 2.13 compatibility
     }
 
     def flattenArray(field: StructField, arr: ArrayType, structPath: String): Seq[FlatField] = {
@@ -127,7 +127,7 @@ object SchemaValidator {
           val prefixedField = FlatField(structPath, field)
           arrayFields += prefixedField
       }
-      arrayFields
+      arrayFields.toSeq //has to be here for Scala 2.13 compatibility
     }
 
     flattenStruct(schema, "")
