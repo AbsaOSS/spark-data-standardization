@@ -16,7 +16,6 @@
 
 package za.co.absa.standardization
 
-import za.co.absa.standardization.ErrorMessage
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 

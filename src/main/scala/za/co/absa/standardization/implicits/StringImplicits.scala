@@ -21,7 +21,7 @@ import java.security.InvalidParameterException
 import scala.annotation.tailrec
 
 object StringImplicits {
-  implicit class StringEnhancements(string: String) {
+  implicit class StringEnhancements(val string: String) extends AnyVal {
 
     /**
       * Replaces all occurrences of the provided characters with their mapped values

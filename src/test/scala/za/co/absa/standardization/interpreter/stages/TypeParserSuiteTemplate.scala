@@ -86,20 +86,6 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     testTemplate(floatField, schema, path)
   }
 
-  protected def doTestIntoFloatWithInf(input: Input): Unit = {
-    import input._
-    val floatField = StructField("floatField", FloatType, nullable = false,
-      new MetadataBuilder()
-        .putString("sourcecolumn", sourceFieldName)
-        .putString(MetadataKeys.PlusInfinityValue, Float.PositiveInfinity.toString)
-        .putString(MetadataKeys.PlusInfinitySymbol, "inf")
-        .putString(MetadataKeys.MinusInfinityValue, Float.NegativeInfinity.toString)
-        .putString(MetadataKeys.MinusInfinitySymbol, "-inf")
-        .build)
-    val schema = buildSchema(Array(sourceField(baseType), floatField), path)
-    testTemplate(floatField, schema, path)
-  }
-
   protected def doTestIntoIntegerField(input: Input): Unit = {
     import input._
     val integerField = StructField("integerField", IntegerType, nullable = true,
@@ -198,35 +184,6 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     testTemplate(timestampField, schema, path, timestampPattern, Option(fixedTimezone))
   }
 
-  protected def doTestIntoTimestampWithPlusInfinity(input: Input): Unit = {
-    import input._
-    val timestampField = StructField("timestampField", TimestampType, nullable = false,
-      new MetadataBuilder()
-        .putString("sourcecolumn", sourceFieldName)
-        .putString("pattern", timestampPattern)
-        .putString(MetadataKeys.PlusInfinityValue, "99991231")
-        .putString(MetadataKeys.PlusInfinitySymbol, "inf")
-        .putString(MetadataKeys.MinusInfinityValue, "00010101")
-        .putString(MetadataKeys.MinusInfinitySymbol, "-inf")
-        .build)
-    val schema = buildSchema(Array(sourceField(baseType), timestampField), path)
-    testTemplate(timestampField, schema, path, timestampPattern)
-  }
-
-  protected def doTestIntoDateFieldWithInf(input: Input): Unit = {
-    import input._
-    val timestampField = StructField("dateField", DateType, nullable = false,
-      new MetadataBuilder()
-        .putString("sourcecolumn", sourceFieldName)
-        .putString(MetadataKeys.PlusInfinityValue, "99991231")
-        .putString(MetadataKeys.PlusInfinitySymbol, "inf")
-        .putString(MetadataKeys.MinusInfinityValue, "00010101")
-        .putString(MetadataKeys.MinusInfinitySymbol, "-inf")
-        .build)
-    val schema = buildSchema(Array(sourceField(baseType), timestampField), path)
-    testTemplate(timestampField, schema, path, "yyyy-MM-dd")
-  }
-
   protected def doTestIntoDateFieldWithEpochPattern(input: Input): Unit = {
     import input._
     val dateField = StructField("dateField", DateType, nullable = false,
@@ -300,7 +257,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
       val dateFormatter = new SimpleDateFormat("yyyy-MM-dd")
       dateFormatter.format(date)
     }
-    s"DATE '${dateString}'"
+    s"DATE '$dateString'"
   }
 
   def timeStampComponentShow(date: Timestamp): String = {

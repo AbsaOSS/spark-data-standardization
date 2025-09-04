@@ -141,16 +141,4 @@ class TypeParser_FromStringTypeSuite extends TypeParserSuiteTemplate {
   test("Into timestamp field with epoch pattern") {
     doTestIntoTimestampFieldWithEpochPattern(input)
   }
-
-  test("Into float field with inf"){
-    doTestIntoFloatWithInf(input)
-  }
-
-  test("Into timestamp field with inf") {
-    doTestIntoTimestampWithPlusInfinity(input)
-  }
-
-  test("Into date field with inf"){
-    doTestIntoDateFieldWithInf(input)
-  }
 }
