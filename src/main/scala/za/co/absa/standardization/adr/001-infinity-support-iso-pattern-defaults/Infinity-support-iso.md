@@ -13,7 +13,7 @@ TypeParser is to provide the InfinitySupport with the column and the converting 
   
 # Outcome
 
-InfinitySupport replaced with class providing unified `replaceInfinitySymbols` method with a conversion function, which is extended by InfinitySupportIso which implements the date/time algorithm to parse infinity values matching the input pattern using `defaultInfinityValueInjecction` else use `isoCast` for ISO-formatted infinity values using `isOfISODateFormat` and `isOfISOTimestampFormat` to detect SO formats
+InfinitySupport replaced with class providing unified `replaceInfinitySymbols` method with a conversion function, which is extended by InfinitySupportIso which implements the date/time algorithm to parse infinity values matching the input pattern using `defaultInfinityValueInjection` else use `isoCast` for ISO-formatted infinity values using `isOfISODateFormat` and `isOfISOTimestampFormat` to detect SO formats
 
 TypeParser continues orchestrating standardisation and delegating Parsers for source to target types.
 
