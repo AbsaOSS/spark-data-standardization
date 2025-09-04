@@ -21,8 +21,8 @@ ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
 
 lazy val scala211 = "2.11.12"
-lazy val scala212 = "2.12.18"
-lazy val scala213 = "2.13.11"
+lazy val scala212 = "2.12.20"
+lazy val scala213 = "2.13.16"
 
 ThisBuild / crossScalaVersions := Seq(scala211, scala212, scala213)
 ThisBuild / scalaVersion := scala211
@@ -39,6 +39,8 @@ ThisBuild / printSparkScalaVersion := {
 }
 
 Test / parallelExecution := false
+Test / logBuffered := false
+Test / fork := true
 
 // Only apply scalafmt to files that differ from master (i.e. files changed in the feature branch or so; n/a on Windows)
 lazy val fmtFilterExpression: String = System.getProperty("os.name").toLowerCase match {

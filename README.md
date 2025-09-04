@@ -2,6 +2,7 @@
 
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 [![Release](https://github.com/AbsaOSS/spark-data-standardization/actions/workflows/release.yml/badge.svg)](https://github.com/AbsaOSS/spark-data-standardization/actions/workflows/release.yml)
+![Java 8](https://img.shields.io/badge/Java_1.8-ED8B00?style=flat&logo=openjdk&logoColor=black)
 
 - Dataframe in 
 - Standardized Dataframe out
