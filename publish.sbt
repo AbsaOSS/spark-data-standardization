@@ -15,7 +15,6 @@
  */
 
 ThisBuild / organizationHomepage := Some(url("https://www.absa.africa"))
-ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org" // or "oss.sonatype.org" if your profile is old
 ThisBuild / scmInfo := Some(
   ScmInfo(
     browseUrl = url("https://github.com/AbsaOSS/spark-data-standardization/tree/master"),
