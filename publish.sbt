@@ -15,6 +15,7 @@
  */
 
 ThisBuild / organizationHomepage := Some(url("https://www.absa.africa"))
+ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org" // or "oss.sonatype.org" if your profile is old
 ThisBuild / scmInfo := Some(
   ScmInfo(
     browseUrl = url("https://github.com/AbsaOSS/spark-data-standardization/tree/master"),
@@ -47,6 +48,18 @@ ThisBuild / developers := List(
     name  = "Adrian Olosutean",
     email = "adrian.olosutean@absa.africa",
     url   = url("https://github.com/AdrianOlosutean")
+  ),
+  Developer(
+    id    = "ABLL526",
+    name  = "Liam Leibrandt",
+    email = "liam.leibrandt@absa.africa",
+    url   = url("https://github.com/ABLL526")
+  ),
+  Developer(
+    id    = "MatloaItumeleng",
+    name  = "Itumeleng Matloa",
+    email = "itumeleng.matloa@absa.africa",
+    url   = url("https://github.com/MatloaItumeleng")
   ),
   Developer(
     id    = "lsulak",
