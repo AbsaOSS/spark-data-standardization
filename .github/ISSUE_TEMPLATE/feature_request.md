@@ -1,8 +1,8 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-labels: 'feature, under discussion, priority: undecided'
-
+labels: 'enhancement'
+type: 'Feature'
 ---
 
 ## Background
@@ -10,6 +10,9 @@ A clear and concise description of where the limitation lies.
 
 ## Feature
 A description of the requested feature.
+
+## Business Value
+The business value of the requested feature.
 
 ## Example [Optional]
 A simple example if applicable.
