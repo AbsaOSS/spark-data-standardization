@@ -1,8 +1,8 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-labels: 'bug, priority: undecided'
-
+labels: 'bug'
+type: 'Bug'
 ---
 
 ## Describe the bug
@@ -18,13 +18,12 @@ Steps to reproduce the behavior OR commands run:
 ## Expected behavior
 A clear and concise description of what you expected to happen.
 
+## Business Value
+The business value of the requested bugfix. 
+You can also refer to the reporting team to confirm that the issue has been fixed.
+
 ## Screenshots
 If applicable, add screenshots to help explain your problem.
-
-## Desktop (please complete the following information):
- - OS: [e.g. iOS]
- - Versions of libraries (Spark, Scala, ...)
- - Version [e.g. 22]
 
 ## Additional context
 Add any other context about the problem here.
