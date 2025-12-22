@@ -37,17 +37,23 @@ jobs:
             changed: 80.0
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-      - uses: coursier/cache-action@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        with:
+          persist-credentials: false
+
+      - uses: coursier/cache-action@bebeeb0e6f48ebad66d3783946588ecf43114433
+
       - name: Setup Scala
-        uses: olafurpg/setup-scala@v14
+        uses: olafurpg/setup-scala@32ffa16635ff8f19cc21ea253a987f0fdf29844c
         with:
           java-version: "adopt@1.8"
+
       - name: Build and run tests
         run: sbt ++${{matrix.scala}} jacoco
+
       - name: Add coverage to PR
         id: jacoco
-        uses: madrapps/jacoco-report@v1.3
+        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848
         with:
           paths: ${{ github.workspace }}/target/scala-${{ matrix.scalaShort }}/jacoco/report/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -55,13 +61,15 @@ jobs:
           min-coverage-changed-files: ${{ matrix.changed }}
           title: JaCoCo code coverage report - scala ${{ matrix.scala }}
           update-comment: true
+
       - name: Get the Coverage info
         run: |
           echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
           echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
+
       - name: Fail PR if changed files coverage is less than ${{ matrix.changed }}%
         if: ${{ steps.jacoco.outputs.coverage-changed-files < 80.0 }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           script: |
             core.setFailed('Changed files coverage is less than ${{ matrix.changed }}%!')
