@@ -26,13 +26,16 @@ jobs:
     name: Scalafmt Check
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
+          persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
-      - uses: coursier/cache-action@v6
+
+      - uses: coursier/cache-action@bebeeb0e6f48ebad66d3783946588ecf43114433
+
       - name: Setup Scala
-        uses: olafurpg/setup-scala@v14
+        uses: olafurpg/setup-scala@32ffa16635ff8f19cc21ea253a987f0fdf29844c
         with:
           java-version: "adopt@1.8"
 
