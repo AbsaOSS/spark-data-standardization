@@ -1,0 +1,155 @@
+# jacoco-method-filter — Default Rules & HowTo (Scala)
+# [jmf:1.0.0]
+#
+# This file defines which methods should be annotated as *Generated so JaCoCo ignores them.
+# One rule per line.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# HOW TO USE (quick)
+# 1) Replace YOUR.PACKAGE.ROOT with your project’s package root (e.g., com.example.app).
+# 2) Start with the CONSERVATIVE section only.
+# 3) If clean, enable STANDARD. Use AGGRESSIVE only inside DTO/auto‑generated packages.
+# 4) Keep rules narrow (by package), prefer flags (synthetic/bridge) for compiler artifacts,
+#    and add `id:` labels so logs are easy to read.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# ALLOWED SYNTAX (cheat sheet)
+#
+# General form:
+#   <FQCN_glob>#<method_glob>(<descriptor_glob>) [FLAGS and PREDICATES...]
+#
+# FQCN_glob (dot form; $ allowed for inner classes):
+#   Examples:  *.model.*,  com.example.*,  *
+#
+# method_glob (glob on method name):
+#   Examples:  copy   |   $anonfun$*   |   get*   |   *_$eq
+#
+# descriptor_glob (JVM descriptor in (args)ret). You may omit it entirely.
+#   • Omitting descriptor ⇒ treated as "(*)*" (any args, any return).
+#   • Short/empty forms "", "()", "(*)" normalize to "(*)*".
+#   Examples:
+#     (I)I                      # takes int, returns int
+#     (Ljava/lang/String;)V     # takes String, returns void
+#     ()  or  (*)  or omitted  # any args, any return
+#
+# FLAGS (optional) — space or comma separated:
+#   public | protected | private | synthetic | bridge | static | abstract
+#
+# PREDICATES (optional):
+#   ret:<glob>          # match return type only (e.g., ret:V, ret:I, ret:Lcom/example/*;)
+#   id:<string>         # identifier shown in logs/reports
+#   name-contains:<s>   # method name must contain <s>
+#   name-starts:<s>     # method name must start with <s>
+#   name-ends:<s>       # method name must end with <s>
+#
+# Notes
+# - Always use dot-form (com.example.Foo) for class names.
+# - Comments (# …) and blank lines are ignored.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# QUICK EXAMPLES
+#
+# Simple wildcards
+#   *#*(*)
+#     → Match EVERY method in EVERY class (any package). Useful only for diagnostics.
+#       "(*)" normalizes to "(*)*" ⇒ any args, any return.
+#   *.dto.*#*(*)
+#     → Match every method on any class under any package segment named "dto".
+#       Good when you treat DTOs as generated/boilerplate.
+
+# Scala case class helpers
+#   *.model.*#copy(*)
+#     → Matches Scala case-class `copy` methods under `*.model.*`.
+#       Hides boilerplate clones with any parameter list and any return.
+#   *.model.*#productArity()
+#     → Matches zero-arg `productArity` (case-class/Product API).
+#   *.model.*#productElement(*)
+#     → Matches `productElement(int)` (or any descriptor form) on case classes.
+#   *.model.*#productPrefix()
+#     → Matches `productPrefix()`; returns the case class' constructor name.
+
+# Companion objects and defaults
+#   *.model.*$*#apply(*)
+#     → Matches companion `apply` factories under `*.model.*` (any args).
+#       BE CAREFUL: can hide real factory logic; keep the package scope narrow.
+#   *.model.*$*#unapply(*)
+#     → Matches extractor `unapply` methods in companions under `*.model.*`.
+#   *#*$default$*(*)
+#     → Matches Scala-generated default-argument helpers everywhere.
+#       Safe to keep enabled; they’re compiler-synthesized.
+
+# Anonymous / synthetic / bridge
+#   *#$anonfun$*
+#     → Matches any method whose name contains `$anonfun$` (Scala lambdas).
+#       Consider adding `synthetic` and/or a package scope in real configs.
+#   *#*(*):synthetic            # any synthetic
+#     → Matches ANY method marked `synthetic` (compiler-generated).
+#       Powerful; scope by package to avoid hiding intentional glue code.
+#   *#*(*):bridge               # any bridge
+#     → Matches Java generic bridge methods the compiler inserts.
+#       Usually safe globally, but scoping is still recommended.
+
+# Setters / fluent APIs
+#   *.dto.*#*_$eq(*)
+#     → Matches Scala var setters in DTO packages (e.g., `name_=(...)`).
+#       Good for excluding trivial field writes.
+#   *.builder.*#with*(*)
+#     → Matches builder-style fluent setters (`withXxx(...)`) in builder pkgs.
+#       Treats chainable configuration as boilerplate.
+#   *.client.*#with*(*) ret:Lcom/api/client/*
+#     → Like above but ONLY when the return type matches your client package.
+#       The `ret:` predicate protects real logic that returns other types.
+
+# Return-type constraints
+#   *.jobs.*#*(*):ret:V
+#     → Any method under `*.jobs.*` returning `void` (`V`). Often orchestration.
+#   *.math.*#*(*):ret:I
+#     → Any method under `*.math.*` returning primitive int (`I`).
+#   *.model.*#*(*):ret:Lcom/example/model/*
+#     → Any method under `*.model.*` that returns a type in `com.example.model`.
+#       Handy when the *return type* uniquely identifies boilerplate.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GLOBALS RULES
+# ─────────────────────────────────────────────────────────────────────────────
+# ** all case class boilerplate
+
+# Scala case class helpers
+*#canEqual(*)                                           id:case-canequal
+*#equals(*)                                             id:case-equals
+*#apply(*)                                              id:case-apply
+*#unapply(*)                                            id:case-unapply
+*#hashCode(*)                                           id:case-hashcode
+*#copy(*)                                               id:case-copy
+*#copy$default$*(*)                                     id:case-copy-defaults
+*#productElement()                                      id:case-prod-element
+*#productArity()                                        id:case-prod-arity
+*#productPrefix()                                       id:case-prod-prefix
+*#productIterator()                                     id:case-prod-iterator
+*#tupled()                                              id:case-tupled
+*#curried()                                             id:case-curried
+*#toString()                                            id:case-tostring
+*#name()                                                id:case-name
+*#groups()                                              id:case-groups
+*#optionalAttributes()                                  id:case-optionalAttributes
+
+# Companion objects, constructors, and static definitions
+*$#<init>(*)                                            id:gen-ctor         # constructors
+*$#<clinit>()                                           id:gen-clinit       # static initializer blocks
+
+# Companion objects and defaults
+*$*#apply(*)                                            id:comp-apply
+*$*#unapply(*)                                          id:comp-unapply
+*$*#toString(*)                                         id:comp-tostring
+*$*#readResolve(*)                                      id:comp-readresolve
+
+# anonymous class created by a macro expansion
+*$macro$*#$anonfun$inst$macro$*                         id:macro-inst
+*$macro$*#inst$macro$*                                  id:macro-inst
+
+# lambda
+*#*  synthetic name-contains:$anonfun$                  id:scala-anonfun
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROJECT RULES
+# ─────────────────────────────────────────────────────────────────────────────

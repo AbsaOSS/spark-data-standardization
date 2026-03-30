@@ -58,17 +58,16 @@ lazy val fmtFilterExpression: String = System.getProperty("os.name").toLowerCase
 }
 scalafmtFilter.withRank(KeyRanks.Invisible) := fmtFilterExpression
 
-// linting
-Global / excludeLintKeys += ThisBuild / name // will be used in publish, todo #3 - confirm if lint ignore is still needed
 
-// JaCoCo code coverage
-Test / jacocoReportSettings := JacocoReportSettings(
-  title = s"spark-data-standardization Jacoco Report - scala:${scalaVersion.value}",
-  formats = Seq(JacocoReportFormats.HTML, JacocoReportFormats.XML)
-)
+// JaCoCo Method Filter Plugin
+enablePlugins(JacocoFilterPlugin)
 
-// exclude example
-Test / jacocoExcludes := Seq(
-  //  "za.co.absa.standardization.udf.UDFBuilder*", // class and related objects
-  //  "za.co.absa.standardization.udf.UDFNames" // class only
-)
+jacocoReportName := s"spark-data-standardization Jacoco Report - scala:${scalaVersion.value}"
+jacocoReportFormats := Set("html", "xml")
+
+// jacocoExcludes := Seq("za/co/absa/standardization/udf/UDFBuilder*", "za/co/absa/standardization/udf/UDFNames")
+
+// Command aliases for JaCoCo coverage workflow
+addCommandAlias("jacoco", "; jacocoOn; clean; test; jacocoReportAll; jacocoOff")
+addCommandAlias("jacocoOn", "; set every jacocoPluginEnabled := true")
+addCommandAlias("jacocoOff", "; set every jacocoPluginEnabled := false")
