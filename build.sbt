@@ -58,6 +58,8 @@ lazy val fmtFilterExpression: String = System.getProperty("os.name").toLowerCase
 }
 scalafmtFilter.withRank(KeyRanks.Invisible) := fmtFilterExpression
 
+// linting
+Global / excludeLintKeys += ThisBuild / name // will be used in publish, todo #3 - confirm if lint ignore is still needed
 
 // JaCoCo Method Filter Plugin
 enablePlugins(JacocoFilterPlugin)
