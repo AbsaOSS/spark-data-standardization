@@ -20,7 +20,7 @@ on:
   pull_request:
     branches: [ master ]
     types: [ opened, edited, synchronize, reopened ]
-    
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -56,7 +56,8 @@ jobs:
         id: jacoco
         uses: MoranaApps/jacoco-report@54bfe284d1119dc917dddba80517c54c5bcf3627
         with:
-          paths: ${{ github.workspace }}/target/scala-${{ matrix.scalaShort }}/jacoco/report/jacoco.xml
+          paths: |
+            **/target/jacoco/report/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: ${{ matrix.overall }}
           min-coverage-changed-files: ${{ matrix.changed }}
