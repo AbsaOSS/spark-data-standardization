@@ -34,7 +34,7 @@ jobs:
           # vendor distributions.
           - scala: 2.12.12
             scalaShort: "2.12"
-            overall: 0.0
+            overall: 80.0
             changed: 80.0
     steps:
       - name: Checkout code
@@ -54,7 +54,7 @@ jobs:
 
       - name: Add JaCoCo Report in PR comments
         id: jacoco
-        uses: MoranaApps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848
+        uses: MoranaApps/jacoco-report@54bfe284d1119dc917dddba80517c54c5bcf3627
         with:
           paths: ${{ github.workspace }}/target/scala-${{ matrix.scalaShort }}/jacoco/report/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
