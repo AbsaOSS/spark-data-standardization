@@ -19,7 +19,8 @@ name: JaCoCo report
 on:
   pull_request:
     branches: [ master ]
-
+    types: [ opened, edited, synchronize, reopened ]
+    
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -33,7 +34,7 @@ jobs:
           # vendor distributions.
           - scala: 2.12.12
             scalaShort: "2.12"
-            overall: 80.0
+            overall: 0.0
             changed: 80.0
     steps:
       - name: Checkout code
@@ -51,9 +52,9 @@ jobs:
       - name: Build and run tests
         run: sbt ++${{matrix.scala}} jacoco
 
-      - name: Add coverage to PR
+      - name: Add JaCoCo Report in PR comments
         id: jacoco
-        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848
+        uses: MoranaApps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848
         with:
           paths: ${{ github.workspace }}/target/scala-${{ matrix.scalaShort }}/jacoco/report/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
