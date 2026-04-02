@@ -57,7 +57,7 @@ jobs:
         uses: MoranaApps/jacoco-report@54bfe284d1119dc917dddba80517c54c5bcf3627
         with:
           paths: |
-            **/target/jacoco/report/jacoco.xml
+            **/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: ${{ matrix.overall }}
           min-coverage-changed-files: ${{ matrix.changed }}
