@@ -20,14 +20,17 @@ import Dependencies._
 ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
 
-lazy val scala211 = "2.11.12"
 lazy val scala212 = "2.12.20"
 lazy val scala213 = "2.13.16"
 
-ThisBuild / crossScalaVersions := Seq(scala211, scala212, scala213)
-ThisBuild / scalaVersion := scala211
+ThisBuild / crossScalaVersions := Seq(scala212, scala213)
+ThisBuild / scalaVersion := scala212
 
 ThisBuild / versionScheme := Some("early-semver")
+
+// Java 11
+ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
+ThisBuild / scalacOptions ++= Seq("-release", "11")
 
 libraryDependencies ++= dependencyList(scalaVersion.value)
 
