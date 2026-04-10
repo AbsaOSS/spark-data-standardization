@@ -44,9 +44,12 @@ class ScalarFieldValidatorSuite extends AnyFunSuite {
     assert(testResult.isEmpty)
   }
 
+  private def normalizeCastMsg(msg: String): String =
+    msg.replaceAll("\\bclass ", "").replaceAll(" \\(.*\\)", "")
+
   test("Default value is set to non string value fails") {
     val field = StructField("test_field", StringType, nullable = false, new MetadataBuilder().putBoolean(MetadataKeys.DefaultValue, value = true).build())
     val testResult = ScalarFieldValidator.validate(TypedStructField(field))
-    assert(testResult == Seq(ValidationError("java.lang.Boolean cannot be cast to java.lang.String")))
+    assert(testResult.map(e => ValidationError(normalizeCastMsg(e.msg))) == Seq(ValidationError("java.lang.Boolean cannot be cast to java.lang.String")))
   }
 }
