@@ -18,10 +18,11 @@ package za.co.absa.standardization.validation.field
 
 import org.apache.spark.sql.types.{MetadataBuilder, StringType, StructField}
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
 
-class ScalarFieldValidatorSuite extends AnyFunSuite {
+class ScalarFieldValidatorSuite extends AnyFunSuite with Matchers {
 
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
 
@@ -46,7 +47,11 @@ class ScalarFieldValidatorSuite extends AnyFunSuite {
   test("Default value is set to non string value fails") {
     val field = StructField("test_field", StringType, nullable = false, new MetadataBuilder().putBoolean(MetadataKeys.DefaultValue, value = true).build())
     val testResult = ScalarFieldValidator.validate(TypedStructField(field))
-    // Using `contains` because newer JVMs (11+) prefix type names with "class " and append module/classloader info in parentheses to ClassCastException messages
-    assert(testResult.head.msg.contains("java.lang.Boolean cannot be cast to") && testResult.head.msg.contains("java.lang.String"))
+
+    testResult should have size 1
+    testResult.head.msg should (
+      startWith("java.lang.Boolean cannot be cast to java.lang.String") or // Java 8
+        startWith("class java.lang.Boolean cannot be cast to class java.lang.String") // Java 11+
+    )
   }
 }
