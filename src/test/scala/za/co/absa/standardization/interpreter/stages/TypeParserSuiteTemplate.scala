@@ -291,12 +291,13 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   private def assembleErrorExpression(srcField: String, target: StructField, castS: String, fromType: DataType, toType: String, pattern: String): String = {
     val errCond = createErrorCondition(srcField, target, castS)
     val patternExpr = if (pattern.isEmpty) "NULL" else pattern
+    val emptyArr = if (SPARK_VERSION.startsWith("3.")) "ARRAY()" else "[]"
 
     if (target.nullable) {
-      s"CASE WHEN (($srcField IS NOT NULL) AND ($errCond)) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), ${fromType.typeName}, $toType, $patternExpr)) ELSE [] END"
+      s"CASE WHEN (($srcField IS NOT NULL) AND ($errCond)) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), ${fromType.typeName}, $toType, $patternExpr)) ELSE $emptyArr END"
     } else {
       s"CASE WHEN ($srcField IS NULL) THEN array(stdNullErr($srcField)) ELSE " +
-        s"CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), ${fromType.typeName}, $toType, $patternExpr)) ELSE [] END END"
+        s"CASE WHEN ($errCond) THEN array(stdCastErr($srcField, CAST($srcField AS STRING), ${fromType.typeName}, $toType, $patternExpr)) ELSE $emptyArr END END"
     }
   }
 

@@ -53,6 +53,9 @@ class TypedStructFieldSuite extends AnyFunSuite {
     StructField(fieldName, dataType, nullable,metadata)
   }
 
+  private def normalizeCastMsg(msg: String): String =
+    msg.replaceAll("\\bclass ", "").replaceAll(" \\(.*\\)", "")
+
   def checkField(field: TypedStructField,
                  dataType: DataType,
                  ownDefaultValue: Try[Option[Option[Any]]],
@@ -68,7 +71,8 @@ class TypedStructFieldSuite extends AnyFunSuite {
             got.get
           }
           assert(caught.getClass == e.getClass)
-          assert(caught.getMessage == e.getMessage)
+          assert(normalizeCastMsg(caught.getMessage) == normalizeCastMsg(e.getMessage),
+            s"\nExpected: ${e.getMessage}\nActual  : ${caught.getMessage}")
       }
     }
 
@@ -95,7 +99,13 @@ class TypedStructFieldSuite extends AnyFunSuite {
     assert(field.nullable == nullable)
     assertTry(field.ownDefaultValue, ownDefaultValue)
     assertTry(field.defaultValueWithGlobal, defaultValueWithGlobal)
-    assert(field.validate() == validationIssues)
+    val normalizeIssue: ValidationIssue => ValidationIssue = {
+      case ValidationError(msg) => ValidationError(normalizeCastMsg(msg))
+      case ValidationWarning(msg) => ValidationWarning(normalizeCastMsg(msg))
+    }
+    val normalizedActualIssues = field.validate().map(normalizeIssue)
+    val normalizedExpectedIssues = validationIssues.map(normalizeIssue)
+    assert(normalizedActualIssues == normalizedExpectedIssues)
   }
 
   test("String type without default defined") {

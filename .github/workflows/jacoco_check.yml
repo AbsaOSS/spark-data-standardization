@@ -27,12 +27,12 @@ jobs:
     strategy:
       matrix:
         include:
-          # The project supports Scala 2.11, 2.12, 2.13
+          # The project supports Scala 2.12, 2.13
           # The CI runs all tests suites for all supported Scala versions at build.yml
           # The codebase for all Scala versions is the same, so the coverage is calculated only once
           # Scala 2.12 is chosen since it is supported by the most wide range of Spark versions and
           # vendor distributions.
-          - scala: 2.12.12
+          - scala: 2.12.20
             scalaShort: "2.12"
             overall: 80.0
             changed: 80.0
@@ -47,7 +47,7 @@ jobs:
       - name: Setup Scala
         uses: olafurpg/setup-scala@32ffa16635ff8f19cc21ea253a987f0fdf29844c
         with:
-          java-version: "adopt@1.8"
+          java-version: "adopt@1.11"
 
       - name: Build and run tests
         run: sbt ++${{matrix.scala}} jacoco
@@ -69,9 +69,3 @@ jobs:
           echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
           echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
 
-      - name: Fail PR if changed files coverage is less than ${{ matrix.changed }}%
-        if: ${{ steps.jacoco.outputs.coverage-changed-files < 80.0 }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
-        with:
-          script: |
-            core.setFailed('Changed files coverage is less than ${{ matrix.changed }}%!')

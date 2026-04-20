@@ -2,7 +2,7 @@
 
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 [![Release](https://github.com/AbsaOSS/spark-data-standardization/actions/workflows/release.yml/badge.svg)](https://github.com/AbsaOSS/spark-data-standardization/actions/workflows/release.yml)
-![Java 8](https://img.shields.io/badge/Java_1.8-ED8B00?style=flat&logo=openjdk&logoColor=black)
+![Java 11](https://img.shields.io/badge/Java_11-ED8B00?style=flat&logo=openjdk&logoColor=black)
 
 - Dataframe in 
 - Standardized Dataframe out
@@ -16,7 +16,7 @@ The library needs following dependencies to be included in your project
 ```sbt
 "org.apache.spark" %% "spark-core" % SPARK_VERSION,
 "org.apache.spark" %% "spark-sql" % SPARK_VERSION,
-"za.co.absa" %% s"spark-commons-spark${SPARK_MAJOR}.${SPARK_MINOR}" % "0.6.1",
+"za.co.absa" %% s"spark-commons-spark${SPARK_MAJOR}.${SPARK_MINOR}" % "0.6.3",
 ```
 
 ### Usage in SBT:
@@ -25,16 +25,6 @@ The library needs following dependencies to be included in your project
 ```
 
 ### Usage in Maven
-
-### Scala 2.11 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.11)
-
-```xml
-<dependency>
-   <groupId>za.co.absa</groupId>
-   <artifactId>spark-data-standardization_2.11</artifactId>
-   <version>${latest_version}</version>
-</dependency>
-```
 
 ### Scala 2.12 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/za.co.absa/spark-data-standardization_2.12)
 
@@ -57,9 +47,9 @@ The library needs following dependencies to be included in your project
 ```
 
 Spark and Scala compatibility
->| | Scala 2.11 | Scala 2.12 | Scala 2.13 |
->|---|---|---|---|
->|Spark| 2.4.7 | 3.2.1 | 3.2.1 |
+>| | Scala 2.12 | Scala 2.13 |
+>|---|---|---|
+>|Spark| 3.5.x | 3.5.x |
 
 ## How to Release
 
