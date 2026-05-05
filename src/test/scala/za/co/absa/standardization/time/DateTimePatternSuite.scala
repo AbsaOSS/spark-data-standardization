@@ -268,4 +268,15 @@ class DateTimePatternSuite extends AnyFunSuite {
     assert(dtp.patternWithoutSecondFractions == "yyyy-MM-dd HH:mm:ss")
     assert(!dtp.containsSecondFractions)
   }
+
+  test("Second fractions detection in regular pattern with quoted literal - milliseconds") {
+    val pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+    val dtp = DateTimePattern(pattern)
+    assert(dtp.millisecondsPosition.contains(Section(20, 3)))
+    assert(dtp.microsecondsPosition.isEmpty)
+    assert(dtp.nanosecondsPosition.isEmpty)
+    assert(dtp.secondFractionsSections == Seq(Section(20, 3)))
+    assert(dtp.patternWithoutSecondFractions == "yyyy-MM-dd'T'HH:mm:ss.XXX")
+    assert(dtp.containsSecondFractions)
+  }
 }
