@@ -158,7 +158,8 @@ object DateTimePattern {
     ): (Option[Section], Option[Section], Option[Section]) = {
       def adjust(sectionOpt: Option[Section]): Option[Section] = {
         sectionOpt.map { s =>
-          val quotesBefore = pat.substring(0, s.start).count(_ == '\'')
+          val prefix = pat.substring(0, s.start)
+          val quotesBefore = prefix.countUnquoted(Set('\''), Set.empty).getOrElse('\'', 0)
           s.copy(start = s.start - quotesBefore)
         }
       }

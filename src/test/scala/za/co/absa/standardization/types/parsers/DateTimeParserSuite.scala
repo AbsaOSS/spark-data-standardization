@@ -20,10 +20,13 @@ import java.sql.{Date, Timestamp}
 import java.text.{ParseException, SimpleDateFormat}
 
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.standardization.testing.TimeZoneNormalizer
 
 case class TestInputRow(id: Int, stringField: String)
 
 class DateTimeParserSuite extends AnyFunSuite{
+
+  TimeZoneNormalizer.normalizeJVMTimeZone()
 
   test("DateParser class epoch") {
     val parser = DateTimeParser("epoch")
