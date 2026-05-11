@@ -18,6 +18,7 @@ package za.co.absa.standardization.types.parsers
 
 import java.sql.{Date, Timestamp}
 import java.text.{ParseException, SimpleDateFormat}
+import java.util.TimeZone
 
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.testing.TimeZoneNormalizer
@@ -26,6 +27,7 @@ case class TestInputRow(id: Int, stringField: String)
 
 class DateTimeParserSuite extends AnyFunSuite{
 
+  TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
   TimeZoneNormalizer.normalizeJVMTimeZone()
 
   test("DateParser class epoch") {
