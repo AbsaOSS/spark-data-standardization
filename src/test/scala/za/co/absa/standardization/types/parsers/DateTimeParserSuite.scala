@@ -18,12 +18,17 @@ package za.co.absa.standardization.types.parsers
 
 import java.sql.{Date, Timestamp}
 import java.text.{ParseException, SimpleDateFormat}
+import java.util.TimeZone
 
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.standardization.testing.TimeZoneNormalizer
 
 case class TestInputRow(id: Int, stringField: String)
 
 class DateTimeParserSuite extends AnyFunSuite{
+
+  TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+  TimeZoneNormalizer.normalizeJVMTimeZone()
 
   test("DateParser class epoch") {
     val parser = DateTimeParser("epoch")
@@ -184,6 +189,19 @@ class DateTimeParserSuite extends AnyFunSuite{
     assert(parser6.format(t) == "1970-01-02 01:00:00.123456")
     val parser7 = DateTimeParser("(nnn) yyyy-MM-dd (SSS) HH:mm:ss (iii)")
     assert(parser7.format(t) == "(789) 1970-01-02 (123) 01:00:00 (456)")
+  }
+
+  test("DateParser class actual pattern with quoted literal and timezone and milliseconds") {
+    val parser = DateTimeParser("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    val str = "2025-07-18T16:07:51.569+02:00"
+
+    val resultDate: Date = parser.parseDate(str)
+    val expectedDate: Date = Date.valueOf("2025-07-18")
+    assert(resultDate == expectedDate)
+
+    val resultTimestamp: Timestamp = parser.parseTimestamp(str)
+    val expectedTimestamp: Timestamp = Timestamp.valueOf("2025-07-18 14:07:51.569")
+    assert(resultTimestamp == expectedTimestamp)
   }
 
   test("Lenient interpretation is not accepted") {

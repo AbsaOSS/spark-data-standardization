@@ -129,23 +129,41 @@ object DateTimePattern {
     override val defaultTimeZone: Option[String] = assignedDefaultTimeZone.filterNot(_ => timeZoneInPattern)
     override val isTimeZoned: Boolean = timeZoneInPattern || defaultTimeZone.nonEmpty
 
-    val (millisecondsPosition, microsecondsPosition, nanosecondsPosition) = analyzeSecondFractionsPositions(pattern)
+    private val (patternMilliPos, patternMicroPos, patternNanoPos) = scanSecondFractionsInPattern(pattern)
+    override val patternWithoutSecondFractions: String = {
+      val patternSections = Section.mergeTouchingSectionsAndSort(Seq(patternMilliPos, patternMicroPos, patternNanoPos).flatten)
+      Section.removeMultipleFrom(pattern, patternSections)
+    }
+
+    val (millisecondsPosition, microsecondsPosition, nanosecondsPosition) = adjustPositionsForValue(pattern, patternMilliPos, patternMicroPos, patternNanoPos)
     override val secondFractionsSections: Seq[Section] = Section.mergeTouchingSectionsAndSort(Seq(millisecondsPosition, microsecondsPosition, nanosecondsPosition).flatten)
-    override val patternWithoutSecondFractions: String = Section.removeMultipleFrom(pattern, secondFractionsSections)
 
     private def scanForPlaceholder(withinString: String, placeHolder: Char): Option[Section] = {
       val start = withinString.findFirstUnquoted(Set(placeHolder), Set('\''))
       start.map(index => Section.ofSameChars(withinString, index))
     }
 
-    private def analyzeSecondFractionsPositions(withinString: String): (Option[Section], Option[Section], Option[Section]) = {
-      val clearedPattern = withinString
-
-      // TODO as part of #7 fix (originally Enceladus#677)
-      val milliSP = scanForPlaceholder(clearedPattern, patternMilliSecondChar)
-      val microSP = scanForPlaceholder(clearedPattern, patternMicroSecondChar)
-      val nanoSP = scanForPlaceholder(clearedPattern, patternNanoSecondChat)
+    private def scanSecondFractionsInPattern(withinString: String): (Option[Section], Option[Section], Option[Section]) = {
+      val milliSP = scanForPlaceholder(withinString, patternMilliSecondChar)
+      val microSP = scanForPlaceholder(withinString, patternMicroSecondChar)
+      val nanoSP = scanForPlaceholder(withinString, patternNanoSecondChat)
       (milliSP, microSP, nanoSP)
+    }
+
+    private def adjustPositionsForValue(
+      pat: String,
+      milliPos: Option[Section],
+      microPos: Option[Section],
+      nanoPos: Option[Section]
+    ): (Option[Section], Option[Section], Option[Section]) = {
+      def adjust(sectionOpt: Option[Section]): Option[Section] = {
+        sectionOpt.map { s =>
+          val prefix = pat.substring(0, s.start)
+          val quotesBefore = prefix.countUnquoted(Set('\''), Set.empty).getOrElse('\'', 0)
+          s.copy(start = s.start - quotesBefore)
+        }
+      }
+      (adjust(milliPos), adjust(microPos), adjust(nanoPos))
     }
   }
 
