@@ -23,10 +23,10 @@ import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancemen
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.spark.commons.utils.JsonUtils
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, ErrorCodesConfig}
+import za.co.absa.standardization._
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization._
 
 import java.sql.{Date, Timestamp}
 import java.util.TimeZone
@@ -97,7 +97,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         StructType(
           Seq(
             StructField("subFieldA", IntegerType, nullable = true),
-            StructField("subFieldB", StringType, nullable = true))), nullable = false),
+            StructField("subFieldB", StringType, nullable = true))), nullable = true),
       StructField("rootStruct2",
         StructType(
           Seq(
@@ -105,7 +105,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
               StructType(
                 Seq(
                   StructField("subSub2FieldA", IntegerType, nullable = true),
-                  StructField("subSub2FieldB", StringType, nullable = true))), nullable = false))), nullable = false),
+                  StructField("subSub2FieldB", StringType, nullable = true))), nullable = true))), nullable = true),
       StructField("rootArray",
         ArrayType(
           StructType(
@@ -116,7 +116,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
                 StructType(
                   Seq(
                     StructField("subFieldA", IntegerType, nullable = true),
-                    StructField("subFieldB", StringType, nullable = true))), nullable = false))), containsNull = false
+                    StructField("subFieldB", StringType, nullable = true))), nullable = true))), containsNull = true
         ))))
 
   test("Non-null errors produced for non-nullable attribute in a struct") {
@@ -357,10 +357,10 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
     val expectedSchema = "root\n" +
       " |-- first_name: string (nullable = true)\n" +
       " |-- last_name: string (nullable = true)\n" +
-      " |-- body_stats: struct (nullable = false)\n" +
+      " |-- body_stats: struct (nullable = true)\n" +
       " |    |-- height: integer (nullable = true)\n" +
       " |    |-- weight: integer (nullable = true)\n" +
-      " |    |-- miscellaneous: struct (nullable = false)\n" +
+      " |    |-- miscellaneous: struct (nullable = true)\n" +
       " |    |    |-- eye_color: string (nullable = true)\n" +
       " |    |    |-- glasses: boolean (nullable = true)\n" +
       " |    |-- temperature_measurements: array (nullable = true)\n" +
