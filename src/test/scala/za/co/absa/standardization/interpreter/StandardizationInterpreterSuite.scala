@@ -49,6 +49,9 @@ object StandardizationInterpreterSuite {
   case class subarrayCC(arrayFieldA: Integer, arrayFieldB: String, arrayStruct: subCC)
   case class rootCC(rootField: String, rootStruct: subCC, rootStruct2: sub1CC, rootArray: Array[subarrayCC])
 
+  case class InnerStruct(innerA: String, innerB: Integer)
+  case class NullStructRecord(id: Long, name: Option[String], details: Option[InnerStruct])
+
   // used by the last test:
   // cannot use case class as the field names contain spaces therefore cast will happen into tuple
   type BodyStats = (Int, Int, (String, Option[Boolean]), Seq[Double])
@@ -223,6 +226,37 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
     val count = standardizedDF.where(size(col("errCol")) > 0).count()
 
     assert(count == 0)
+  }
+
+  test("Test standardization preserves null for a nullable nested struct") {
+    val schema = StructType(
+      Array(
+        StructField("id", LongType, nullable = false),
+        StructField("name", StringType, nullable = true),
+        StructField("details", StructType(Array(
+          StructField("innerA", StringType, nullable = false),
+          StructField("innerB", IntegerType, nullable = false)
+        )), nullable = true)))
+
+    val sourceDF = spark.createDataFrame(
+      Array(
+        NullStructRecord(1, Some("Record 1"), Some(InnerStruct("hello", 42))),
+        NullStructRecord(2, Some("Record 2"), None),
+        NullStructRecord(3, None, None)
+      ))
+
+    val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
+
+    // No errors should be produced since the struct is nullable
+    val errorCount = standardizedDF.where(size(col("errCol")) > 0).count()
+    assert(errorCount == 0)
+
+    // Verify that null struct values remain null in the output
+    val dfStandardized = standardizedDF.orderBy("id")
+    val detailsValues = dfStandardized.select("details").collect()
+    assert(detailsValues(0).getStruct(0) != null, "Record 1 should have a non-null details struct")
+    assert(detailsValues(1).isNullAt(0), "Record 2 should have a null details struct in the output")
+    assert(detailsValues(2).isNullAt(0), "Record 3 should have a null details struct in the output")
   }
 
   test ("Test standardization of Date and Timestamp fields with default value and pattern") {
