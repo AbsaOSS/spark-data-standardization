@@ -23,10 +23,10 @@ import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancemen
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.spark.commons.utils.JsonUtils
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, DefaultStandardizationConfig, ErrorCodesConfig}
+import za.co.absa.standardization._
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, ErrorCodesConfig}
 import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
-import za.co.absa.standardization._
 
 import java.sql.{Date, Timestamp}
 import java.util.TimeZone
@@ -48,6 +48,9 @@ object StandardizationInterpreterSuite {
   case class sub1CC(subStruct2: sub2CC)
   case class subarrayCC(arrayFieldA: Integer, arrayFieldB: String, arrayStruct: subCC)
   case class rootCC(rootField: String, rootStruct: subCC, rootStruct2: sub1CC, rootArray: Array[subarrayCC])
+
+  case class InnerStruct(innerA: String, innerB: Integer)
+  case class NullStructRecord(id: Long, name: Option[String], details: Option[InnerStruct])
 
   // used by the last test:
   // cannot use case class as the field names contain spaces therefore cast will happen into tuple
@@ -97,7 +100,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
         StructType(
           Seq(
             StructField("subFieldA", IntegerType, nullable = true),
-            StructField("subFieldB", StringType, nullable = true))), nullable = false),
+            StructField("subFieldB", StringType, nullable = true))), nullable = true),
       StructField("rootStruct2",
         StructType(
           Seq(
@@ -105,7 +108,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
               StructType(
                 Seq(
                   StructField("subSub2FieldA", IntegerType, nullable = true),
-                  StructField("subSub2FieldB", StringType, nullable = true))), nullable = false))), nullable = false),
+                  StructField("subSub2FieldB", StringType, nullable = true))), nullable = true))), nullable = true),
       StructField("rootArray",
         ArrayType(
           StructType(
@@ -116,7 +119,7 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
                 StructType(
                   Seq(
                     StructField("subFieldA", IntegerType, nullable = true),
-                    StructField("subFieldB", StringType, nullable = true))), nullable = false))), containsNull = false
+                    StructField("subFieldB", StringType, nullable = true))), nullable = true))), containsNull = true
         ))))
 
   test("Non-null errors produced for non-nullable attribute in a struct") {
@@ -223,6 +226,37 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
     val count = standardizedDF.where(size(col("errCol")) > 0).count()
 
     assert(count == 0)
+  }
+
+  test("Test standardization preserves null for a nullable nested struct") {
+    val schema = StructType(
+      Array(
+        StructField("id", LongType, nullable = false),
+        StructField("name", StringType, nullable = true),
+        StructField("details", StructType(Array(
+          StructField("innerA", StringType, nullable = false),
+          StructField("innerB", IntegerType, nullable = false)
+        )), nullable = true)))
+
+    val sourceDF = spark.createDataFrame(
+      Array(
+        NullStructRecord(1, Some("Record 1"), Some(InnerStruct("hello", 42))),
+        NullStructRecord(2, Some("Record 2"), None),
+        NullStructRecord(3, None, None)
+      ))
+
+    val standardizedDF = Standardization.standardize(sourceDF, schema, stdConfig)
+
+    // No errors should be produced since the struct is nullable
+    val errorCount = standardizedDF.where(size(col("errCol")) > 0).count()
+    assert(errorCount == 0)
+
+    // Verify that null struct values remain null in the output
+    val dfStandardized = standardizedDF.orderBy("id")
+    val detailsValues = dfStandardized.select("details").collect()
+    assert(detailsValues(0).getStruct(0) != null, "Record 1 should have a non-null details struct")
+    assert(detailsValues(1).isNullAt(0), "Record 2 should have a null details struct in the output")
+    assert(detailsValues(2).isNullAt(0), "Record 3 should have a null details struct in the output")
   }
 
   test ("Test standardization of Date and Timestamp fields with default value and pattern") {
@@ -357,10 +391,10 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
     val expectedSchema = "root\n" +
       " |-- first_name: string (nullable = true)\n" +
       " |-- last_name: string (nullable = true)\n" +
-      " |-- body_stats: struct (nullable = false)\n" +
+      " |-- body_stats: struct (nullable = true)\n" +
       " |    |-- height: integer (nullable = true)\n" +
       " |    |-- weight: integer (nullable = true)\n" +
-      " |    |-- miscellaneous: struct (nullable = false)\n" +
+      " |    |-- miscellaneous: struct (nullable = true)\n" +
       " |    |    |-- eye_color: string (nullable = true)\n" +
       " |    |    |-- glasses: boolean (nullable = true)\n" +
       " |    |-- temperature_measurements: array (nullable = true)\n" +

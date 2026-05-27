@@ -26,7 +26,6 @@ import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetada
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.spark.commons.utils.SchemaUtils
 import za.co.absa.spark.hofs.transform
-import za.co.absa.standardization.{ErrorMessage, StandardizationErrorMessage}
 import za.co.absa.standardization.config.StandardizationConfig
 import za.co.absa.standardization.implicits.StdColumnImplicits.StdColumnEnhancements
 import za.co.absa.standardization.schema.StdSchemaUtils.FieldWithSource
@@ -34,9 +33,9 @@ import za.co.absa.standardization.schema.{MetadataKeys, MetadataValues, StdSchem
 import za.co.absa.standardization.time.DateTimePattern
 import za.co.absa.standardization.typeClasses.{DoubleLike, LongLike}
 import za.co.absa.standardization.types.TypedStructField._
-import za.co.absa.standardization.types.parsers.DateTimeParser
 import za.co.absa.standardization.types.{ParseOutput, TypeDefaults, TypedStructField}
 import za.co.absa.standardization.udf.{UDFBuilder, UDFNames}
+import za.co.absa.standardization.{ErrorMessage, StandardizationErrorMessage}
 
 import java.security.InvalidParameterException
 import java.sql.Timestamp
@@ -257,7 +256,7 @@ object TypeParser {
           )
       )
       // rebuild the struct
-      val outputColumn = struct(cols: _*) as (fieldOutputName, metadata)
+      val outputColumn = when(column.isNull, lit(null)).otherwise(struct(cols: _*)) as (fieldOutputName, metadata)
 
       ParseOutput(outputColumn, errs1)
     }
