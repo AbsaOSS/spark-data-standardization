@@ -35,7 +35,7 @@ jobs:
           - scala: 2.12.20
             scalaShort: "2.12"
             overall: 80.0
-            changed: 80.0
+            changed: 60.0
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd

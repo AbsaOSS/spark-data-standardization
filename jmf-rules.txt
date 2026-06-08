@@ -1,118 +1,25 @@
-# jacoco-method-filter — Default Rules & HowTo (Scala)
-# [jmf:1.0.0]
+# jacoco-method-filter — Rules Template (Scala / sbt)
+# [jmf:2.1.0]
 #
-# This file defines which methods should be annotated as *Generated so JaCoCo ignores them.
-# One rule per line.
-#
-# ─────────────────────────────────────────────────────────────────────────────
-# HOW TO USE (quick)
-# 1) Replace YOUR.PACKAGE.ROOT with your project’s package root (e.g., com.example.app).
-# 2) Start with the CONSERVATIVE section only.
-# 3) If clean, enable STANDARD. Use AGGRESSIVE only inside DTO/auto‑generated packages.
-# 4) Keep rules narrow (by package), prefer flags (synthetic/bridge) for compiler artifacts,
-#    and add `id:` labels so logs are easy to read.
+# Syntax reference, pitfalls, examples, and workflows: https://github.com/MoranaApps/jacoco-method-filter/blob/main/docs/rules-reference.md
 #
 # ─────────────────────────────────────────────────────────────────────────────
-# ALLOWED SYNTAX (cheat sheet)
+# HOW TO USE
+# ─────────────────────────────────────────────────────────────────────────────
 #
-# General form:
-#   <FQCN_glob>#<method_glob>(<descriptor_glob>) [FLAGS and PREDICATES...]
-#
-# FQCN_glob (dot form; $ allowed for inner classes):
-#   Examples:  *.model.*,  com.example.*,  *
-#
-# method_glob (glob on method name):
-#   Examples:  copy   |   $anonfun$*   |   get*   |   *_$eq
-#
-# descriptor_glob (JVM descriptor in (args)ret). You may omit it entirely.
-#   • Omitting descriptor ⇒ treated as "(*)*" (any args, any return).
-#   • Short/empty forms "", "()", "(*)" normalize to "(*)*".
-#   Examples:
-#     (I)I                      # takes int, returns int
-#     (Ljava/lang/String;)V     # takes String, returns void
-#     ()  or  (*)  or omitted  # any args, any return
-#
-# FLAGS (optional) — space or comma separated:
-#   public | protected | private | synthetic | bridge | static | abstract
-#
-# PREDICATES (optional):
-#   ret:<glob>          # match return type only (e.g., ret:V, ret:I, ret:Lcom/example/*;)
-#   id:<string>         # identifier shown in logs/reports
-#   name-contains:<s>   # method name must contain <s>
-#   name-starts:<s>     # method name must start with <s>
-#   name-ends:<s>       # method name must end with <s>
-#
-# Notes
-# - Always use dot-form (com.example.Foo) for class names.
-# - Comments (# …) and blank lines are ignored.
+# 1) Review the GLOBAL RULES below — they cover compiler-generated boilerplate.
+# 2) Add project-specific patterns in the PROJECT RULES section.
+# 3) Keep rules narrow; add id: labels so logs are readable.
+#    Every rule must have an id:<label>. Unlabelled rules emit a [warn] at load
+#    time. CLI users: pass --strict to enforce id: as a hard CI requirement.
+#    (sbt/Maven plugins do not yet expose --strict as a configuration key.)
+# 4) Use --verify mode to confirm rules match before committing.
 #
 # ─────────────────────────────────────────────────────────────────────────────
-# QUICK EXAMPLES
-#
-# Simple wildcards
-#   *#*(*)
-#     → Match EVERY method in EVERY class (any package). Useful only for diagnostics.
-#       "(*)" normalizes to "(*)*" ⇒ any args, any return.
-#   *.dto.*#*(*)
-#     → Match every method on any class under any package segment named "dto".
-#       Good when you treat DTOs as generated/boilerplate.
-
-# Scala case class helpers
-#   *.model.*#copy(*)
-#     → Matches Scala case-class `copy` methods under `*.model.*`.
-#       Hides boilerplate clones with any parameter list and any return.
-#   *.model.*#productArity()
-#     → Matches zero-arg `productArity` (case-class/Product API).
-#   *.model.*#productElement(*)
-#     → Matches `productElement(int)` (or any descriptor form) on case classes.
-#   *.model.*#productPrefix()
-#     → Matches `productPrefix()`; returns the case class' constructor name.
-
-# Companion objects and defaults
-#   *.model.*$*#apply(*)
-#     → Matches companion `apply` factories under `*.model.*` (any args).
-#       BE CAREFUL: can hide real factory logic; keep the package scope narrow.
-#   *.model.*$*#unapply(*)
-#     → Matches extractor `unapply` methods in companions under `*.model.*`.
-#   *#*$default$*(*)
-#     → Matches Scala-generated default-argument helpers everywhere.
-#       Safe to keep enabled; they’re compiler-synthesized.
-
-# Anonymous / synthetic / bridge
-#   *#$anonfun$*
-#     → Matches any method whose name contains `$anonfun$` (Scala lambdas).
-#       Consider adding `synthetic` and/or a package scope in real configs.
-#   *#*(*):synthetic            # any synthetic
-#     → Matches ANY method marked `synthetic` (compiler-generated).
-#       Powerful; scope by package to avoid hiding intentional glue code.
-#   *#*(*):bridge               # any bridge
-#     → Matches Java generic bridge methods the compiler inserts.
-#       Usually safe globally, but scoping is still recommended.
-
-# Setters / fluent APIs
-#   *.dto.*#*_$eq(*)
-#     → Matches Scala var setters in DTO packages (e.g., `name_=(...)`).
-#       Good for excluding trivial field writes.
-#   *.builder.*#with*(*)
-#     → Matches builder-style fluent setters (`withXxx(...)`) in builder pkgs.
-#       Treats chainable configuration as boilerplate.
-#   *.client.*#with*(*) ret:Lcom/api/client/*
-#     → Like above but ONLY when the return type matches your client package.
-#       The `ret:` predicate protects real logic that returns other types.
-
-# Return-type constraints
-#   *.jobs.*#*(*):ret:V
-#     → Any method under `*.jobs.*` returning `void` (`V`). Often orchestration.
-#   *.math.*#*(*):ret:I
-#     → Any method under `*.math.*` returning primitive int (`I`).
-#   *.model.*#*(*):ret:Lcom/example/model/*
-#     → Any method under `*.model.*` that returns a type in `com.example.model`.
-#       Handy when the *return type* uniquely identifies boilerplate.
-
+# GLOBAL RULES
 # ─────────────────────────────────────────────────────────────────────────────
-# GLOBALS RULES
-# ─────────────────────────────────────────────────────────────────────────────
-# ** all case class boilerplate
+# Global rules match ALL packages. Verify they do not suppress real logic.
+# See docs/rules-reference.md#global-rule-safety-warning for details.
 
 # Scala case class helpers
 *#canEqual(*)                                           id:case-canequal
@@ -121,6 +28,7 @@
 *#unapply(*)                                            id:case-unapply
 *#hashCode(*)                                           id:case-hashcode
 *#copy(*)                                               id:case-copy
+# Subsumed by gen-defaults below; kept for clarity. Safe to remove if gen-defaults is enabled.
 *#copy$default$*(*)                                     id:case-copy-defaults
 *#productElement()                                      id:case-prod-element
 *#productArity()                                        id:case-prod-arity
@@ -129,13 +37,23 @@
 *#tupled()                                              id:case-tupled
 *#curried()                                             id:case-curried
 *#toString()                                            id:case-tostring
-*#name()                                                id:case-name
-*#groups()                                              id:case-groups
-*#optionalAttributes()                                  id:case-optionalAttributes
+# Scala 2.13+ case class boilerplate — safe to enable; no-op in 2.11/2.12
+# Note: unmatched
+#*#productElementName(*)                                 id:case-prod-element-name
+#*#productElementNames()                                 id:case-prod-element-names
+# WARNING: may collide with domain methods named `name` — rescue with + include rule if needed
+# Note: unmatched
+#*#name()                                                id:case-name
+# WARNING: may collide with domain methods named `groups` — rescue with + include rule if needed
+# Note: unmatched
+#*#groups()                                              id:case-groups
+# WARNING: may collide with domain methods named `optionalAttributes` — rescue with + include rule if needed
+# Note: unmatched
+#*#optionalAttributes()                                  id:case-optionalAttributes
 
 # Companion objects, constructors, and static definitions
-*$#<init>(*)                                            id:gen-ctor         # constructors
-*$#<clinit>()                                           id:gen-clinit       # static initializer blocks
+*$#<init>(*)                                            id:gen-ctor
+*$#<clinit>()                                           id:gen-clinit
 
 # Companion objects and defaults
 *$*#apply(*)                                            id:comp-apply
@@ -143,12 +61,69 @@
 *$*#toString(*)                                         id:comp-tostring
 *$*#readResolve(*)                                      id:comp-readresolve
 
+# Java serialization hook — compiler-generated on the case class itself (not the companion)
+# Body is a single expression returning a serialization proxy; no project logic.
+# WARNING: if a class overrides writeReplace with custom logic, rescue with + include rule.
+# Note: unmatched
+#*#writeReplace(*)                                       id:case-writereplace
+
 # anonymous class created by a macro expansion
-*$macro$*#$anonfun$inst$macro$*                         id:macro-inst
-*$macro$*#inst$macro$*                                  id:macro-inst
+# Note: unmatched
+#*$macro$*#$anonfun$inst$macro$*                         id:macro-inst
+#*$macro$*#inst$macro$*                                  id:macro-inst
 
 # lambda
 *#*  synthetic name-contains:$anonfun$                  id:scala-anonfun
+
+# Lazy val compute — compiler-generated synchronization wrapper
+# Scala compiles `lazy val foo = expr` into an accessor + a `foo$lzycompute()` method.
+# The $lzycompute method body IS the lazy initializer (expr). If the initializer contains
+# real business logic, filtering this method hides it. Only enable when the lazy val is a
+# trivial constant, a boundary call not unit-testable, or an already-tested computation.
+# Rescue any lazy vals with real logic via + include rules.
+# DISABLED — enable with + include rules to rescue lazy vals whose initializer has real logic
+# *#*$lzycompute(*)                                      id:scala-lzycompute
+
+# Lambda serialization helper — compiler-generated private static method
+# Emitted by scalac/javac to support SerializedLambda deserialization.
+# NOT marked ACC_SYNTHETIC (unlike $anonfun$*), so the synthetic flag does not catch it.
+# Body contains only a series of instanceof/handle comparisons — no project logic.
+*#$deserializeLambda$(*)                                id:scala-deser-lambda
+
+# Value class companion extension bridges — compiler-generated identity operations
+# When a value class (AnyVal) is used in a boxed context, the Scala compiler emits
+# these *$extension methods on the companion object. Each is a single-expression
+# delegate to the unboxed static method; no project logic is present.
+*#hashCode$extension(*)                                 id:valclass-hashcode-ext
+*#equals$extension(*)                                   id:valclass-equals-ext
+*#toString$extension(*)                                 id:valclass-tostring-ext
+*#canEqual$extension(*)                                 id:valclass-canequal-ext
+*#productIterator$extension(*)                          id:valclass-proditer-ext
+*#productElement$extension(*)                           id:valclass-prodelem-ext
+*#productArity$extension(*)                             id:valclass-prodarity-ext
+*#productPrefix$extension(*)                            id:valclass-prodprefix-ext
+*#copy$extension(*)                                     id:valclass-copy-ext
+*#copy$default$*$extension(*)                           id:valclass-copydef-ext
+
+# Function1 trait mixin delegates — single-call forwarders to scala.Function1
+# These arise when a class mixes in Function1. Each is a one-liner forwarding to
+# the trait default. Rarely contain project logic.
+# CAUTION: if your code defines andThen/compose with custom logic in a non-Function1
+# class, rescue those methods with + include rules.
+*#andThen(*)                                            id:fn1-andthen
+*#compose(*)                                            id:fn1-compose
+
+# Default parameter accessors — compiler-generated constant-returning methods
+# The Scala compiler emits a $default$N method for every parameter with a default
+# value. Each method body returns the constant default expression; no logic.
+# This rule supersedes `case-copy-defaults` above; both are safe to keep active.
+*#*$default$*(*)                                        id:gen-defaults
+
+# ─────────────────────────────────────────────────────────────────────────────
+# INCLUDE RULES (rescue methods from broad exclusions above)
+# ─────────────────────────────────────────────────────────────────────────────
+# Prefix a rule with "+" to rescue a method. Include always wins over exclude.
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PROJECT RULES

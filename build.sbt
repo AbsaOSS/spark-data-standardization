@@ -66,12 +66,9 @@ Global / excludeLintKeys += ThisBuild / name // will be used in publish, todo #3
 
 // JaCoCo Method Filter Plugin
 enablePlugins(JacocoFilterPlugin)
-
 jacocoReportName := s"spark-data-standardization Jacoco Report - scala:${scalaVersion.value}"
 jacocoReportFormats := Set("html", "xml")
-
 // jacocoExcludes := Seq("za/co/absa/standardization/udf/UDFBuilder*", "za/co/absa/standardization/udf/UDFNames")
-
 // Command aliases for JaCoCo coverage workflow
 addCommandAlias("jacoco", "; jacocoOn; clean; test; jacocoReportAll; jacocoOff")
 addCommandAlias("jacocoOn", "; set every jacocoPluginEnabled := true")
