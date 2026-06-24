@@ -580,7 +580,8 @@ object TypeParser {
       )
       val stringColumn = nonStringColumn.cast(StringType)
       val stringColumnWithPadding = if (shouldPadNumericDateTimeString(originType)) {
-        when(length(stringColumn) < pattern.pattern.length, lpad(stringColumn, pattern.pattern.length, "0"))
+        when(length(stringColumn) > pattern.pattern.length, lit(null).cast(StringType))
+          .when(length(stringColumn) < pattern.pattern.length, lpad(stringColumn, pattern.pattern.length, "0"))
           .otherwise(stringColumn)
       } else {
         stringColumn
