@@ -578,7 +578,18 @@ object TypeParser {
       logger.warn(
         s"$inputFullPathName is specified as timestamp or date, but original type is ${originType.typeName}. Trying to interpret as string."
       )
-      castStringColumn(nonStringColumn.cast(StringType))
+      val stringColumn = nonStringColumn.cast(StringType)
+      val stringColumnWithPadding = if (isNumericType(originType)) {
+        lpad(stringColumn, pattern.length, "0")
+      } else {
+        stringColumn
+      }
+      castStringColumn(stringColumnWithPadding)
+    }
+
+    private def isNumericType(dataType: DataType): Boolean = dataType match {
+      case ByteType | ShortType | IntegerType | LongType | FloatType | DoubleType | _: DecimalType => true
+      case _ => false
     }
 
     protected def castEpoch(): Column = {
