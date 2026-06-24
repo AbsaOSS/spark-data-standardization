@@ -21,7 +21,12 @@ import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{
+  BasicMetadataColumnsConfig,
+  BasicStandardizationConfig,
+  DefaultStandardizationConfig,
+  StandardizationConfig
+}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField._
 import za.co.absa.standardization.types.parsers.IntegralParser.{PatternIntegralParser, RadixIntegralParser}
@@ -129,6 +134,40 @@ class UDFBuilderSuite extends AnyFunSuite {
     val defaultValue: Option[Short] = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[Short])
     val parser = numericTypeField.parser.get.asInstanceOf[PatternIntegralParser[Short]]
     val udfFnc = UDFBuilder.stringUdfViaNumericParser(StringType, field.dataType, parser, numericTypeField.nullable, fieldName, stdConfig, defaultValue)
+    //write
+    val baos = new ByteArrayOutputStream
+    val oos = new ObjectOutputStream(baos)
+    oos.writeObject(udfFnc)
+    oos.flush()
+    val serialized = baos.toByteArray
+    assert(serialized.nonEmpty)
+    //read
+    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized)) {
+      override def resolveClass(desc: ObjectStreamClass): Class[_] =
+        Class.forName(desc.getName, false, loader)
+    }
+    ois.readObject().asInstanceOf[UserDefinedFunction]
+  }
+
+  test("Serialization and deserialization of stringUdfViaNumericParser with default config") {
+    val fieldName = "test"
+    val field: StructField = StructField(fieldName, IntegerType, nullable = true, new MetadataBuilder()
+      .putString(MetadataKeys.Pattern, "000000")
+      .build)
+    val typedField = TypedStructField(field)
+
+    val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[Int]]
+    val defaultValue: Option[Int] = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[Int])
+    val parser = numericTypeField.parser.get.asInstanceOf[PatternIntegralParser[Int]]
+    val udfFnc = UDFBuilder.stringUdfViaNumericParser(
+      StringType,
+      field.dataType,
+      parser,
+      numericTypeField.nullable,
+      fieldName,
+      DefaultStandardizationConfig,
+      defaultValue
+    )
     //write
     val baos = new ByteArrayOutputStream
     val oos = new ObjectOutputStream(baos)
