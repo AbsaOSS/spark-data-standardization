@@ -265,6 +265,30 @@ class StandardizationInterpreter_TimestampSuite extends AnyFunSuite with SparkTe
     assertResult(exp)(std.as[TimestampRow].collect().toList)
   }
 
+  test("pattern up to seconds precision from numeric value with leading zero") {
+    val seq: Seq[Long] = Seq(
+      2092024010203L,
+      1012024000000L,
+      31122024235959L
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, TimestampType, nullable = false,
+        new MetadataBuilder().putString("pattern", "ddMMyyyyHHmmss").build)
+    ))
+    val exp = Seq(
+      TimestampRow(Timestamp.valueOf("2024-09-02 01:02:03")),
+      TimestampRow(Timestamp.valueOf("2024-01-01 00:00:00")),
+      TimestampRow(Timestamp.valueOf("2024-12-31 23:59:59"))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[TimestampRow].collect().toList)
+  }
+
   test("pattern up to seconds precision with default time zone") {
     val seq  = Seq(
       "31.12.1969 19-00-00",

@@ -256,6 +256,32 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
     assertResult(exp)(std.as[DateRow].collect().toList)
   }
 
+  test("date pattern from numeric value with leading zero") {
+    val seq: Seq[Int] = Seq(
+      2092024,
+      1012024,
+      31122024,
+      101202024
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, DateType, nullable = false,
+        new MetadataBuilder().putString(MetadataKeys.Pattern, "ddMMyyyy").build)
+    ))
+    val exp: Seq[DateRow] = Seq(
+      DateRow(Date.valueOf("2024-09-02")),
+      DateRow(Date.valueOf("2024-01-01")),
+      DateRow(Date.valueOf("2024-12-31")),
+      DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "101202024", "integer", "date", Some("ddMMyyyy"))))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[DateRow].collect().toList)
+  }
+
   test("date + time pattern and named time zone") {
     val seq  = Seq(
       "01-00-00 01.01.1970 CET",
