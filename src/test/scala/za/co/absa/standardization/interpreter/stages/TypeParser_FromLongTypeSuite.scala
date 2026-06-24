@@ -43,15 +43,16 @@ class TypeParser_FromLongTypeSuite extends TypeParserSuiteTemplate {
       (infMinusValue, infMinusSymbol, infPlusValue, infPlusSymbol)
     }
     val srcType = srcStructField.dataType.sql
+    def paddedStringColumn: String = s"lpad(CAST(`%s` AS STRING), ${pattern.length}, '0')"
 
     val isEpoch = DateTimePattern.isEpoch(pattern)
     (target.dataType, isEpoch, timezone) match {
       case (DateType, true, _)                      => s"to_date(CAST((CAST(`%s` AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(pattern)}L) AS TIMESTAMP))"
       case (TimestampType, true, _)                 => s"CAST((CAST(%s AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(pattern)}) AS TIMESTAMP)"
-      case (DateType, _, Some(tz))                  => s"to_date(to_utc_timestamp(to_timestamp(CAST(`%s` AS STRING), '$pattern'), '$tz'))"
-      case (TimestampType, _, Some(tz))             => s"to_utc_timestamp(to_timestamp(CAST(`%s` AS STRING), '$pattern'), $tz)"
-      case (TimestampType, _, _)                    => s"to_timestamp(CAST(`%s` AS STRING), '$pattern')"
-      case (DateType, _, _)                         => s"to_date(CAST(`%s` AS STRING), '$pattern')"
+      case (DateType, _, Some(tz))                  => s"to_date(to_utc_timestamp(to_timestamp($paddedStringColumn, '$pattern'), '$tz'))"
+      case (TimestampType, _, Some(tz))             => s"to_utc_timestamp(to_timestamp($paddedStringColumn, '$pattern'), $tz)"
+      case (TimestampType, _, _)                    => s"to_timestamp($paddedStringColumn, '$pattern')"
+      case (DateType, _, _)                         => s"to_date($paddedStringColumn, '$pattern')"
       case (ByteType | ShortType | IntegerType | LongType | FloatType | DoubleType | _: DecimalType, _, _) if (infMinusValue.isDefined && infMinusSymbol.isDefined && infPlusValue.isDefined && infPlusSymbol.isDefined) =>
         s"CAST(CASE WHEN (CASE WHEN (%s = ${infMinusSymbol.get}) THEN CAST(${infMinusValue.get} AS $srcType) " +
           s"ELSE %s END = ${infPlusSymbol.get}) THEN CAST(${infPlusValue.get} AS $srcType) ELSE CASE WHEN " +
