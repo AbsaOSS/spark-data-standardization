@@ -43,7 +43,10 @@ class TypeParser_FromLongTypeSuite extends TypeParserSuiteTemplate {
       (infMinusValue, infMinusSymbol, infPlusValue, infPlusSymbol)
     }
     val srcType = srcStructField.dataType.sql
-    def paddedStringColumn: String = s"lpad(CAST(`%s` AS STRING), ${pattern.length}, '0')"
+    val castStringColumn = "CAST(`%s` AS STRING)"
+    def paddedStringColumn: String =
+      s"CASE WHEN (length($castStringColumn) < ${pattern.length}) THEN " +
+        s"lpad($castStringColumn, ${pattern.length}, '0') ELSE $castStringColumn END"
 
     val isEpoch = DateTimePattern.isEpoch(pattern)
     (target.dataType, isEpoch, timezone) match {
