@@ -1,5 +1,5 @@
-# jacoco-method-filter — Rules Template (Scala / sbt)
-# [jmf:2.1.0]
+# jacoco-method-filter — Rules Template AbsaOSS/spark-data-standardization
+# [jmf:2.1.1]
 #
 # Syntax reference, pitfalls, examples, and workflows: https://github.com/MoranaApps/jacoco-method-filter/blob/main/docs/rules-reference.md
 #
@@ -123,7 +123,30 @@
 # INCLUDE RULES (rescue methods from broad exclusions above)
 # ─────────────────────────────────────────────────────────────────────────────
 # Prefix a rule with "+" to rescue a method. Include always wins over exclude.
+# GLOBAL RULES  excludes:
+#   *#apply(*)
+#   *#toString()
+#
+# The project has factory methods named `apply` that contain real logic.
+# These rules rescue those project-specific methods so they remain visible  in JaCoCo coverage.
 
++za.co.absa.standardization.numeric.DecimalSymbols$#apply(*)              id:std-include-decimal-symbols-apply
++za.co.absa.standardization.numeric.NumericPattern$#apply(*)              id:std-include-numeric-pattern-apply
+
++za.co.absa.standardization.types.parsers.DecimalParser$#apply(*)         id:std-include-decimal-parser-apply
++za.co.absa.standardization.types.parsers.FractionalParser$#apply(*)      id:std-include-fractional-parser-apply
++za.co.absa.standardization.types.parsers.FractionalParser$#withInfinity(*) id:std-include-fractional-parser-with-infinity
+
++za.co.absa.standardization.time.DateTimePattern$#apply(*)                id:std-include-datetime-pattern-apply
++za.co.absa.standardization.time.DateTimePattern$#asDefault(*)            id:std-include-datetime-pattern-as-default
++za.co.absa.standardization.time.DateTimePattern$#isEpoch(*)              id:std-include-datetime-pattern-is-epoch
+
++za.co.absa.standardization.stages.InfinitySupport$#apply(*)              id:std-include-infinity-support-apply
+
++za.co.absa.standardization.config.BasicErrorCodesConfig$#fromDefault(*)  id:std-include-basic-error-codes-from-default
++za.co.absa.standardization.config.BasicMetadataColumnsConfig$#fromDefault(*) id:std-include-basic-metadata-columns-from-default
+
++za.co.absa.standardization.ErrorMessage$#errorColSchema(*)               id:std-include-error-message-error-col-schema
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PROJECT RULES

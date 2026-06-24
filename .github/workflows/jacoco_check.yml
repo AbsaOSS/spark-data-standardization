@@ -35,7 +35,9 @@ jobs:
           - scala: 2.12.20
             scalaShort: "2.12"
             overall: 80.0
-            changed: 60.0
+            changed: 80.0
+            per-changed-file: 60.0
+
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -64,8 +66,7 @@ jobs:
           paths: |
             **/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: ${{ matrix.overall }}
-          min-coverage-changed-files: ${{ matrix.changed }}
+          global-thresholds: '${{ matrix.overall }}*${{ matrix.changed }}*${{ matrix.per-changed-file}}'
           title: JaCoCo code coverage report - scala ${{ matrix.scala }}
           update-comment: true
 
