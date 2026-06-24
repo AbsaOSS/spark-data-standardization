@@ -16,6 +16,7 @@
 
 package za.co.absa.standardization.interpreter
 
+import org.apache.spark.sql.Row
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
@@ -257,6 +258,35 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
     assert(detailsValues(0).getStruct(0) != null, "Record 1 should have a non-null details struct")
     assert(detailsValues(1).isNullAt(0), "Record 2 should have a null details struct in the output")
     assert(detailsValues(2).isNullAt(0), "Record 3 should have a null details struct in the output")
+  }
+
+  test("Test standardization preserves metadata of nested fields") {
+    val rootMetadata = new MetadataBuilder().putLong("maxLength", 8).build()
+    val nestedMetadata = new MetadataBuilder().putLong("maxLength", 5).build()
+
+    val sourceSchema = StructType(Seq(
+      StructField("STRING_FIELD", StringType, nullable = true),
+      StructField("NESTED_STRUCT", StructType(Seq(
+        StructField("NESTED_STRING", StringType, nullable = true)
+      )), nullable = true)
+    ))
+
+    val desiredSchema = StructType(Seq(
+      StructField("STRING_FIELD", StringType, nullable = true, rootMetadata),
+      StructField("NESTED_STRUCT", StructType(Seq(
+        StructField("NESTED_STRING", StringType, nullable = true, nestedMetadata)
+      )), nullable = true)
+    ))
+
+    val sourceDF = spark.createDataFrame(
+      spark.sparkContext.parallelize(Seq(Row("metadata", Row("inner")))),
+      sourceSchema
+    )
+
+    val standardizedDF = Standardization.standardize(sourceDF, desiredSchema, stdConfig)
+
+    assert(standardizedDF.schema("STRING_FIELD").metadata === rootMetadata)
+    assert(standardizedDF.schema("NESTED_STRUCT").dataType.asInstanceOf[StructType]("NESTED_STRING").metadata === nestedMetadata)
   }
 
   test ("Test standardization of Date and Timestamp fields with default value and pattern") {

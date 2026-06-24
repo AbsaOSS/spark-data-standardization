@@ -216,7 +216,7 @@ object TypeParser {
         .otherwise(
           typedLit(flatten(transform(column, lambdaErrCols, lambdaVariableName)))
         )
-      val stdCols = transform(column, lambdaStdCols, lambdaVariableName)
+      val stdCols = transform(column, lambdaStdCols, lambdaVariableName).cast(fieldType)
       logger.info(s"Finished standardization plan for Array $inputFullPathName")
       ParseOutput(stdCols as (fieldOutputName, metadata), finalErrs)
     }
@@ -256,7 +256,7 @@ object TypeParser {
           )
       )
       // rebuild the struct
-      val outputColumn = when(column.isNull, lit(null)).otherwise(struct(cols: _*)) as (fieldOutputName, metadata)
+      val outputColumn = when(column.isNull, lit(null)).otherwise(struct(cols: _*)).cast(fieldType) as (fieldOutputName, metadata)
 
       ParseOutput(outputColumn, errs1)
     }
