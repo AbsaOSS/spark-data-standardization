@@ -61,7 +61,7 @@ jobs:
 
       - name: Add JaCoCo Report in PR comments
         id: jacoco
-        uses: MoranaApps/jacoco-report@69351d88d18f7697c416e1bc2020ed05606d8120
+        uses: MoranaApps/jacoco-report@ffdcfb247c26a483486d5b2cfe055bb6d735f68a
         with:
           paths: |
             **/jacoco.xml

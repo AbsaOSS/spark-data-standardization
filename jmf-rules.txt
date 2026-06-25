@@ -1,5 +1,5 @@
 # jacoco-method-filter — Rules Template AbsaOSS/spark-data-standardization
-# [jmf:2.1.1]
+# [jmf:2.2.0]
 #
 # Syntax reference, pitfalls, examples, and workflows: https://github.com/MoranaApps/jacoco-method-filter/blob/main/docs/rules-reference.md
 #
@@ -142,11 +142,6 @@
 +za.co.absa.standardization.time.DateTimePattern$#isEpoch(*)              id:std-include-datetime-pattern-is-epoch
 
 +za.co.absa.standardization.stages.InfinitySupport$#apply(*)              id:std-include-infinity-support-apply
-
-+za.co.absa.standardization.config.BasicErrorCodesConfig$#fromDefault(*)  id:std-include-basic-error-codes-from-default
-+za.co.absa.standardization.config.BasicMetadataColumnsConfig$#fromDefault(*) id:std-include-basic-metadata-columns-from-default
-
-+za.co.absa.standardization.ErrorMessage$#errorColSchema(*)               id:std-include-error-message-error-col-schema
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PROJECT RULES
