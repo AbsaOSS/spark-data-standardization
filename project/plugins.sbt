@@ -20,7 +20,7 @@ addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.7.0")
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.5")
 
-addSbtPlugin("io.github.moranaapps" % "jacoco-method-filter-sbt" % "2.1.1")
+addSbtPlugin("io.github.moranaapps" % "jacoco-method-filter-sbt" % "2.2.0")
 lazy val ow2Version = "9.5"
 
 def ow2Url(artifactName: String): String = s"https://repo1.maven.org/maven2/org/ow2/asm/$artifactName/$ow2Version/$artifactName-$ow2Version.jar"
