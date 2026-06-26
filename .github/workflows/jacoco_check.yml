@@ -36,6 +36,8 @@ jobs:
             scalaShort: "2.12"
             overall: 80.0
             changed: 80.0
+            per-changed-file: 60.0
+
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -49,18 +51,23 @@ jobs:
         with:
           java-version: "adopt@1.11"
 
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
       - name: Build and run tests
         run: sbt ++${{matrix.scala}} jacoco
 
       - name: Add JaCoCo Report in PR comments
         id: jacoco
-        uses: MoranaApps/jacoco-report@54bfe284d1119dc917dddba80517c54c5bcf3627
+        uses: MoranaApps/jacoco-report@3be109b40946547c5925e63d41fef1099c9e562b
         with:
           paths: |
             **/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: ${{ matrix.overall }}
-          min-coverage-changed-files: ${{ matrix.changed }}
+          global-thresholds: '${{ matrix.overall }}*${{ matrix.changed }}'
+          report-thresholds-default: '${{ matrix.overall }}*${{ matrix.changed }}*${{ matrix.per-changed-file }}'
           title: JaCoCo code coverage report - scala ${{ matrix.scala }}
           update-comment: true
 
