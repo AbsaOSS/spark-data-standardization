@@ -263,30 +263,69 @@ class StandardizationInterpreterSuite extends AnyFunSuite with SparkTestBase wit
   test("Test standardization preserves metadata of nested fields") {
     val rootMetadata = new MetadataBuilder().putLong("maxLength", 8).build()
     val nestedMetadata = new MetadataBuilder().putLong("maxLength", 5).build()
+    val deepMetadata = new MetadataBuilder().putLong("maxLength", 4).build()
 
     val sourceSchema = StructType(Seq(
       StructField("STRING_FIELD", StringType, nullable = true),
       StructField("NESTED_STRUCT", StructType(Seq(
-        StructField("NESTED_STRING", StringType, nullable = true)
+        StructField("NESTED_STRING", StringType, nullable = true),
+        StructField("DEEP_STRUCT", StructType(Seq(
+          StructField("DEEP_STRING", StringType, nullable = true)
+        )), nullable = true)
       )), nullable = true)
     ))
 
     val desiredSchema = StructType(Seq(
       StructField("STRING_FIELD", StringType, nullable = true, rootMetadata),
       StructField("NESTED_STRUCT", StructType(Seq(
-        StructField("NESTED_STRING", StringType, nullable = true, nestedMetadata)
+        StructField("NESTED_STRING", StringType, nullable = true, nestedMetadata),
+        StructField("DEEP_STRUCT", StructType(Seq(
+          StructField("DEEP_STRING", StringType, nullable = true, deepMetadata)
+        )), nullable = true)
       )), nullable = true)
     ))
 
     val sourceDF = spark.createDataFrame(
-      spark.sparkContext.parallelize(Seq(Row("metadata", Row("inner")))),
+      spark.sparkContext.parallelize(Seq(Row("metadata", Row("inner", Row("deep"))))),
       sourceSchema
     )
 
     val standardizedDF = Standardization.standardize(sourceDF, desiredSchema, stdConfig)
+    val nestedStructType = standardizedDF.schema("NESTED_STRUCT").dataType.asInstanceOf[StructType]
+    val deepStructType = nestedStructType("DEEP_STRUCT").dataType.asInstanceOf[StructType]
 
     assert(standardizedDF.schema("STRING_FIELD").metadata === rootMetadata)
-    assert(standardizedDF.schema("NESTED_STRUCT").dataType.asInstanceOf[StructType]("NESTED_STRING").metadata === nestedMetadata)
+    assert(nestedStructType("NESTED_STRING").metadata === nestedMetadata)
+    assert(deepStructType("DEEP_STRING").metadata === deepMetadata)
+  }
+
+  test("Test standardization preserves metadata of fields inside array elements") {
+    val arrayElementMetadata = new MetadataBuilder().putLong("maxLength", 6).build()
+
+    val sourceSchema = StructType(Seq(
+      StructField("ARRAY_STRUCT", ArrayType(StructType(Seq(
+        StructField("ARRAY_STRING", StringType, nullable = true)
+      ))), nullable = true)
+    ))
+
+    val desiredSchema = StructType(Seq(
+      StructField("ARRAY_STRUCT", ArrayType(StructType(Seq(
+        StructField("ARRAY_STRING", StringType, nullable = true, arrayElementMetadata)
+      ))), nullable = true)
+    ))
+
+    val sourceDF = spark.createDataFrame(
+      spark.sparkContext.parallelize(Seq(Row(Seq(Row("inside"))))),
+      sourceSchema
+    )
+
+    val standardizedDF = Standardization.standardize(sourceDF, desiredSchema, stdConfig)
+    val arrayElementType = standardizedDF.schema("ARRAY_STRUCT").dataType
+      .asInstanceOf[ArrayType]
+      .elementType
+      .asInstanceOf[StructType]
+
+    assert(arrayElementType("ARRAY_STRING").metadata === arrayElementMetadata)
   }
 
   test ("Test standardization of Date and Timestamp fields with default value and pattern") {

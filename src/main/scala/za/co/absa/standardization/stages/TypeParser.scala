@@ -216,7 +216,7 @@ object TypeParser {
         .otherwise(
           typedLit(flatten(transform(column, lambdaErrCols, lambdaVariableName)))
         )
-      val stdCols = transform(column, lambdaStdCols, lambdaVariableName).cast(fieldType)
+      val stdCols = transform(column, lambdaStdCols, lambdaVariableName)
       logger.info(s"Finished standardization plan for Array $inputFullPathName")
       ParseOutput(stdCols as (fieldOutputName, metadata), finalErrs)
     }
@@ -240,7 +240,9 @@ object TypeParser {
         val origSubFieldType = origSubField.map(_.dataType).getOrElse(NullType)
         val subColumn = origSubField.map(x => column(x.name)).getOrElse(nullColumn)
         TypeParser(f, inputFullPathName, subColumn, origSubFieldType, failOnInputNotPerSchema).standardize(stdConfig)}
-      val cols = out.map(_.stdCol)
+      val cols = out.zip(fieldType.fields).map { case (parseOutput, targetField) =>
+        parseOutput.stdCol as (targetField.name, targetField.metadata)
+      }
       val errs = out.map(_.errors)
       // condition for nullable error of the struct itself
       val nullErrCond = column.isNull and lit(!field.nullable)
@@ -256,7 +258,7 @@ object TypeParser {
           )
       )
       // rebuild the struct
-      val outputColumn = when(column.isNull, lit(null)).otherwise(struct(cols: _*)).cast(fieldType) as (fieldOutputName, metadata)
+      val outputColumn = when(column.isNull, lit(null)).otherwise(struct(cols: _*)) as (fieldOutputName, metadata)
 
       ParseOutput(outputColumn, errs1)
     }
