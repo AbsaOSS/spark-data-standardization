@@ -240,7 +240,9 @@ object TypeParser {
         val origSubFieldType = origSubField.map(_.dataType).getOrElse(NullType)
         val subColumn = origSubField.map(x => column(x.name)).getOrElse(nullColumn)
         TypeParser(f, inputFullPathName, subColumn, origSubFieldType, failOnInputNotPerSchema).standardize(stdConfig)}
-      val cols = out.map(_.stdCol)
+      val cols = out.zip(fieldType.fields).map { case (parseOutput, targetField) =>
+        parseOutput.stdCol as (targetField.name, targetField.metadata)
+      }
       val errs = out.map(_.errors)
       // condition for nullable error of the struct itself
       val nullErrCond = column.isNull and lit(!field.nullable)
