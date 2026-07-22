@@ -233,4 +233,18 @@ class UDFBuilderSuite extends AnyFunSuite with SparkTestBase {
     assert(nullResult.error.map(_.errCode) === Seq("null-code"))
   }
 
+  test("UDFResult.fromTry keeps StandardizationConfig overload") {
+    val result = UDFResult.fromTry[Int](
+      Failure(new RuntimeException("boom")),
+      "field",
+      "bad",
+      "string",
+      "integer",
+      None,
+      stdConfig
+    )
+
+    assert(result.error.map(_.errCode) === Seq(stdConfig.errorCodes.castError))
+  }
+
 }
