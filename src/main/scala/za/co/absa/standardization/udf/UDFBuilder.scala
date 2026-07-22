@@ -39,6 +39,7 @@ object UDFBuilder {
     val vColumnNameForError = columnNameForError
     val vDefaultValue = defaultValue
     val vColumnNullable = columnNullable
+    val vErrorCodes = stdConfig.errorCodes
 
     udf[UDFResult[T], String](
       numericParserToTyped(
@@ -48,7 +49,7 @@ object UDFBuilder {
         vParser,
         vColumnNullable,
         vColumnNameForError,
-        stdConfig.errorCodes,
+        vErrorCodes,
         vDefaultValue
       )
     )
