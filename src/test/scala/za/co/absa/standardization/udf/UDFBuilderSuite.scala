@@ -22,6 +22,7 @@ import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{
+  BasicErrorCodesConfig,
   BasicMetadataColumnsConfig,
   BasicStandardizationConfig,
   DefaultStandardizationConfig,
@@ -32,6 +33,8 @@ import za.co.absa.standardization.types.TypedStructField._
 import za.co.absa.standardization.types.parsers.IntegralParser.{PatternIntegralParser, RadixIntegralParser}
 import za.co.absa.standardization.types.parsers.{DecimalParser, FractionalParser}
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
+
+import scala.util.{Failure, Success}
 
 class UDFBuilderSuite extends AnyFunSuite {
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
@@ -181,6 +184,47 @@ class UDFBuilderSuite extends AnyFunSuite {
         Class.forName(desc.getName, false, loader)
     }
     ois.readObject().asInstanceOf[UserDefinedFunction]
+  }
+
+  test("UDFResult.fromTry uses provided error codes config") {
+    val errorCodes = BasicErrorCodesConfig("cast-code", "null-code", "type-code", "schema-code")
+
+    val successResult = UDFResult.fromTry[Int](
+      Success(Some(2)),
+      "field",
+      "2",
+      "string",
+      "integer",
+      None,
+      errorCodes,
+      None
+    )
+    val castResult = UDFResult.fromTry[Int](
+      Failure(new RuntimeException("boom")),
+      "field",
+      "bad",
+      "string",
+      "integer",
+      None,
+      errorCodes,
+      Some(0)
+    )
+    val nullResult = UDFResult.fromTry[Int](
+      Failure(new RuntimeException("boom")),
+      "field",
+      null,
+      "string",
+      "integer",
+      None,
+      errorCodes,
+      Some(1)
+    )
+
+    assert(successResult === UDFResult.success(Some(2)))
+    assert(castResult.result === Some(0))
+    assert(castResult.error.map(_.errCode) === Seq("cast-code"))
+    assert(nullResult.result === Some(1))
+    assert(nullResult.error.map(_.errCode) === Seq("null-code"))
   }
 
 }
