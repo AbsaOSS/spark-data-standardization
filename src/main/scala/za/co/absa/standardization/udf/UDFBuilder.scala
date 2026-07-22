@@ -19,11 +19,7 @@ package za.co.absa.standardization.udf
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.DataType
-import za.co.absa.standardization.config.{
-  BasicErrorCodesConfig,
-  ErrorCodesConfig,
-  StandardizationConfig
-}
+import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfig}
 import za.co.absa.standardization.types.parsers.NumericParser
 import za.co.absa.standardization.types.parsers.NumericParser.NumericParserException
 
@@ -43,12 +39,6 @@ object UDFBuilder {
     val vColumnNameForError = columnNameForError
     val vDefaultValue = defaultValue
     val vColumnNullable = columnNullable
-    val vErrorCodes = BasicErrorCodesConfig(
-      stdConfig.errorCodes.castError,
-      stdConfig.errorCodes.nullError,
-      stdConfig.errorCodes.typeError,
-      stdConfig.errorCodes.schemaError
-    )
 
     udf[UDFResult[T], String](
       numericParserToTyped(
@@ -58,7 +48,7 @@ object UDFBuilder {
         vParser,
         vColumnNullable,
         vColumnNameForError,
-        vErrorCodes,
+        stdConfig.errorCodes,
         vDefaultValue
       )
     )
