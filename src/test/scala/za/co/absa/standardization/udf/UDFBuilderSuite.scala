@@ -184,6 +184,12 @@ class UDFBuilderSuite extends AnyFunSuite {
         Class.forName(desc.getName, false, loader)
     }
     ois.readObject().asInstanceOf[UserDefinedFunction]
+    val udfFunction = udfFnc.f.asInstanceOf[String => UDFResult[Int]]
+    val parsed = udfFunction("000123")
+    val failed = udfFunction("bad")
+
+    assert(parsed === UDFResult.success(Some(123)))
+    assert(failed.error.head.errCode === DefaultStandardizationConfig.errorCodes.castError)
   }
 
   test("UDFResult.fromTry uses provided error codes config") {
