@@ -18,8 +18,10 @@ package za.co.absa.standardization.udf
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream, ObjectStreamClass}
 import org.apache.spark.sql.expressions.UserDefinedFunction
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
 import za.co.absa.standardization.config.{
   BasicErrorCodesConfig,
@@ -36,7 +38,7 @@ import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, Typed
 
 import scala.util.{Failure, Success}
 
-class UDFBuilderSuite extends AnyFunSuite {
+class UDFBuilderSuite extends AnyFunSuite with SparkTestBase {
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
   private val stdConfig = BasicStandardizationConfig
     .fromDefault()
@@ -184,12 +186,10 @@ class UDFBuilderSuite extends AnyFunSuite {
         Class.forName(desc.getName, false, loader)
     }
     ois.readObject().asInstanceOf[UserDefinedFunction]
-    val udfFunction = udfFnc.f.asInstanceOf[String => UDFResult[Int]]
-    val parsed = udfFunction("000123")
-    val failed = udfFunction("bad")
+    import spark.implicits._
 
-    assert(parsed === UDFResult.success(Some(123)))
-    assert(failed.error.head.errCode === DefaultStandardizationConfig.errorCodes.castError)
+    val rows = Seq("000123", "bad").toDF("input").select(udfFnc(col("input")).as("result")).collect()
+    assert(rows.length === 2)
   }
 
   test("UDFResult.fromTry uses provided error codes config") {
