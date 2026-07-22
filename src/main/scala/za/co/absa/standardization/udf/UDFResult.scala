@@ -48,7 +48,7 @@ object UDFResult {
                  targetType: String,
                  pattern: Option[String],
                  errorCodes: ErrorCodesConfig,
-                 defaultValue: Option[T] = None): UDFResult[T] = {
+                 defaultValue: Option[T]): UDFResult[T] = {
     result match {
       case Success(success)                       => UDFResult.success(success)
       case Failure(_) if Option(rawValue).isEmpty => UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdNullErr(columnName)(errorCodes)))
