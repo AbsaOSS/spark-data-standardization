@@ -25,7 +25,6 @@ import za.co.absa.spark.commons.implicits.ColumnImplicits.ColumnEnhancements
 import za.co.absa.spark.commons.implicits.StructFieldImplicits.StructFieldMetadataEnhancements
 import za.co.absa.spark.commons.implicits.StructTypeImplicits.StructTypeEnhancements
 import za.co.absa.spark.commons.utils.SchemaUtils
-import za.co.absa.spark.hofs.transform
 import za.co.absa.standardization.config.StandardizationConfig
 import za.co.absa.standardization.implicits.StdColumnImplicits.StdColumnEnhancements
 import za.co.absa.standardization.schema.StdSchemaUtils.FieldWithSource
@@ -214,9 +213,9 @@ object TypeParser {
       val finalErrs = when(nullErrCond,
         array(typedLit(StandardizationErrorMessage.stdNullErr(inputFullPathName)(stdConfig.errorCodes))))
         .otherwise(
-          typedLit(flatten(transform(column, lambdaErrCols, lambdaVariableName)))
+          typedLit(flatten(transform(column, lambdaErrCols)))
         )
-      val stdCols = transform(column, lambdaStdCols, lambdaVariableName)
+      val stdCols = transform(column, lambdaStdCols)
       logger.info(s"Finished standardization plan for Array $inputFullPathName")
       ParseOutput(stdCols as (fieldOutputName, metadata), finalErrs)
     }
