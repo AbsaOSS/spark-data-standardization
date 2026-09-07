@@ -496,13 +496,14 @@ object TypeParser {
     *
     *
     * Date conversion logic
-    * Original type | TZ in pattern/without TZ        | Has default TZ (the last to_date is always without pattern)
+    * Original type | TZ in pattern/without TZ        | Has default TZ (applied when pattern has time component, the
+    *               |                                 | last to_date is always without pattern)
     * ~~~~~~~~~~~~~~|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     * Float         | ->Decimal->String->to_date      | ->Decimal->String->to_timestamp->to_utc_timestamp->to_date
     * Decimal       | ->String->to_date               | ->String->->to_timestamp->->to_utc_timestamp->to_date
     * String        | ->to_date                       | ->to_timestamp->->to_utc_timestamp->to_date
     * Timestamp     | ->to_date(no pattern)           | ->to_utc_timestamp->to_date
-    * Date          | O                               | ->to_utc_timestamp->to_date
+    * Date          | O                               | 0 (date source has no time to convert)
     * Other         | ->String->to_date               | ->String->to_timestamp->to_utc_timestamp->to_date
     */
   private abstract class DateTimeParser[T](implicit defaults: TypeDefaults) extends PrimitiveParser[T] {
@@ -620,8 +621,11 @@ object TypeParser {
       .map(Option(_))
       .getOrElse(defaults.defaultDateTimeZone)
 
+    private val patternTimeZone: Option[String] =
+      defaultTimeZone.filter(_ => pattern.containsTimeComponent)
+
     private def applyPatternToStringColumn(column: Column, pattern: String): Column = {
-      defaultTimeZone.map(tz =>
+      patternTimeZone.map(tz =>
         to_date(to_utc_timestamp(to_timestamp(column, pattern), tz))
       ).getOrElse(
         to_date(column, pattern)
@@ -651,11 +655,8 @@ object TypeParser {
     }
 
     override protected def castDateColumn(dateColumn: Column): Column = {
-      defaultTimeZone.map(
-        tz => to_date(to_utc_timestamp(dateColumn, tz))
-      ).getOrElse(
+      // source is calendar date with no tz, applying it will shift value
         dateColumn
-      )
     }
 
     override protected def castTimestampColumn(timestampColumn: Column): Column = {

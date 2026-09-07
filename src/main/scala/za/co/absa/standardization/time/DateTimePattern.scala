@@ -17,7 +17,7 @@
 package za.co.absa.standardization.time
 
 import za.co.absa.standardization.implicits.StringImplicits.StringEnhancements
-import za.co.absa.standardization.time.DateTimePattern.{patternMicroSecondChar, patternMilliSecondChar, patternNanoSecondChat}
+import za.co.absa.standardization.time.DateTimePattern.{patternMicroSecondChar, patternMilliSecondChar, patternNanoSecondChar}
 import za.co.absa.standardization.types.{Section, TypePattern}
 
 /**
@@ -45,6 +45,7 @@ abstract sealed class DateTimePattern(pattern: String, isDefault: Boolean = fals
   val secondFractionsSections: Seq[Section]
   val patternWithoutSecondFractions: String
   def containsSecondFractions: Boolean = secondFractionsSections.nonEmpty
+  def containsTimeComponent: Boolean = DateTimePattern.containsTimeComponent(pattern)
 
   override def toString: String = {
     val q = "\""
@@ -67,10 +68,12 @@ object DateTimePattern {
   private val epoch1GFactor = 1000000000
 
   private val patternTimeZoneChars = Set('X','z','Z')
+  private val patternTimeChars = Set('H','k','K','h','m','s','a','B','A','N',
+    patternMilliSecondChar,patternMicroSecondChar,patternNanoSecondChar)
 
   private val patternMilliSecondChar = 'S'
   private val patternMicroSecondChar = 'i'
-  private val patternNanoSecondChat = 'n'
+  private val patternNanoSecondChar = 'n'
 
   // scalastyle:off magic.number
   private val last3Chars = Section(-3, 3)
@@ -146,7 +149,7 @@ object DateTimePattern {
     private def scanSecondFractionsInPattern(withinString: String): (Option[Section], Option[Section], Option[Section]) = {
       val milliSP = scanForPlaceholder(withinString, patternMilliSecondChar)
       val microSP = scanForPlaceholder(withinString, patternMicroSecondChar)
-      val nanoSP = scanForPlaceholder(withinString, patternNanoSecondChat)
+      val nanoSP = scanForPlaceholder(withinString, patternNanoSecondChar)
       (milliSP, microSP, nanoSP)
     }
 
@@ -233,5 +236,9 @@ object DateTimePattern {
 
   def timeZoneInPattern(pattern: String): Boolean = {
     isEpoch(pattern) || pattern.hasUnquoted(patternTimeZoneChars, Set('\''))
+  }
+
+  def containsTimeComponent(pattern: String): Boolean = {
+    isEpoch(pattern) || pattern.hasUnquoted(patternTimeChars, Set('\''))
   }
 }
