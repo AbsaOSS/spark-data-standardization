@@ -68,12 +68,12 @@ object DateTimePattern {
   private val epoch1GFactor = 1000000000
 
   private val patternTimeZoneChars = Set('X','z','Z')
-  private val patternTimeChars = Set('H','k','K','h','m','s','a','B','A','N',
-    patternMilliSecondChar,patternMicroSecondChar,patternNanoSecondChar)
 
   private val patternMilliSecondChar = 'S'
   private val patternMicroSecondChar = 'i'
   private val patternNanoSecondChar = 'n'
+  private val patternTimeChars = Set('H','k','K','h','m','s','a','B','A','N',
+    patternMilliSecondChar,patternMicroSecondChar,patternNanoSecondChar)
 
   // scalastyle:off magic.number
   private val last3Chars = Section(-3, 3)

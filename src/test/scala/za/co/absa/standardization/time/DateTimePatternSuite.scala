@@ -173,6 +173,64 @@ class DateTimePatternSuite extends AnyFunSuite {
     assert(dateTimePattern.isTimeZoned)
   }
 
+  test("Time component not in pattern") {
+    val dtp1 = DateTimePattern("yyyyMMdd")
+    assert(!dtp1.containsTimeComponent)
+    val dtp2 = DateTimePattern("yyyy-MM-dd")
+    assert(!dtp2.containsTimeComponent)
+    val dtp3 = DateTimePattern("dd MM yyyy")
+    assert(!dtp3.containsTimeComponent)
+    val dtp4 = DateTimePattern("")
+    assert(!dtp4.containsTimeComponent)
+  }
+
+  test("Time component in pattern") {
+    val dtp1 = DateTimePattern("yyyyMMddHHmmss")
+    assert(dtp1.containsTimeComponent)
+    val dtp2 = DateTimePattern("yyyy-MM-dd HH:mm:ss")
+    assert(dtp2.containsTimeComponent)
+    val dtp3 = DateTimePattern("yyyy-MM hh:mm a")
+    assert(dtp3.containsTimeComponent)
+    val dtp4 = DateTimePattern("yyyy-MM-dd'T'HH:mm:ssXXX")
+    assert(dtp4.containsTimeComponent)
+  }
+
+  test("Time component in epoch pattern") {
+    val dtp1 = DateTimePattern("epoch")
+    assert(dtp1.containsTimeComponent)
+    val dtp2 = DateTimePattern("epochmilli")
+    assert(dtp2.containsTimeComponent)
+    val dtp3 = DateTimePattern("epochmicro")
+    assert(dtp3.containsTimeComponent)
+    val dtp4 = DateTimePattern("epochnano")
+    assert(dtp4.containsTimeComponent)
+  }
+
+  test("Time component second fractions only") {
+    val dtp1 = DateTimePattern("yyyy-MM-dd'T'SSS")
+    assert(dtp1.containsTimeComponent)
+    val dtp2 = DateTimePattern("yyyy-MM-dd'T'iiiiii")
+    assert(dtp2.containsTimeComponent)
+    val dtp3 = DateTimePattern("yyyy-MM-dd'T'nnnnnnnnn")
+    assert(dtp3.containsTimeComponent)
+  }
+
+  test("Time component with literals in pattern") {
+    val dtp1 = DateTimePattern("yyyy-MM-dd'Sample'")
+    assert(!dtp1.containsTimeComponent)
+    val dtp2 = DateTimePattern("'hours: 'yyyy-MM-dd")
+    assert(!dtp2.containsTimeComponent)
+    val dtp3 = DateTimePattern("'Time: 'yyyy-MM-dd HH:mm")
+    assert(dtp3.containsTimeComponent)
+  }
+
+  test("Time component century pattern") {
+    val dtp1 = DateTimePattern("cyyMMdd",isCenturyPattern = true)
+    assert(!dtp1.containsTimeComponent)
+    val dtp2 = DateTimePattern("cyyMMddHHmmss",isCenturyPattern = true)
+    assert(dtp2.containsTimeComponent)
+  }
+
   test("Second fractions detection in epoch") {
     val dtp = DateTimePattern("epoch")
     assert(dtp.millisecondsPosition.isEmpty)
