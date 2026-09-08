@@ -53,7 +53,7 @@ class TypeParser_FromLongTypeSuite extends TypeParserSuiteTemplate {
     (target.dataType, isEpoch, timezone) match {
       case (DateType, true, _)                      => s"to_date(CAST((CAST(`%s` AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(pattern)}L) AS TIMESTAMP))"
       case (TimestampType, true, _)                 => s"CAST((CAST(%s AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(pattern)}) AS TIMESTAMP)"
-      case (DateType, _, Some(tz))                  => s"to_date(to_utc_timestamp(to_timestamp($paddedStringColumn, '$pattern'), '$tz'))"
+      case (DateType, _, Some(tz)) if DateTimePattern.containsTimeComponent(pattern) => s"to_date(to_utc_timestamp(to_timestamp($paddedStringColumn, '$pattern'), '$tz'))"
       case (TimestampType, _, Some(tz))             => s"to_utc_timestamp(to_timestamp($paddedStringColumn, '$pattern'), $tz)"
       case (TimestampType, _, _)                    => s"to_timestamp($paddedStringColumn, '$pattern')"
       case (DateType, _, _)                         => s"to_date($paddedStringColumn, '$pattern')"

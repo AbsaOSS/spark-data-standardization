@@ -55,7 +55,7 @@ class TypeParser_FromStringTypeSuite extends TypeParserSuiteTemplate {
     (target.dataType, isEpoch, timezone) match {
       case (DateType, true, _)          => s"to_date(CAST((CAST(`%s` AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(customPattern)}L) AS TIMESTAMP))"
       case (TimestampType, true, _)     => s"CAST((CAST(%s AS DECIMAL(30,9)) / ${DateTimePattern.epochFactor(customPattern)}) AS TIMESTAMP)"
-      case (DateType, _, Some(tz))      => s"to_date(to_utc_timestamp(to_timestamp(`%s`, '$dateTimePattern'), '$tz'))"
+      case (DateType, _, Some(tz)) if DateTimePattern.containsTimeComponent(dateTimePattern) => s"to_date(to_utc_timestamp(to_timestamp(`%s`, '$dateTimePattern'), '$tz'))"
       case (TimestampType, _, Some(tz)) => s"to_utc_timestamp(to_timestamp(`%s`, '$dateTimePattern'), $tz)"
       case (DateType, _, _) if !infDefined             => s"to_date(`%s`, '$datePattern')"
       case (DateType, _, _) if infDefined              => s"to_date($basInfCasting, '$datePattern')"
