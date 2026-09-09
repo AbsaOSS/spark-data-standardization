@@ -17,7 +17,7 @@
 package za.co.absa.standardization.interpreter
 
 import java.sql.Date
-import org.apache.spark.sql.types.{DateType, MetadataBuilder, StructField, StructType}
+import org.apache.spark.sql.types.{DateType, MetadataBuilder, StructField, StructType,TimestampType}
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
@@ -28,6 +28,7 @@ import za.co.absa.standardization.{LoggerTestBase, Standardization, Standardizat
 import za.co.absa.spark.commons.implicits.DataFrameImplicits.DataFrameEnhancements
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.testing.TimeZoneNormalizer
+import java.sql.Timestamp
 
 class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBase with LoggerTestBase {
   import spark.implicits._
@@ -394,12 +395,148 @@ class StandardizationInterpreter_DateSuite extends AnyFunSuite with SparkTestBas
           .build)
     ))
     val exp = Seq(
-      DateRow(Date.valueOf("1969-12-31")),
       DateRow(Date.valueOf("1970-01-01")),
-      DateRow(Date.valueOf("2000-12-30")),
-      DateRow(Date.valueOf("2019-07-15")),
+      DateRow(Date.valueOf("1970-01-02")),
+      DateRow(Date.valueOf("2000-12-31")),
+      DateRow(Date.valueOf("2019-07-16")),
       DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "1970-02-02", "string", "date", Some("yyyy/dd/MM")))),
       DateRow(Date.valueOf("1970-01-01"), Seq(StandardizationErrorMessage.stdCastErr(fieldName, "crash", "string", "date", Some("yyyy/dd/MM"))))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[DateRow].collect().toList)
+  }
+
+  test("date pattern from numeric values with infinity"){
+    val seq: Seq[Int] = Seq(
+      0,
+      20260423,
+      9999
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, DateType, nullable = false,
+        new MetadataBuilder()
+          .putString(MetadataKeys.Pattern, "yyyyMMdd")
+          .putString(MetadataKeys.IsNonStandard, "false")
+          .putString(MetadataKeys.MinusInfinitySymbol, "0")
+          .putString(MetadataKeys.MinusInfinityValue, "16000101")
+          .putString(MetadataKeys.PlusInfinitySymbol, "9999")
+          .putString(MetadataKeys.PlusInfinityValue, "99991231")
+          .putString(MetadataKeys.DefaultTimeZone, "Africa/Johannesburg")
+          .build)
+    ))
+    val exp: Seq[DateRow] = Seq(
+      DateRow(Date.valueOf("1600-01-01")),
+      DateRow(Date.valueOf("2026-04-23")),
+      DateRow(Date.valueOf("9999-12-31"))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[DateRow].collect().toList)
+  }
+
+  test("date with default time zone - Pacific/Kiritimati"){
+    val seq = Seq(
+      "1970/01/01",
+      "1970/02/01",
+      "2000/31/12",
+      "2019/16/07"
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, DateType, nullable = false,
+        new MetadataBuilder()
+          .putString(MetadataKeys.Pattern, "yyyy/dd/MM")
+          .putString(MetadataKeys.DefaultTimeZone, "Pacific/Kiritimati")
+          .build)
+    ))
+    val exp = Seq(
+      DateRow(Date.valueOf("1970-01-01")),
+      DateRow(Date.valueOf("1970-01-02")),
+      DateRow(Date.valueOf("2000-12-31")),
+      DateRow(Date.valueOf("2019-07-16"))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[DateRow].collect().toList)
+  }
+
+  test("date with default time zone and time in pattern - SAST"){
+    val seq = Seq(
+      "1970-01-01 00:30",
+      "1970-01-01 23:30"
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, DateType, nullable = false,
+        new MetadataBuilder()
+          .putString(MetadataKeys.Pattern, "yyyy-MM-dd HH:mm")
+          .putString(MetadataKeys.DefaultTimeZone, "Africa/Johannesburg")
+          .build)
+    ))
+    val exp = Seq(
+      DateRow(Date.valueOf("1969-12-31")),
+      DateRow(Date.valueOf("1970-01-01"))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[DateRow].collect().toList)
+  }
+
+  test("date from date type with default time zone  - SAST"){
+    val seq: Seq[Date] = Seq(
+      Date.valueOf("1970-01-01"),
+      Date.valueOf("2000-12-31"),
+      Date.valueOf("2019-07-16")
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, DateType, nullable = false,
+        new MetadataBuilder()
+          .putString(MetadataKeys.DefaultTimeZone, "Africa/Johannesburg")
+          .build)
+    ))
+    val exp = Seq(
+      DateRow(Date.valueOf("1970-01-01")),
+      DateRow(Date.valueOf("2000-12-31")),
+      DateRow(Date.valueOf("2019-07-16"))
+    )
+
+    val src = seq.toDF(fieldName)
+
+    val std = Standardization.standardize(src, desiredSchema).cacheIfNotCachedYet()
+    logDataFrameContent(std)
+
+    assertResult(exp)(std.as[DateRow].collect().toList)
+  }
+
+  test("date from timestamp type with default time zone  - SAST"){
+    val seq: Seq[Timestamp] = Seq(
+      Timestamp.valueOf("1970-01-01 00:30:00"),
+      Timestamp.valueOf("1970-01-01 23:30:00")
+    )
+    val desiredSchema = StructType(Seq(
+      StructField(fieldName, DateType, nullable = false,
+        new MetadataBuilder()
+          .putString(MetadataKeys.DefaultTimeZone, "Africa/Johannesburg")
+          .build)
+    ))
+    val exp = Seq(
+      DateRow(Date.valueOf("1969-12-31")),
+      DateRow(Date.valueOf("1970-01-01"))
     )
 
     val src = seq.toDF(fieldName)
