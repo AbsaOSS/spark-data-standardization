@@ -18,17 +18,27 @@ package za.co.absa.standardization.udf
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream, ObjectStreamClass}
 import org.apache.spark.sql.expressions.UserDefinedFunction
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
+import za.co.absa.spark.commons.test.SparkTestBase
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{
+  BasicErrorCodesConfig,
+  BasicMetadataColumnsConfig,
+  BasicStandardizationConfig,
+  DefaultStandardizationConfig,
+  StandardizationConfig
+}
 import za.co.absa.standardization.schema.MetadataKeys
 import za.co.absa.standardization.types.TypedStructField._
 import za.co.absa.standardization.types.parsers.IntegralParser.{PatternIntegralParser, RadixIntegralParser}
 import za.co.absa.standardization.types.parsers.{DecimalParser, FractionalParser}
 import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults, TypedStructField}
 
-class UDFBuilderSuite extends AnyFunSuite {
+import scala.util.{Failure, Success}
+
+class UDFBuilderSuite extends AnyFunSuite with SparkTestBase {
   private implicit val defaults: TypeDefaults = CommonTypeDefaults
   private val stdConfig = BasicStandardizationConfig
     .fromDefault()
@@ -142,6 +152,99 @@ class UDFBuilderSuite extends AnyFunSuite {
         Class.forName(desc.getName, false, loader)
     }
     ois.readObject().asInstanceOf[UserDefinedFunction]
+  }
+
+  test("Serialization and deserialization of stringUdfViaNumericParser with default config") {
+    val fieldName = "test"
+    val field: StructField = StructField(fieldName, IntegerType, nullable = true, new MetadataBuilder()
+      .putString(MetadataKeys.Pattern, "000000")
+      .build)
+    val typedField = TypedStructField(field)
+
+    val numericTypeField = typedField.asInstanceOf[NumericTypeStructField[Int]]
+    val defaultValue: Option[Int] = typedField.defaultValueWithGlobal.get.map(_.asInstanceOf[Int])
+    val parser = numericTypeField.parser.get.asInstanceOf[PatternIntegralParser[Int]]
+    val udfFnc = UDFBuilder.stringUdfViaNumericParser(
+      StringType,
+      field.dataType,
+      parser,
+      numericTypeField.nullable,
+      fieldName,
+      DefaultStandardizationConfig,
+      defaultValue
+    )
+    //write
+    val baos = new ByteArrayOutputStream
+    val oos = new ObjectOutputStream(baos)
+    oos.writeObject(udfFnc)
+    oos.flush()
+    val serialized = baos.toByteArray
+    assert(serialized.nonEmpty)
+    //read
+    val ois = new ObjectInputStream(new ByteArrayInputStream(serialized)) {
+      override def resolveClass(desc: ObjectStreamClass): Class[_] =
+        Class.forName(desc.getName, false, loader)
+    }
+    ois.readObject().asInstanceOf[UserDefinedFunction]
+    import spark.implicits._
+
+    val rows = Seq("000123", "bad").toDF("input").select(udfFnc(col("input")).as("result")).collect()
+    assert(rows.length === 2)
+  }
+
+  test("UDFResult.fromTry uses provided error codes config") {
+    val errorCodes = BasicErrorCodesConfig("cast-code", "null-code", "type-code", "schema-code")
+
+    val successResult = UDFResult.fromTry[Int](
+      Success(Some(2)),
+      "field",
+      "2",
+      "string",
+      "integer",
+      None,
+      errorCodes,
+      None
+    )
+    val castResult = UDFResult.fromTry[Int](
+      Failure(new RuntimeException("boom")),
+      "field",
+      "bad",
+      "string",
+      "integer",
+      None,
+      errorCodes,
+      Some(0)
+    )
+    val nullResult = UDFResult.fromTry[Int](
+      Failure(new RuntimeException("boom")),
+      "field",
+      null,
+      "string",
+      "integer",
+      None,
+      errorCodes,
+      Some(1)
+    )
+
+    assert(successResult === UDFResult.success(Some(2)))
+    assert(castResult.result === Some(0))
+    assert(castResult.error.map(_.errCode) === Seq("cast-code"))
+    assert(nullResult.result === Some(1))
+    assert(nullResult.error.map(_.errCode) === Seq("null-code"))
+  }
+
+  test("UDFResult.fromTry keeps StandardizationConfig overload") {
+    val result = UDFResult.fromTry[Int](
+      Failure(new RuntimeException("boom")),
+      "field",
+      "bad",
+      "string",
+      "integer",
+      None,
+      stdConfig
+    )
+
+    assert(result.error.map(_.errCode) === Seq(stdConfig.errorCodes.castError))
   }
 
 }
