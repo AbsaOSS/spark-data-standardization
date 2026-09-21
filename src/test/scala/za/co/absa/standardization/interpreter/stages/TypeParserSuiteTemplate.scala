@@ -302,14 +302,103 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   }
 
   private def doAssert(expectedExpression: String, actualExpression: String, method: String): Unit = {
-    if (actualExpression != expectedExpression) {
+    val (expected, actual) =
+      if (SPARK_VERSION.startsWith("4.")) (normalizeExpr(expectedExpression), normalizeExpr(actualExpression))
+      else (expectedExpression, actualExpression)
+
+    if (actual != expected) {
       // the expressions tend to be rather long, the assert most often cuts the beginning and/or end of the string
       // showing just the vicinity of the difference, so we log the output of the whole strings
       log.error(s"Method: $method")
-      log.error(s"Expected: $expectedExpression")
-      log.error(s"Actual  : $actualExpression")
-      assert(actualExpression == expectedExpression)
+      log.error(s"Expected: $expected")
+      log.error(s"Actual  : $actual")
+      assert(actual == expected)
     }
+  }
+
+  /**
+   * Spark 4 changed how  Column.toString renders expressions compared to Spark 3 and older versions.
+   * This normalizer converts both expected and actual expressions to the same form , it is only applied for Spark 4.
+   */
+  private def normalizeExpr(expr: String): String = {
+    transformPrefixOps(expr)
+      .replace("isNaN(", "isnan(")
+      .replace("List()", "[]")
+      .replace("ARRAY()", "[]")
+      .replace("`", "")
+      .replace("'", "")
+      .replaceAll("(DATE|TIMESTAMP) (?=\\d{4})", "")
+      .replaceAll("(\\d\\d:\\d\\d:\\d\\d)\\.0", "$1")
+      .replaceAll("(\\d)L", "$1")
+  }
+
+  private val prefixOps = List("isNotNull", "isNull", "and", "or", "in", ">=", "<=", "=", ">", "<", "/", "%")
+
+  private def transformPrefixOps(s: String): String = {
+    val sb = new StringBuilder
+    var i = 0
+    val n = s.length
+    while (i < n) {
+      val c = s.charAt(i)
+      val boundary = i == 0 || { val p = s.charAt(i - 1); p == '(' || p == ',' || p == ' ' }
+      if (c == '!' && i + 1 < n && s.charAt(i + 1) == '(') {
+        val close = matchParen(s, i + 1)
+        val inner = s.substring(i + 2, close)
+        sb.append("(NOT ").append(transformPrefixOps(inner)).append(")")
+        i = close + 1
+      } else if (boundary && matchOpAt(s, i).isDefined) {
+        val op = matchOpAt(s, i).get
+        val openIdx = i + op.length
+        val close = matchParen(s, openIdx)
+        val args = splitArgs(s.substring(openIdx + 1, close)).map(a => transformPrefixOps(a.trim))
+        sb.append(renderInfix(op, args))
+        i = close + 1
+      } else {
+        sb.append(c)
+        i += 1
+      }
+    }
+    sb.toString
+  }
+
+  private def matchOpAt(s: String, i: Int): Option[String] =
+    prefixOps.find(op => s.startsWith(op + "(", i))
+
+  private def matchParen(s: String, openIdx: Int): Int = {
+    var depth = 0
+    var i = openIdx
+    while (i < s.length) {
+      s.charAt(i) match {
+        case '(' => depth += 1
+        case ')' => depth -= 1; if (depth == 0) return i
+        case _   =>
+      }
+      i += 1
+    }
+    throw new IllegalArgumentException(s"Unbalanced parentheses in expression: $s")
+  }
+
+  private def splitArgs(inner: String): List[String] = {
+    val args = scala.collection.mutable.ListBuffer.empty[String]
+    val sb = new StringBuilder
+    var depth = 0
+    inner.foreach {
+      case '(' => depth += 1; sb.append('(')
+      case ')' => depth -= 1; sb.append(')')
+      case ',' if depth == 0 => args += sb.toString; sb.setLength(0)
+      case ch => sb.append(ch)
+    }
+    if (sb.nonEmpty || args.nonEmpty) args += sb.toString
+    args.toList
+  }
+
+  private def renderInfix(op: String, args: List[String]): String = op match {
+    case "isNull"    => s"(${args.head} IS NULL)"
+    case "isNotNull" => s"(${args.head} IS NOT NULL)"
+    case "and"       => s"(${args.head} AND ${args(1)})"
+    case "or"        => s"(${args.head} OR ${args(1)})"
+    case "in"        => s"(${args.head} IN (${args.tail.mkString(", ")}))"
+    case symbol      => s"(${args.head} $symbol ${args(1)})"
   }
 
 }

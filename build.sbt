@@ -21,10 +21,10 @@ ThisBuild / name := "spark-data-standardization"
 ThisBuild / organization := "za.co.absa"
 
 lazy val scala212 = "2.12.20"
-lazy val scala213 = "2.13.16"
+lazy val scala213 = "2.13.17"
 
 ThisBuild / crossScalaVersions := Seq(scala212, scala213)
-ThisBuild / scalaVersion := scala212
+ThisBuild / scalaVersion := scala213
 
 ThisBuild / versionScheme := Some("early-semver")
 
@@ -44,6 +44,27 @@ ThisBuild / printSparkScalaVersion := {
 Test / parallelExecution := false
 Test / logBuffered := false
 Test / fork := true
+
+// Providing Spark required access to encapsulated JDK internals when running on Java 17+.
+// to avoid failures IllegalAccessError (e.g. sun.nio.ch.DirectBuffer) & IllegalAccessException
+// (e.g. sun.util.calendar.ZoneInfo) , They don't affect Java 11.
+Test / javaOptions ++= Seq(
+  "--add-opens=java.base/java.lang=ALL-UNNAMED",
+  "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+  "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+  "--add-opens=java.base/java.io=ALL-UNNAMED",
+  "--add-opens=java.base/java.net=ALL-UNNAMED",
+  "--add-opens=java.base/java.nio=ALL-UNNAMED",
+  "--add-opens=java.base/java.util=ALL-UNNAMED",
+  "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+  "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+  "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED",
+  "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+  "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED",
+  "--add-opens=java.base/sun.security.action=ALL-UNNAMED",
+  "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
+  "--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED"
+)
 
 // Only apply scalafmt to files that differ from master (i.e. files changed in the feature branch or so; n/a on Windows)
 lazy val fmtFilterExpression: String = System.getProperty("os.name").toLowerCase match {

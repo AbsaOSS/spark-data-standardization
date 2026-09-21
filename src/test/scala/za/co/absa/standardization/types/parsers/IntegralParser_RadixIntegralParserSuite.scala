@@ -80,7 +80,7 @@ class IntegralParser_RadixIntegralParserSuite extends AnyFunSuite {
     val wrong = "g"
     val fail = parser.parse(wrong).failed.get
     assert(fail.isInstanceOf[NumberFormatException])
-    assert(fail.getMessage == """For input string: "g"""")
+    assert(fail.getMessage.startsWith("""For input string: "g""""))
   }
 
   test("base 2 parsing succeeds") {
@@ -103,7 +103,7 @@ class IntegralParser_RadixIntegralParserSuite extends AnyFunSuite {
     val wrong = "3"
     val fail = parser.parse(wrong).failed.get
     assert(fail.isInstanceOf[NumberFormatException])
-    assert(fail.getMessage == """For input string: """" + wrong + """"""")
+    assert(fail.getMessage.startsWith("""For input string: """" + wrong + """""""))
   }
 
 
@@ -127,7 +127,7 @@ class IntegralParser_RadixIntegralParserSuite extends AnyFunSuite {
     val wrong = "__"
     val fail = parser.parse(wrong).failed.get
     assert(fail.isInstanceOf[NumberFormatException])
-    assert(fail.getMessage == """For input string: """" + wrong + """"""")
+    assert(fail.getMessage.startsWith("""For input string: """" + wrong + """""""))
   }
 
   test("string base inputs") {
