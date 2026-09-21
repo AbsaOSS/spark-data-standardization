@@ -36,13 +36,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: coursier/cache-action@95e5b1029b6b86e7bac033ee44a0697d8a527d2d
-
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Build and run tests
         run: sbt ++${{matrix.scala}} test doc
