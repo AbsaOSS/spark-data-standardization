@@ -39,27 +39,50 @@ object Standardization {
     udfLib.register(sparkSession)
     implicit val defaults: TypeDefaults = standardizationConfig.typeDefaults
 
-    logger.info(s"Step 1: Schema validation")
-    validateSchemaAgainstSelfInconsistencies(schema)
+    withNonAnsiCasts(sparkSession) {
+      logger.info(s"Step 1: Schema validation")
+      validateSchemaAgainstSelfInconsistencies(schema)
 
-    logger.info(s"Step 2: Standardization")
-    val std = standardizeDataset(df, schema, standardizationConfig)
+      logger.info(s"Step 2: Standardization")
+      val std = standardizeDataset(df, schema, standardizationConfig)
 
-    logger.info(s"Step 3: Clean the final error column")
-    val cleanedStd = cleanTheFinalErrorColumn(std)
+      logger.info(s"Step 3: Clean the final error column")
+      val cleanedStd = cleanTheFinalErrorColumn(std)
 
-    val idedStd = if (cleanedStd.schema.fieldExists(standardizationConfig.metadataColumns.recordId)) {
-      cleanedStd // no new id regeneration
-    } else {
-      RecordIdGeneration.addRecordIdColumnByStrategy(
-        cleanedStd,
-        standardizationConfig.metadataColumns.recordId,
-        standardizationConfig.metadataColumns.recordIdStrategy
-      )
+      val idedStd = if (cleanedStd.schema.fieldExists(standardizationConfig.metadataColumns.recordId)) {
+        cleanedStd // no new id regeneration
+      } else {
+        RecordIdGeneration.addRecordIdColumnByStrategy(
+          cleanedStd,
+          standardizationConfig.metadataColumns.recordId,
+          standardizationConfig.metadataColumns.recordIdStrategy
+        )
+      }
+
+      logger.info(s"Standardization process finished, returning to the application...")
+      idedStd
     }
+  }
 
-    logger.info(s"Standardization process finished, returning to the application...")
-    idedStd
+  /**
+   * Standardization  treats cast failures (invalid values, overflows and unparseable dates) as error
+   * records relying on Spark returning `null` from a failed casts. Spark 4 upgrade enables ANSI SQL mode
+   * by default , this throws errors and aborts the job. This helper temporarily disables ANSI mode during
+   * plan construction and analysis to preserve the same behavior (null-on-failure) for both Spark 3.5 and
+   * Spark 4. The original value is restored after.
+   */
+  private def withNonAnsiCasts[T](spark: SparkSession)(body: => T): T = {
+    val ansiConfKey = "spark.sql.ansi.enabled"
+    val previous = scala.util.Try(spark.conf.get(ansiConfKey)).toOption
+    spark.conf.set(ansiConfKey, "false")
+    try {
+      body
+    } finally {
+      previous match {
+        case Some(value) => spark.conf.set(ansiConfKey, value)
+        case None        => spark.conf.unset(ansiConfKey)
+      }
+    }
   }
 
 

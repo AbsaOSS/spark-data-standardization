@@ -3,6 +3,7 @@
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 [![Release](https://github.com/AbsaOSS/spark-data-standardization/actions/workflows/release.yml/badge.svg)](https://github.com/AbsaOSS/spark-data-standardization/actions/workflows/release.yml)
 ![Java 11](https://img.shields.io/badge/Java_11-ED8B00?style=flat&logo=openjdk&logoColor=black)
+![Java 17](https://img.shields.io/badge/Java_17-ED8B00?style=flat&logo=openjdk&logoColor=black)
 
 - Dataframe in 
 - Standardized Dataframe out
@@ -16,7 +17,7 @@ The library needs following dependencies to be included in your project
 ```sbt
 "org.apache.spark" %% "spark-core" % SPARK_VERSION,
 "org.apache.spark" %% "spark-sql" % SPARK_VERSION,
-"za.co.absa" %% s"spark-commons-spark${SPARK_MAJOR}.${SPARK_MINOR}" % "0.6.3",
+"za.co.absa" %% s"spark-commons-spark${SPARK_MAJOR}.${SPARK_MINOR}" % "1.0.0",
 ```
 
 ### Usage in SBT:
@@ -49,7 +50,14 @@ The library needs following dependencies to be included in your project
 Spark and Scala compatibility
 >| | Scala 2.12 | Scala 2.13 |
 >|---|---|---|
->|Spark| 3.5.x | 3.5.x |
+>|Spark| 3.5.x | 4.1.x |
+
+Java compatibility
+
+
+>| | Scala 2.12 (Spark 3.5.x) | Scala 2.13 (Spark 4.1.x) |
+>|---|---|---|
+>|Java| 8 / 11 / 17 | 17 |
 
 ## How to Release
 
