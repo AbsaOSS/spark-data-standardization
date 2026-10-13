@@ -24,24 +24,30 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        scala: [2.12.18, 2.13.11]
-    name: Scala ${{matrix.scala}}
+        #  sbt per project  (Scala, Spark) row of the projectMatrix in build.sbt, Spark 4 with Java 17
+        include:
+          - { scala: 2.12.20, spark: 3.5.7, java: '11', project: standardization2_12Spark35 }
+          - { scala: 2.12.20, spark: 3.5.7, java: '17', project: standardization2_12Spark35 }
+          - { scala: 2.13.17, spark: 3.5.7, java: '11', project: standardizationSpark35 }
+          - { scala: 2.13.17, spark: 3.5.7, java: '17', project: standardizationSpark35 }
+          - { scala: 2.13.17, spark: 4.1.2, java: '17', project: standardizationSpark41 }
+    name: Scala ${{matrix.scala}}, Spark ${{matrix.spark}}, Java ${{matrix.java}}
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
 
-      - uses: coursier/cache-action@95e5b1029b6b86e7bac033ee44a0697d8a527d2d
-
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@32ffa16635ff8f19cc21ea253a987f0fdf29844c
+      - name: Setup JDK
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: "adopt@1.11"
+          java-version: ${{ matrix.java }}
+          distribution: temurin
+          cache: "sbt"
 
       - name: Build and run tests
-        run: sbt ++${{matrix.scala}} test doc
+        run: sbt ${{matrix.project}}/test ${{matrix.project}}/doc

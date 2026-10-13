@@ -39,27 +39,79 @@ object Standardization {
     udfLib.register(sparkSession)
     implicit val defaults: TypeDefaults = standardizationConfig.typeDefaults
 
-    logger.info(s"Step 1: Schema validation")
-    validateSchemaAgainstSelfInconsistencies(schema)
+    withNonAnsiCasts(sparkSession) {
+      logger.info(s"Step 1: Schema validation")
+      validateSchemaAgainstSelfInconsistencies(schema)
 
-    logger.info(s"Step 2: Standardization")
-    val std = standardizeDataset(df, schema, standardizationConfig)
+      logger.info(s"Step 2: Standardization")
+      val std = standardizeDataset(df, schema, standardizationConfig)
 
-    logger.info(s"Step 3: Clean the final error column")
-    val cleanedStd = cleanTheFinalErrorColumn(std)
+      logger.info(s"Step 3: Clean the final error column")
+      val cleanedStd = cleanTheFinalErrorColumn(std)
 
-    val idedStd = if (cleanedStd.schema.fieldExists(standardizationConfig.metadataColumns.recordId)) {
-      cleanedStd // no new id regeneration
-    } else {
-      RecordIdGeneration.addRecordIdColumnByStrategy(
-        cleanedStd,
-        standardizationConfig.metadataColumns.recordId,
-        standardizationConfig.metadataColumns.recordIdStrategy
-      )
+      val idedStd = if (cleanedStd.schema.fieldExists(standardizationConfig.metadataColumns.recordId)) {
+        cleanedStd // no new id regeneration
+      } else {
+        RecordIdGeneration.addRecordIdColumnByStrategy(
+          cleanedStd,
+          standardizationConfig.metadataColumns.recordId,
+          standardizationConfig.metadataColumns.recordIdStrategy
+        )
+      }
+
+      logger.info(s"Standardization process finished, returning to the application...")
+      idedStd
+    }
+  }
+
+  /**
+   * Standardization  treats cast failures (invalid values, overflows and unparseable dates) as error
+   * records relying on Spark returning `null` from a failed casts. Spark 4 upgrade enables ANSI SQL mode
+   * by default , this throws errors and aborts the job. This helper temporarily disables ANSI mode during
+   * plan construction and analysis to preserve the same behavior (null-on-failure) for both Spark 3.5 and
+   * Spark 4. The original value is restored after.
+   * See ADR.002-ansi-handling for more details:
+   *
+   * - DataFrame analysis is eager and expressions `Cast`, `to_date`, `to_timestamp`, and arithmetic operations
+   * capture their evaluation mode during analysis, so the DataFrame retains non-ANSI behavior even if
+   * execution occurs later with ANSI mode enabled.
+   *
+   * - Concurrent calls on the same session are reference counted: the first one saves the original value and
+   * disables ANSI, the last one restores it and overlapping calls never see ANSI re-enabled midway ,the
+   * original value is always restored.
+   */
+  private def withNonAnsiCasts[T](spark: SparkSession)(body: => T): T = {
+    NonAnsiScope.enter(spark)
+    try body
+    finally NonAnsiScope.exit(spark)
+  }
+
+  private object NonAnsiScope {
+    private val AnsiKey = "spark.sql.ansi.enabled"
+
+    private final class State(val previous: Option[String]) {
+      var activeCalls: Int = 1
     }
 
-    logger.info(s"Standardization process finished, returning to the application...")
-    idedStd
+    private val states = new java.util.IdentityHashMap[SparkSession, State]()
+
+    def enter(spark: SparkSession): Unit = states.synchronized {
+      Option(states.get(spark)) match {
+        case Some(state) => state.activeCalls += 1
+        case None =>
+          states.put(spark, new State(spark.conf.getOption(AnsiKey)))
+          spark.conf.set(AnsiKey, "false")
+      }
+    }
+
+    def exit(spark: SparkSession): Unit = states.synchronized {
+      val state = states.get(spark)
+      state.activeCalls -= 1
+      if (state.activeCalls == 0) {
+        states.remove(spark)
+        state.previous.fold(spark.conf.unset(AnsiKey))(spark.conf.set(AnsiKey, _))
+      }
+    }
   }
 
 

@@ -22,7 +22,7 @@ on:
 
 jobs:
   scalafmt:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Scalafmt Check
     steps:
       - name: Checkout code
@@ -34,10 +34,11 @@ jobs:
 
       - uses: coursier/cache-action@95e5b1029b6b86e7bac033ee44a0697d8a527d2d
 
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@32ffa16635ff8f19cc21ea253a987f0fdf29844c
+      - name: Setup JDK
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: "adopt@1.11"
+          distribution: temurin
+          java-version: '17'
 
       - name: Run scalafmt And Print Diff
         continue-on-error: true
