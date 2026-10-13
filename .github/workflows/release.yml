@@ -28,14 +28,30 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # Spark 4.1 requires Java 17, the Spark 3.5 rows stay Java 11 compatible
+      # build.sbt pins -release 11 / -source 11 -target 11.
       - name: Setup JDK
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: '17'
+          cache: sbt
 
+      # Making the release auditable: printing every module ci-release will publish,
+      # ensuring the Spark 4.1 / Scala 2.13 artifact are visible in the log.
+      # Expected: spark-data-standardization-spark3.5_2.12,
+      #           spark-data-standardization-spark3.5_2.13,
+      #           spark-data-standardization-spark4.1_2.13
+      - name: List modules to be published
+        run: |
+          sbt -batch -no-colors \
+            'show standardization2_12Spark35 / moduleName' \
+            'show standardizationSpark35 / moduleName' \
+            'show standardizationSpark41 / moduleName' \
+            'show root / publish / skip'
 
-      - run: sbt ci-release
+      - name: Publish all cross-build artifacts
+        run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
