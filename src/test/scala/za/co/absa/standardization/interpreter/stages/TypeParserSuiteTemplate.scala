@@ -317,9 +317,9 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
   }
 
   /**
-   * Spark 4 changed how  Column.toString renders expressions compared to Spark 3 and older versions.
-   * This normalizer converts both expected and actual expressions to the same form , it is only applied for Spark 4.
-   */
+  * Spark 4 changed how `Column.toString` renders expressions compared to Spark 3 and older versions.
+  * This normalizer converts both expected and actual expressions to the same form , it is only applied for Spark 4.
+  */
   private def normalizeExpr(expr: String): String = {
     transformPrefixOps(expr)
       .replace("isNaN(", "isnan(")
@@ -332,8 +332,24 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
       .replaceAll("(\\d)L", "$1")
   }
 
+  /** Spark 4 prefix operators, longer names come first so `isNotNull` is not mistaken for `isNull`, `>=` for `>`. */
   private val prefixOps = List("isNotNull", "isNull", "and", "or", "in", ">=", "<=", "=", ">", "<", "/", "%")
 
+  /**
+   * Converts Spark 4 prefix operators to Spark 3 infix syntax while leaving other expressions (e.g. `CAST`, `to_date`,
+   * `array`, literals) unchanged.
+   *
+   * An operator is only recognised at the start of the string or right after `(`, `,` or a space, preventing function
+   * names that contain operator names from being rewritten.
+   *
+   * Examples:
+   * {{{
+   *   isNull(x)                                 => (x IS NULL)
+   *   and(isNotNull(a), >(a, 5))                => ((a IS NOT NULL) AND (a > 5))
+   *   or(isNull(c), !(=(%(d, 1.0), 0.0)))       => ((c IS NULL) OR (NOT ((d % 1.0) = 0.0)))
+   *   in(CAST(d AS DOUBLE), Infinity, -Infinity) => (CAST(d AS DOUBLE) IN (Infinity, -Infinity))
+   * }}}
+   */
   private def transformPrefixOps(s: String): String = {
     val sb = new StringBuilder
     var i = 0
@@ -361,9 +377,11 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     sb.toString
   }
 
+  /** Returns the prefix operator starting at position `i` (operator name immediately followed by `(`). */
   private def matchOpAt(s: String, i: Int): Option[String] =
     prefixOps.find(op => s.startsWith(op + "(", i))
 
+  /** Returns the index of the `)` matching the `(` at `openIdx`, e.g. `matchParen("f(a(b))", 1) == 6`. */
   private def matchParen(s: String, openIdx: Int): Int = {
     var depth = 0
     var i = openIdx
@@ -378,6 +396,7 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     throw new IllegalArgumentException(s"Unbalanced parentheses in expression: $s")
   }
 
+  /** Splits a comma separated argument list on top-level commas only, e.g. `"a, f(b, c)"` => `List("a", " f(b, c)")`. */
   private def splitArgs(inner: String): List[String] = {
     val args = scala.collection.mutable.ListBuffer.empty[String]
     val sb = new StringBuilder
@@ -392,6 +411,16 @@ trait TypeParserSuiteTemplate extends AnyFunSuite with SparkTestBase {
     args.toList
   }
 
+  /**
+   * Renders one prefix operator with its normalized arguments in Spark 3 infix form:
+   * {{{
+   *   renderInfix("isNull", List("x"))                  => (x IS NULL)
+   *   renderInfix("isNotNull", List("x"))               => (x IS NOT NULL)
+   *   renderInfix("and", List("a", "b"))                => (a AND b)
+   *   renderInfix("in", List("x", "1", "2"))            => (x IN (1, 2))
+   *   renderInfix(">", List("length(s)", "8"))          => (length(s) > 8)
+   * }}}
+   */
   private def renderInfix(op: String, args: List[String]): String = op match {
     case "isNull"    => s"(${args.head} IS NULL)"
     case "isNotNull" => s"(${args.head} IS NOT NULL)"
