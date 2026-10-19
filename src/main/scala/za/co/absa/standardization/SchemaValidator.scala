@@ -110,6 +110,7 @@ object SchemaValidator {
         field.dataType match {
           case s: StructType => fields ++= flattenStruct(s, prefix + field.name)
           case a: ArrayType => fields ++= flattenArray(field, a, prefix + field.name + "[]")
+          case m: MapType => fields ++= flattenMap(field, m, prefix + field.name + "[]")
           case _ =>
             val prefixedField = FlatField(structPath, field)
             fields += prefixedField
@@ -123,11 +124,25 @@ object SchemaValidator {
       arr.elementType match {
         case stuctInArray: StructType => arrayFields ++= flattenStruct(stuctInArray, structPath)
         case arrayType: ArrayType => arrayFields ++= flattenArray(field, arrayType, structPath + "[]")
+        case mapType: MapType => arrayFields ++= flattenMap(field, mapType, structPath + "[]")
         case _ =>
           val prefixedField = FlatField(structPath, field)
           arrayFields += prefixedField
       }
       arrayFields.toSeq //has to be here for Scala 2.13 compatibility
+    }
+
+    def flattenMap(field: StructField, map: MapType, structPath: String): Seq[FlatField] = {
+      val mapFields = new ListBuffer[FlatField]
+      map.valueType match {
+        case structInMap: StructType => mapFields ++= flattenStruct(structInMap, structPath)
+        case arrayType: ArrayType => mapFields ++= flattenArray(field, arrayType, structPath + "[]")
+        case mapType: MapType => mapFields ++= flattenMap(field, mapType, structPath + "[]")
+        case _ =>
+          val prefixedField = FlatField(structPath, field)
+          mapFields += prefixedField
+      }
+      mapFields.toSeq //has to be here for Scala 2.13 compatibility
     }
 
     flattenStruct(schema, "")

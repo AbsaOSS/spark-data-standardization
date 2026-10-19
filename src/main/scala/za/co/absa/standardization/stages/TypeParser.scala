@@ -50,6 +50,7 @@ import scala.util.{Random, Try}
   * Class hierarchy:
   *   TypeParser
   *     ArrayParser !
+  *     MapParser !
   *     StructParser !
   *     PrimitiveParser
   *       ScalarParser
@@ -107,9 +108,13 @@ sealed trait TypeParser[T] {
 
     (origType, fieldType) match {
       case (ArrayType(_, _), ArrayType(_, _)) => None
+      case (origMapType: MapType, targetMapType: MapType) if origMapType.keyType == targetMapType.keyType => None
+      case (_: MapType, _: MapType) => noCastingPossible
       case (StructType(_), StructType(_)) => None
       case (ArrayType(_, _), _) => noCastingPossible
       case (_, ArrayType(_, _)) => noCastingPossible
+      case (MapType(_, _, _), _) => noCastingPossible
+      case (_, MapType(_, _, _)) => noCastingPossible
       case (StructType(_), _) => noCastingPossible
       case (_, StructType(_)) => noCastingPossible
       case _ => None
@@ -167,6 +172,7 @@ object TypeParser {
                    (implicit defaults: TypeDefaults): TypeParser[_] = {
     val parserClass: (String, Column, DataType, Boolean, Boolean) => TypeParser[_] = field.dataType match {
       case _: ArrayType     => ArrayParser(TypedStructField.asArrayTypeStructField(field), _, _, _, _, _)
+      case _: MapType       => MapParser(TypedStructField.asMapTypeStructField(field), _, _, _, _, _)
       case _: StructType    => StructParser(TypedStructField.asStructTypeStructField(field), _, _, _, _, _)
       case _: ByteType      =>
         IntegralParser(TypedStructField.asNumericTypeStructField[Byte](field), _, _, _, _, _, Set(ShortType, IntegerType, LongType))
@@ -218,6 +224,44 @@ object TypeParser {
         )
       val stdCols = transform(column, lambdaStdCols, lambdaVariableName)
       logger.info(s"Finished standardization plan for Array $inputFullPathName")
+      ParseOutput(stdCols as (fieldOutputName, metadata), finalErrs)
+    }
+  }
+
+  private final case class MapParser(override val field: MapTypeStructField,
+                                     path: String,
+                                     column: Column,
+                                     origType: DataType,
+                                     failOnInputNotPerSchema: Boolean,
+                                     isArrayElement: Boolean)
+                                    (implicit defaults: TypeDefaults) extends TypeParser[Any] {
+
+    override def fieldType: MapType = {
+      field.dataType
+    }
+
+    override protected def standardizeAfterCheck(stdConfig: StandardizationConfig)(implicit logger: Logger): ParseOutput = {
+      logger.info(s"Creating standardization plan for Map $inputFullPathName")
+      val origMapType = origType.asInstanceOf[MapType] // this should never throw an exception because of `checkSetupForFailure`
+      val valueField = StructField(fieldInputName, fieldType.valueType, fieldType.valueContainsNull, field.structField.metadata)
+      val lambda = (forCol: Column) => TypeParser(valueField, path, forCol, origMapType.valueType, failOnInputNotPerSchema, isArrayElement = true)
+        .standardize(stdConfig)
+
+      val lambdaErrCols = lambda.andThen(_.errors)
+      val lambdaStdCols = lambda.andThen(_.stdCol)
+      val nullErrCond = column.isNull and lit(!field.nullable)
+
+      val valueErrs = map_values(transform_values(column, (_: Column, valueCol: Column) => lambdaErrCols(valueCol)))
+      val finalErrs = when(nullErrCond,
+        array(typedLit(StandardizationErrorMessage.stdNullErr(inputFullPathName)(stdConfig.errorCodes))))
+        .when(column.isNull,
+          typedLit(Seq.empty[ErrorMessage])
+        )
+        .otherwise(
+          flatten(valueErrs)
+        )
+      val stdCols = transform_values(column, (_: Column, valueCol: Column) => lambdaStdCols(valueCol))
+      logger.info(s"Finished standardization plan for Map $inputFullPathName")
       ParseOutput(stdCols as (fieldOutputName, metadata), finalErrs)
     }
   }

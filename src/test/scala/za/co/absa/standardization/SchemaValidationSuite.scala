@@ -225,4 +225,28 @@ class SchemaValidationSuite extends AnyFunSuite with LoggerTestBase {
     assert(failures(3).fieldName == "matrix[][].foo.bar")
   }
 
+  test("Nested map fields should be validated") {
+    val schema = StructType(
+      Array(
+        StructField("id", StringType),
+        StructField("dates", MapType(StringType, DateType), nullable = true, Metadata.fromJson(""" { "pattern": "Fubar" } """)),
+        StructField("payments", MapType(StringType, StructType(Array(
+          StructField("due", DateType, nullable = false, Metadata.fromJson(""" { "pattern": "dd-MM-yyyy'T'HH:mm:ss" } """)),
+          StructField("made", TimestampType, nullable = false, Metadata.fromJson(""" { "pattern": "dd-MM-yyyy" } """))
+        ))))
+      ))
+    val failures = SchemaValidator.validateSchema(schema)(CommonTypeDefaults)
+    if (failures.lengthCompare(3) != 0) {
+      logger.error("Schema:\n")
+      logger.error(schema.prettyJson)
+      logger.error("Validation errors:")
+      logger.error(failures.mkString("\n"))
+    }
+
+    assert(failures.lengthCompare(3) == 0)
+    assert(failures(0).fieldName == "dates[].dates")
+    assert(failures(1).fieldName == "payments[].due")
+    assert(failures(2).fieldName == "payments[].made")
+  }
+
 }
