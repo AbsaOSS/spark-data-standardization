@@ -19,10 +19,11 @@ package za.co.absa.standardization.interpreter.stages
 import org.apache.spark.sql.types._
 import org.scalatest.funsuite.AnyFunSuite
 import za.co.absa.spark.commons.test.SparkTestBase
+import za.co.absa.spark.commons.utils.ColUtils
 import za.co.absa.standardization.RecordIdGeneration.IdType.NoId
-import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig, StandardizationConfig}
+import za.co.absa.standardization.config.{BasicMetadataColumnsConfig, BasicStandardizationConfig}
 import za.co.absa.standardization.stages.TypeParser
-import za.co.absa.standardization.types.{TypeDefaults, CommonTypeDefaults}
+import za.co.absa.standardization.types.{CommonTypeDefaults, TypeDefaults}
 import za.co.absa.standardization.udf.UDFLibrary
 
 class TypeParserSuite extends AnyFunSuite with SparkTestBase {
@@ -44,21 +45,21 @@ class TypeParserSuite extends AnyFunSuite with SparkTestBase {
     val schema = StructType(Array(structFieldNoMetadata, structFieldWithMetadataNotSourceColumn, structFieldWithMetadataSourceColumn))
     //Just Testing field name override
     val parseOutputStructFieldNoMetadata = TypeParser.standardize(structFieldNoMetadata, "path", schema, stdConfig)
-    assertResult(true)(parseOutputStructFieldNoMetadata.stdCol.expr.toString().contains("path.a"))
-    assertResult(false)(parseOutputStructFieldNoMetadata.stdCol.expr.toString().replaceAll("path.a", "").contains("path"))
-    assertResult(true)(parseOutputStructFieldNoMetadata.errors.expr.toString().contains("path.a"))
-    assertResult(false)(parseOutputStructFieldNoMetadata.errors.expr.toString().replaceAll("path.a", "").contains("path"))
+    assertResult(true)(ColUtils.col2Expr(parseOutputStructFieldNoMetadata.stdCol).toString().contains("path.a"))
+    assertResult(false)(ColUtils.col2Expr(parseOutputStructFieldNoMetadata.stdCol).toString().replaceAll("path.a", "").contains("path"))
+    assertResult(true)(ColUtils.col2Expr(parseOutputStructFieldNoMetadata.errors).toString().contains("path.a"))
+    assertResult(false)(ColUtils.col2Expr(parseOutputStructFieldNoMetadata.errors).toString().replaceAll("path.a", "").contains("path"))
     val parseOutputStructFieldWithMetadataNotSourceColumn = TypeParser.standardize(structFieldWithMetadataNotSourceColumn, "path", schema, stdConfig)
-    assertResult(true)(parseOutputStructFieldWithMetadataNotSourceColumn.stdCol.expr.toString().contains("path.b"))
-    assertResult(false)(parseOutputStructFieldWithMetadataNotSourceColumn.stdCol.expr.toString().replaceAll("path.b", "").contains("path"))
-    assertResult(true)(parseOutputStructFieldWithMetadataNotSourceColumn.errors.expr.toString().contains("path.b"))
-    assertResult(false)(parseOutputStructFieldWithMetadataNotSourceColumn.errors.expr.toString().replaceAll("path.b", "").contains("path"))
+    assertResult(true)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataNotSourceColumn.stdCol).toString().contains("path.b"))
+    assertResult(false)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataNotSourceColumn.stdCol).toString().replaceAll("path.b", "").contains("path"))
+    assertResult(true)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataNotSourceColumn.errors).toString().contains("path.b"))
+    assertResult(false)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataNotSourceColumn.errors).toString().replaceAll("path.b", "").contains("path"))
     val parseOutputStructFieldWithMetadataSourceColumn = TypeParser.standardize(structFieldWithMetadataSourceColumn, "path", schema, stdConfig)
-    assertResult(false)(parseOutputStructFieldWithMetadataSourceColumn.stdCol.expr.toString().contains("path.c"))
-    assertResult(true)(parseOutputStructFieldWithMetadataSourceColumn.stdCol.expr.toString().contains("path.override_c"))
-    assertResult(false)(parseOutputStructFieldWithMetadataSourceColumn.stdCol.expr.toString().replaceAll("path.override_c", "").contains("path"))
-    assertResult(false)(parseOutputStructFieldWithMetadataSourceColumn.errors.expr.toString().contains("path.c"))
-    assertResult(true)(parseOutputStructFieldWithMetadataSourceColumn.errors.expr.toString().contains("path.override_c"))
-    assertResult(false)(parseOutputStructFieldWithMetadataSourceColumn.errors.expr.toString().replaceAll("path.override_c", "").contains("path"))
+    assertResult(false)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataSourceColumn.stdCol).toString().contains("path.c"))
+    assertResult(true)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataSourceColumn.stdCol).toString().contains("path.override_c"))
+    assertResult(false)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataSourceColumn.stdCol).toString().replaceAll("path.override_c", "").contains("path"))
+    assertResult(false)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataSourceColumn.errors).toString().contains("path.c"))
+    assertResult(true)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataSourceColumn.errors).toString().contains("path.override_c"))
+    assertResult(false)(ColUtils.col2Expr(parseOutputStructFieldWithMetadataSourceColumn.errors).toString().replaceAll("path.override_c", "").contains("path"))
   }
 }

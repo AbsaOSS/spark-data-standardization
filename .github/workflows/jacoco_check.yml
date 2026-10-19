@@ -23,20 +23,33 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
         include:
-          # The project supports Scala 2.12, 2.13
-          # The CI runs all tests suites for all supported Scala versions at build.yml
-          # The codebase for all Scala versions is the same, so the coverage is calculated only once
-          # Scala 2.12 is chosen since it is supported by the most wide range of Spark versions and
-          # vendor distributions.
+          # The project is built for (Scala 2.12, Spark 3.5), (Scala 2.13, Spark 3.5) and (Scala 2.13, Spark 4.1)
+          # The CI runs all tests suites for all of them at build.yml
+          # The codebase is shared but the runtime paths differ per Spark major version ( ANSI mode is on by default
+          # in Spark 4) so coverage is checked once per Spark major version:
+          # - Scala 2.12 / Spark 3.5: supported by the wide range of Spark versions and vendor distributions
+          # - Scala 2.13 / Spark 4.1: the only Spark 4 row
           - scala: 2.12.20
             scalaShort: "2.12"
+            spark: 3.5.7
+            project: standardization2_12Spark35
             overall: 80.0
             changed: 80.0
             per-changed-file: 60.0
+
+          - scala: 2.13.17
+            scalaShort: "2.13"
+            spark: 4.1.2
+            project: standardizationSpark41
+            overall: 75.0
+            changed: 80.0
+            per-changed-file: 60.0
+    name: JaCoCo - Scala ${{matrix.scala}}, Spark ${{matrix.spark}}
 
     steps:
       - name: Checkout code
@@ -46,10 +59,11 @@ jobs:
 
       - uses: coursier/cache-action@95e5b1029b6b86e7bac033ee44a0697d8a527d2d
 
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@32ffa16635ff8f19cc21ea253a987f0fdf29844c
+      - name: Setup JDK
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: "adopt@1.11"
+          distribution: temurin
+          java-version: '17'
 
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
@@ -57,7 +71,7 @@ jobs:
           python-version: "3.14"
 
       - name: Build and run tests
-        run: sbt ++${{matrix.scala}} jacoco
+        run: sbt "project ${{matrix.project}}" jacoco
 
       - name: Add JaCoCo Report in PR comments
         id: jacoco
@@ -68,7 +82,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           global-thresholds: '${{ matrix.overall }}*${{ matrix.changed }}'
           report-thresholds-default: '${{ matrix.overall }}*${{ matrix.changed }}*${{ matrix.per-changed-file }}'
-          title: JaCoCo code coverage report - scala ${{ matrix.scala }}
+          title: JaCoCo code coverage report - scala ${{ matrix.scala }}, spark ${{ matrix.spark }}
           update-comment: true
 
       - name: Get the Coverage info

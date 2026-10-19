@@ -20,7 +20,7 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -28,14 +28,33 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@32ffa16635ff8f19cc21ea253a987f0fdf29844c
+      # Spark 4.1 requires Java 17, the Spark 3.5 rows stay Java 11 compatible
+      # build.sbt pins -release 11 / -source 11 -target 11.
+      - name: Setup JDK
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: "adopt@1.11"
+          distribution: temurin
+          java-version: '17'
+          cache: sbt
 
-      - run: sbt ci-release
+      # Making the release auditable: printing every module ci-release will publish,
+      # ensuring the Spark 4.1 / Scala 2.13 artifact are visible in the log.
+      # Expected: spark-data-standardization-spark3.5_2.12,
+      #           spark-data-standardization-spark3.5_2.13,
+      #           spark-data-standardization-spark4.1_2.13
+      - name: List modules to be published
+        run: |
+          sbt -batch -no-colors \
+            'show standardization2_12Spark35 / moduleName' \
+            'show standardizationSpark35 / moduleName' \
+            'show standardizationSpark41 / moduleName' \
+            'show root / publish / skip'
+
+      - name: Publish all cross-build artifacts
+        run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          

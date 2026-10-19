@@ -17,27 +17,25 @@
 import sbt._
 
 object Dependencies {
-  private def getSparkVersionUpToMinor(sparkVersion: String): String =  {
+  def getSparkVersionUpToMinor(sparkVersion: String): String =  {
     val pattern = "([0-9]+)\\.([0-9]+)\\.([0-9]+)".r
     val pattern(major, minor, patch) = sparkVersion
     s"$major.$minor"
   }
 
-  private def sparkFastTestsVersion(scalaVersion: String): String = "1.1.0"
+  private val sparkFastTestsVersion: String = "1.1.0"
 
-  def getSparkVersion(scalaVersion: String): String = "3.5.7"
-
-  def dependencyList(scalaVersion: String): Seq[ModuleID] = {
-    val sparkVersion = getSparkVersion(scalaVersion)
+  /** Dependencies of one build row, the Spark version is provided by the row's [[SparkVersionAxis]]. */
+  def dependencyList(sparkVersion: String): Seq[ModuleID] = {
     val sparkVersionUpToMinor = getSparkVersionUpToMinor(sparkVersion)
     List(
       "org.apache.spark" %% "spark-core" % sparkVersion % Provided,
       "org.apache.spark" %% "spark-sql" % sparkVersion % Provided,
-      "za.co.absa" %% s"spark-commons-spark$sparkVersionUpToMinor" % "0.6.3" % Provided,
-      "za.co.absa" %% "spark-commons-test" % "0.6.3" % Test,
+      "za.co.absa" %% s"spark-commons-spark$sparkVersionUpToMinor" % "1.0.0" % Provided,
+      "za.co.absa" %% "spark-commons-test" % "1.0.0" % Test,
       "com.typesafe" % "config" % "1.4.2",
-      "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion(scalaVersion) % Test,
-      "org.scalatest" %% "scalatest" % "3.2.15" % Test
+      "com.github.mrpowers" %% "spark-fast-tests" % sparkFastTestsVersion % Test,
+      "org.scalatest" %% "scalatest" % "3.2.2" % Test
     )
   }
 }
