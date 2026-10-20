@@ -92,6 +92,7 @@ class TypedStructFieldSuite extends AnyFunSuite {
       case TimestampType  => (field.isInstanceOf[TimestampTypeStructField], "TimestampTypeStructField")
       case _: DecimalType => (field.isInstanceOf[DecimalTypeStructField], "DecimalTypeStructField")
       case _: ArrayType   => (field.isInstanceOf[ArrayTypeStructField], "ArrayTypeStructField")
+      case _: MapType     => (field.isInstanceOf[MapTypeStructField], "MapTypeStructField")
       case _: StructType  => (field.isInstanceOf[StructTypeStructField], "StructTypeStructField")
       case _ => (field.isInstanceOf[GeneralTypeStructField], "GeneralTypeStructField")
     }
@@ -283,6 +284,23 @@ class TypedStructFieldSuite extends AnyFunSuite {
 
   test("Array type with date element data type and incorrect associated metadata") {
     val fieldType = ArrayType(DateType)
+    val nullable = true
+    val field = createField(fieldType, nullable, None, Map( MetadataKeys.Pattern->"Fubar"))
+    val typed = TypedStructField(field)
+    val errMsg = "Illegal pattern character 'b'"
+    checkField(typed, fieldType, Success(None), Success(None), nullable, Seq(ValidationError(errMsg)))
+  }
+
+  test("Map type with long value data type and correct associated metadata") {
+    val fieldType = MapType(StringType, LongType)
+    val nullable = true
+    val field = createField(fieldType, nullable, Some("9999"), Map( MetadataKeys.MinusSign->"$"))
+    val typed = TypedStructField(field)
+    checkField(typed, fieldType, Success(None), Success(None), nullable)
+  }
+
+  test("Map type with date value data type and incorrect associated metadata") {
+    val fieldType = MapType(StringType, DateType)
     val nullable = true
     val field = createField(fieldType, nullable, None, Map( MetadataKeys.Pattern->"Fubar"))
     val typed = TypedStructField(field)

@@ -148,6 +148,7 @@ object TypedStructField {
       case _: TimestampType => new TimestampTypeStructField(structField)
       case _: DateType      => new DateTypeStructField(structField)
       case at: ArrayType    => new ArrayTypeStructField(structField, at)
+      case mt: MapType      => new MapTypeStructField(structField, mt)
       case st: StructType   => new StructTypeStructField(structField, st)
       case _                => new GeneralTypeStructField(structField)
     }
@@ -159,6 +160,8 @@ object TypedStructField {
     TypedStructField(structField).asInstanceOf[DateTimeTypeStructField[T]]
   def asArrayTypeStructField(structField: StructField)(implicit defaults: TypeDefaults): ArrayTypeStructField =
     TypedStructField(structField).asInstanceOf[ArrayTypeStructField]
+  def asMapTypeStructField(structField: StructField)(implicit defaults: TypeDefaults): MapTypeStructField =
+    TypedStructField(structField).asInstanceOf[MapTypeStructField]
   def asStructTypeStructField(structField: StructField)(implicit defaults: TypeDefaults): StructTypeStructField =
     TypedStructField(structField).asInstanceOf[StructTypeStructField]
   def asBinaryTypeStructField(structField: StructField)(implicit defaults: TypeDefaults): BinaryTypeStructField =
@@ -471,6 +474,24 @@ object TypedStructField {
 
     override def ownDefaultValue: Try[Option[Option[Any]]] = {
       Success(None) // array type doesn't have own default value, if defined it is to be applied to element type
+    }
+  }
+
+  final class MapTypeStructField private[TypedStructField](structField: StructField, override val dataType: MapType)
+                                                           (implicit defaults: TypeDefaults)
+    extends TypedStructFieldTagged[Any](structField) with WeakSupport[Any] {
+
+    override def validate(): Seq[ValidationIssue] = {
+      val typedValueField = Try {
+        val valueField = StructField(name, dataType.valueType, dataType.valueContainsNull, structField.metadata)
+        TypedStructField(valueField)
+      }
+
+      super.validate() ++ FieldValidator.tryToValidationIssues(typedValueField.map(_.validate()))
+    }
+
+    override def ownDefaultValue: Try[Option[Option[Any]]] = {
+      Success(None) // map type doesn't have own default value, if defined it is to be applied to value type
     }
   }
 
