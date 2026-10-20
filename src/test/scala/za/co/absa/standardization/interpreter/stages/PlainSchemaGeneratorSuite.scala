@@ -34,7 +34,12 @@ class PlainSchemaGeneratorSuite extends AnyFunSuite with SparkTestBase {
           StructField("i", IntegerType, nullable = false, new MetadataBuilder().putString("sourcecolumn", "override_i").build)
         ))))
       )))
-    ))))
+    )))),
+    StructField("j", MapType(StringType, IntegerType, valueContainsNull = false)),
+    StructField("k", MapType(StringType, StructType(Seq(
+      StructField("l", IntegerType, nullable = false),
+      StructField("m", IntegerType, nullable = false, new MetadataBuilder().putString("sourcecolumn", "override_m").build)
+    )), valueContainsNull = false))
   ))
 
   private val expectedSchemaSeq = Seq(
@@ -49,7 +54,12 @@ class PlainSchemaGeneratorSuite extends AnyFunSuite with SparkTestBase {
           StructField("override_i", StringType, nullable = true, new MetadataBuilder().putString("sourcecolumn", "override_i").build)
         ))))
       )))
-    ))))
+    )))),
+    StructField("j", MapType(StringType, StringType, valueContainsNull = true), nullable = true),
+    StructField("k", MapType(StringType, StructType(Seq(
+      StructField("l", StringType, nullable = true),
+      StructField("override_m", StringType, nullable = true, new MetadataBuilder().putString("sourcecolumn", "override_m").build)
+    )), valueContainsNull = true), nullable = true)
   )
 
   private val expectedSchema = StructType(expectedSchemaSeq)

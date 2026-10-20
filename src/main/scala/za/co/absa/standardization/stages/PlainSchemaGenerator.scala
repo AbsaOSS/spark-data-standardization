@@ -40,6 +40,7 @@ object PlainSchemaGenerator {
     inp match {
       case st: StructType => StructType(structTypeFieldsConversion(st.fields))
       case at: ArrayType  => ArrayType(inputSchemaAsStringTypes(at.elementType), containsNull = true)
+      case mt: MapType    => MapType(mt.keyType, inputSchemaAsStringTypes(mt.valueType), valueContainsNull = true)
       case _: DataType    => StringType
     }
   }
