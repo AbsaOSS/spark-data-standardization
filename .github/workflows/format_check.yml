@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
           ref: refs/pull/${{ github.event.pull_request.number }}/head
 
-      - uses: coursier/cache-action@057d08c2f9a2c4e7a4d33df3aae657b7db88b8cc
+      - uses: coursier/cache-action@ee0650f98295f27a505e4bfd284c9bfaa913a465
 
       - name: Setup JDK
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
