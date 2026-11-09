@@ -18,7 +18,7 @@ package za.co.absa.standardization.udf
 
 import za.co.absa.standardization.ErrorMessage
 import za.co.absa.standardization.StandardizationErrorMessage
-import za.co.absa.standardization.config.StandardizationConfig
+import za.co.absa.standardization.config.{ErrorCodesConfig, StandardizationConfig}
 
 import scala.util.{Failure, Success, Try}
 
@@ -38,11 +38,22 @@ object UDFResult {
                  pattern: Option[String],
                  stdConfig: StandardizationConfig,
                  defaultValue: Option[T] = None): UDFResult[T] = {
+    fromTry(result, columnName, rawValue, sourceType, targetType, pattern, stdConfig.errorCodes, defaultValue)
+  }
+
+  def fromTry[T](result: Try[Option[T]],
+                 columnName: String,
+                 rawValue: String,
+                 sourceType: String,
+                 targetType: String,
+                 pattern: Option[String],
+                 errorCodes: ErrorCodesConfig,
+                 defaultValue: Option[T]): UDFResult[T] = {
     result match {
       case Success(success)                       => UDFResult.success(success)
-      case Failure(_) if Option(rawValue).isEmpty => UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdNullErr(columnName)(stdConfig.errorCodes)))
+      case Failure(_) if Option(rawValue).isEmpty => UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdNullErr(columnName)(errorCodes)))
       case Failure(_)                             =>
-        UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdCastErr(columnName, rawValue, sourceType, targetType, pattern)(stdConfig.errorCodes)))
+        UDFResult(defaultValue, Seq(StandardizationErrorMessage.stdCastErr(columnName, rawValue, sourceType, targetType, pattern)(errorCodes)))
     }
   }
 }
